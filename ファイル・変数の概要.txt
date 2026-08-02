@@ -21,10 +21,14 @@
 - 元のままのデータはセル結合を多用していたりして、Rでの分析には使えない。1行1データの形式に直す。
 - セル結合は一括でキャンセル。
 - 地域名は列があちこちずれているのでそろえる。
+  - ヒント：textjoin()を使う。
 - データ結合には市町村コードを使用する。
 - 値が「通貨」になっているところは「数値」に直す。
 - 地域コードは文字列のまま。
 - 変数名は以下の「変数名」セクションに従って修正。
+- 「-」は[農水省HP](https://www.maff.go.jp/j/tokei/kouhyou/noucen/gaiyou/index.html?utm_source=chatgpt.com)によると「 調査は行ったが事実のないもの。」とのこと。Rにインポートしたときに0に変換しておこう。「x」は秘匿データなのでNAにする。
+- 「〇〇郡」とある地域名は、ただの地域区分なので、旧市町村コードもデータもない。ほっといてもいいけど、Rインポート時に削除してもいい。
+- 2020年センサスは2010、2015年センサスと面積区分の集計方法が一部異なる（2010、2015年センサスでは100ha以上層の区分があるが、2020年センサスでは100-150haと150ha以上層に細分化されている）
 
 
 
@@ -38,23 +42,30 @@
 
 # 変数名
 
-| 変数名                | 備考                                                         | 作成元データ                           |
-| --------------------- | ------------------------------------------------------------ | -------------------------------------- |
-| entities_total        | 経営耕地面積規模別経営体数の合計                             | entities_by_farm_size_2010_miyagi.xlsx |
-| area_name             | 地域名。県・区・町村などの階層情報は考慮しない（階層情報は市区町村コードに反映させる）。Excel元データでは地域名の列位置が階層によりずれているので、=TEXTJOIN("",TRUE,B6:D6)のようにして、1つの列に置く。 | entities_by_farm_size_2010_miyagi.xlsx |
-| area_code             | 地域コード。市区町村コードと旧市区町村コードが連結されている。Rでは分割処理して使用する。 | entities_by_farm_size_2010_miyagi      |
-| entities_no_land      | 「経営耕地なし」に該当する経営体数                           | entities_by_farm_size_2010_miyagi      |
-| entities_under_0_3ha  | 「0.3ha未満」に該当する経営体数                              | entities_by_farm_size_2010_miyagi      |
-| entities_0_3_0_5ha    | 「0.3-0.5ha」に該当する経営体数                              | entities_by_farm_size_2010_miyagi      |
-| entities_0_5_1_0ha    | 「0.5-1.0ha」に該当する経営体数                              | entities_by_farm_size_2010_miyagi      |
-| entities_1_0_1_5ha    | 「1.0-1.5ha」に該当する経営体数                              | entities_by_farm_size_2010_miyagi      |
-| entities_1_5_2_0ha    | 「1.5-2.0ha」に該当する経営体数                              | entities_by_farm_size_2010_miyagi      |
-| entities_2_0_3_0ha    | 「2.0-3.0ha」に該当する経営体数                              | entities_by_farm_size_2010_miyagi      |
-| entities_3_0_5_0ha    | 「3.0-5.0ha」に該当する経営体数                              | entities_by_farm_size_2010_miyagi      |
-| entities_5_0_10_0ha   | 「5.0-10.0ha」に該当する経営体数                             | entities_by_farm_size_2010_miyagi      |
-| entities_10_0_20_0ha  | 「10.0-20.0ha」に該当する経営体数                            | entities_by_farm_size_2010_miyagi      |
-| entities_20_0_30_0ha  | 「20.0-30.0ha」に該当する経営体数                            | entities_by_farm_size_2010_miyagi      |
-| entities_30_0_50_0ha  | 「30.0-50.0ha」に該当する経営体数                            | entities_by_farm_size_2010_miyagi      |
-| entities_50_0_100_0ha | 「50.0-100.0ha」に該当する経営体数                           | entities_by_farm_size_2010_miyagi      |
-| entities_over_100_0ha | 「100.0ha以上」に該当する経営体数                            | entities_by_farm_size_2010_miyagi      |
+| 変数名                   | 備考                                                         | 作成元データ                           |
+| ------------------------ | ------------------------------------------------------------ | -------------------------------------- |
+| census_year              | どの時点のセンサスデータであるかを示す。                     |                                        |
+| entities_total           | 経営耕地面積規模別経営体数の合計                             | entities_by_farm_size_2010_miyagi.xlsx |
+| area_name                | 地域名。県・区・町村などの階層情報は考慮しない（階層情報は市区町村コードに反映させる）。Excel元データでは地域名の列位置が階層によりずれているので、=TEXTJOIN("",TRUE,B6:D6)のようにして、1つの列に置く。 | entities_by_farm_size_2010_miyagi.xlsx |
+| area_code                | 地域コード。市区町村コードと旧市区町村コードが連結されている。Rでは分割処理して使用する。 | entities_by_farm_size_2010_miyagi      |
+| prefecture_code          | 都道府県コード。2020年センサスで出てくる。                   | entities_by_farm_size_2020_miyagi      |
+| regional_bureau_code     | 振興局コード。2020年センサスで出てくる。                     | entities_by_farm_size_2020_miyagi      |
+| municipality_code        | 市区町村コード。2020年センサスで出てくる。                   | entities_by_farm_size_2020_miyagi      |
+| former_municipality_code | 旧市区町村コード。2020年センサスで出てくる。                 | entities_by_farm_size_2020_miyagi      |
+| entities_no_land         | 「経営耕地なし」に該当する経営体数                           | entities_by_farm_size_2010_miyagi      |
+| entities_under_0_3ha     | 「0.3ha未満」に該当する経営体数                              | entities_by_farm_size_2010_miyagi      |
+| entities_0_3_0_5ha       | 「0.3-0.5ha」に該当する経営体数                              | entities_by_farm_size_2010_miyagi      |
+| entities_0_5_1_0ha       | 「0.5-1.0ha」に該当する経営体数                              | entities_by_farm_size_2010_miyagi      |
+| entities_1_0_1_5ha       | 「1.0-1.5ha」に該当する経営体数                              | entities_by_farm_size_2010_miyagi      |
+| entities_1_5_2_0ha       | 「1.5-2.0ha」に該当する経営体数                              | entities_by_farm_size_2010_miyagi      |
+| entities_2_0_3_0ha       | 「2.0-3.0ha」に該当する経営体数                              | entities_by_farm_size_2010_miyagi      |
+| entities_3_0_5_0ha       | 「3.0-5.0ha」に該当する経営体数                              | entities_by_farm_size_2010_miyagi      |
+| entities_5_0_10_0ha      | 「5.0-10.0ha」に該当する経営体数                             | entities_by_farm_size_2010_miyagi      |
+| entities_10_0_20_0ha     | 「10.0-20.0ha」に該当する経営体数                            | entities_by_farm_size_2010_miyagi      |
+| entities_20_0_30_0ha     | 「20.0-30.0ha」に該当する経営体数                            | entities_by_farm_size_2010_miyagi      |
+| entities_30_0_50_0ha     | 「30.0-50.0ha」に該当する経営体数                            | entities_by_farm_size_2010_miyagi      |
+| entities_50_0_100_0ha    | 「50.0-100.0ha」に該当する経営体数                           | entities_by_farm_size_2010_miyagi      |
+| entities_over_100_0ha    | 「100.0ha以上」に該当する経営体数                            | entities_by_farm_size_2010_miyagi      |
+| entities_100_0_150_0ha   | 「100.0-150.0ha」に該当する経営体数。2020年センサスにのみ登場。 | entities_by_farm_size_2020_miyagi      |
+| entities_over_150_0ha    | 「150.0ha以上」に該当する経営体数。2020年センサスにのみ登場。 | entities_by_farm_size_202_miyagi       |
 
