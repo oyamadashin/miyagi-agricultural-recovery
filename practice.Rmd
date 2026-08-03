@@ -1,0 +1,230 @@
+---
+title: "practice"
+output: html_document
+date: "2026-08-03"
+---
+
+# preparationファイル下書き
+
+```{r}
+library(tidyverse)
+library(readxl) # Excelデータを読み込む
+```
+
+# Excelデータをインポートする
+```{r}
+# いったんすべて文字列として読み込む（数値データはあとで数値に変えた方が安全）
+
+
+by_farm_size_2010 <- read_excel(
+  "02_processed_data/entities_by_farm_size_2010_miyagi_processed.xlsx",
+  col_types = "text"
+)
+
+by_farm_size_2015 <- read_excel(
+  "02_processed_data/entities_by_farm_size_2015_miyagi_processed.xlsx",
+  col_types = "text"
+)
+
+by_farm_size_2020 <- read_excel(
+  "02_processed_data/entities_by_farm_size_2020_miyagi_processed.xlsx",
+  col_types = "text"
+)
+
+by_organization_type_2010 <- read_excel(
+  "02_processed_data/entities_by_organization_type_2010_miyagi_processed.xlsx",
+  col_types = "text"
+)
+
+by_organization_type_2015 <- read_excel(
+  "02_processed_data/entities_by_organization_type_2015_miyagi_processed.xlsx",
+  col_types = "text"
+)
+
+by_organization_type_2020 <- read_excel(
+  "02_processed_data/entities_by_organization_type_2020_miyagi_processed.xlsx",
+  col_types = "text"
+)
+```
+
+# 2020年データのarea_codeを作成する
+
+```{r}
+# 2020年データはarea_codeの構成要素がばらばらの列に入っているので、結合する。
+
+by_farm_size_2020 <- by_farm_size_2020 |> 
+  mutate(
+    municipality_code = str_pad(
+      municipality_code,
+      width = 3,
+      side = "left",
+      pad = "0"
+    ),
+    former_municipality_code = str_pad(
+      former_municipality_code,
+      width = 2,
+      side = "left",
+      pad = "0"
+    ),
+    area_code = str_c(
+      municipality_code,
+      former_municipality_code,
+      sep = "-"
+    )
+  )
+
+by_organization_type_2020 <- by_organization_type_2020 |> 
+  mutate(
+    municipality_code = str_pad(
+      municipality_code,
+      width = 3,
+      side = "left",
+      pad = "0"
+    ),
+    former_municipality_code = str_pad(
+      former_municipality_code,
+      width = 2,
+      side = "left",
+      pad = "0"
+    ),
+    area_code = str_c(
+      municipality_code,
+      former_municipality_code,
+      sep = "-"
+    )
+  )
+
+# 不要になった municipality_code,former_municipality_codeを削除
+by_farm_size_2020 <- by_farm_size_2020 |> 
+  select(
+    -municipality_code,
+    -former_municipality_code
+  )
+
+by_organization_type_2020 <- by_organization_type_2020 |> 
+  select(
+    -municipality_code,
+    -former_municipality_code
+  )
+
+```
+# 「－」を0にする
+
+```{r}
+# まずは変換用の関数をつくる
+
+convert_entity_columns <- function(df) {
+  df |>
+    mutate(
+      across(
+        -any_of(c(
+          "area_name",
+          "area_code",
+          "municipality_code",
+          "former_municipality_code",
+          "census_year"
+        )),
+        ~ {
+          x <- str_trim(as.character(.x))
+
+          # 調査したが事実なし
+          x[x %in% c("-", "－")] <- "0"
+
+          # 事実不詳・未調査・秘匿・空欄
+          x[x %in% c("", "...", "…", "X", "x")] <- NA_character_
+
+          parse_number(
+            x,
+            locale = locale(grouping_mark = ",")
+          )
+        }
+      )
+    )
+}
+
+
+# 次に、この関数をそれぞれのデータセットに適用する
+
+by_farm_size_2010 <- convert_entity_columns(by_farm_size_2010)
+by_farm_size_2015 <- convert_entity_columns(by_farm_size_2015)
+by_farm_size_2020 <- convert_entity_columns(by_farm_size_2020)
+
+by_organization_type_2010 <- convert_entity_columns(by_organization_type_2010)
+by_organization_type_2015 <- convert_entity_columns(by_organization_type_2015)
+by_organization_type_2020 <- convert_entity_columns(by_organization_type_2020)
+```
+
+# データ結合
+
+```{r}
+# まず、「刈田郡」のように、見出しとしてのみ使われていて具体的なデータもarea_codeも持たない行を削除する。
+
+by_farm_size_2010 <- by_farm_size_2010 |>
+  filter(!is.na(area_code))
+
+by_farm_size_2015 <- by_farm_size_2015 |>
+  filter(!is.na(area_code))
+
+by_farm_size_2020 <- by_farm_size_2020 |>
+  filter(!is.na(area_code))
+
+by_organization_type_2010 <- by_organization_type_2010 |>
+  filter(!is.na(area_code))
+
+by_organization_type_2015 <- by_organization_type_2015 |>
+  filter(!is.na(area_code))
+
+by_organization_type_2020 <- by_organization_type_2020 |>
+  filter(!is.na(area_code))
+
+# area_codeに重複がないことをチェック
+by_farm_size_2010 |> count(area_code) |> filter(n > 1)
+by_farm_size_2015 |> count(area_code) |> filter(n > 1)
+by_farm_size_2020 |> count(area_code) |> filter(n > 1)
+
+by_organization_type_2010 |> count(area_code) |> filter(n > 1)
+by_organization_type_2015 |> count(area_code) |> filter(n > 1)
+by_organization_type_2020 |> count(area_code) |> filter(n > 1)
+```
+
+```{r}
+# 同一年のデータを横結合する関数
+
+join_census_tables <- function(farm_size_df, organization_df){
+  farm_size_df |> 
+    left_join(
+      organization_df |> 
+        select(
+          -any_of(c("area_name", "census_year"))
+        ),
+      by = "area_code",
+      relationship = "one-to-one"
+    )
+}
+
+# 各年ごとにセンサスデータを横結合
+census_2010 <- join_census_tables(
+  by_farm_size_2010,
+  by_organization_type_2010
+)
+
+census_2015 <- join_census_tables(
+  by_farm_size_2015,
+  by_organization_type_2015
+)
+
+census_2020 <- join_census_tables(
+  by_farm_size_2020,
+  by_organization_type_2020
+)
+
+census_panel <- bind_rows(
+  census_2010,
+  census_2015,
+  census_2020
+) |>
+  arrange(area_code, census_year)
+```
+
+
+
