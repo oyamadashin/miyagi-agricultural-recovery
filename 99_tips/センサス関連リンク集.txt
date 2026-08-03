@@ -1,0 +1,23 @@
+# センサスリンク
+## 2020年 第１巻　都道府県別統計書（宮城県）
+
+https://www.e-stat.go.jp/stat-search/files?page=1&layout=datalist&toukei=00500209&tstat=000001032920&cycle=7&tclass1=000001147146&tclass2=000001155386&tclass3=000001161026&tclass4val=0
+
+## 2015年 第１巻　都道府県別統計書（宮城県）
+
+https://www.e-stat.go.jp/stat-search/files?page=1&layout=datalist&toukei=00500209&tstat=000001032920&cycle=0&tclass1=000001077437&tclass2=000001077396&tclass3=000001093235&tclass4=000001093295&tclass5val=0
+
+## 2010年 第１巻　都道府県別統計書（宮城県）
+
+https://www.e-stat.go.jp/stat-search/files?page=1&layout=datalist&toukei=00500209&tstat=000001032920&cycle=0&tclass1=000001038546&tclass2=000001045941&tclass3=000001047444&tclass4=000001047448&tclass5val=0
+
+# センサス分析研究資料（政策研）
+
+## 激動する日本農業・農村構造 ―2020年農業センサスの総合分析―
+https://www.maff.go.jp/primaff/kanko/project/R05census.html
+
+## 日本農業・農村構造の展開過程 ―2015年農業センサスの総合分析―
+https://www.maff.go.jp/primaff/kanko/project/29bunseki.html
+
+## 集落営農展開下の農業構造－2010年農業センサス分析－
+http://maff.go.jp/primaff/kanko/project/25bunseki3.html
