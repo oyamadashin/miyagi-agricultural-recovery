@@ -42,30 +42,61 @@
 
 # 変数名
 
-| 変数名                   | 備考                                                         | 作成元データ                           |
-| ------------------------ | ------------------------------------------------------------ | -------------------------------------- |
-| census_year              | どの時点のセンサスデータであるかを示す。                     |                                        |
-| entities_total           | 経営耕地面積規模別経営体数の合計                             | entities_by_farm_size_2010_miyagi.xlsx |
-| area_name                | 地域名。県・区・町村などの階層情報は考慮しない（階層情報は市区町村コードに反映させる）。Excel元データでは地域名の列位置が階層によりずれているので、=TEXTJOIN("",TRUE,B6:D6)のようにして、1つの列に置く。 | entities_by_farm_size_2010_miyagi.xlsx |
-| area_code                | 地域コード。市区町村コードと旧市区町村コードが連結されている。Rでは分割処理して使用する。 | entities_by_farm_size_2010_miyagi      |
-| prefecture_code          | 都道府県コード。2020年センサスで出てくる。                   | entities_by_farm_size_2020_miyagi      |
-| regional_bureau_code     | 振興局コード。2020年センサスで出てくる。                     | entities_by_farm_size_2020_miyagi      |
-| municipality_code        | 市区町村コード。2020年センサスで出てくる。                   | entities_by_farm_size_2020_miyagi      |
-| former_municipality_code | 旧市区町村コード。2020年センサスで出てくる。                 | entities_by_farm_size_2020_miyagi      |
-| entities_no_land         | 「経営耕地なし」に該当する経営体数                           | entities_by_farm_size_2010_miyagi      |
-| entities_under_0_3ha     | 「0.3ha未満」に該当する経営体数                              | entities_by_farm_size_2010_miyagi      |
-| entities_0_3_0_5ha       | 「0.3-0.5ha」に該当する経営体数                              | entities_by_farm_size_2010_miyagi      |
-| entities_0_5_1_0ha       | 「0.5-1.0ha」に該当する経営体数                              | entities_by_farm_size_2010_miyagi      |
-| entities_1_0_1_5ha       | 「1.0-1.5ha」に該当する経営体数                              | entities_by_farm_size_2010_miyagi      |
-| entities_1_5_2_0ha       | 「1.5-2.0ha」に該当する経営体数                              | entities_by_farm_size_2010_miyagi      |
-| entities_2_0_3_0ha       | 「2.0-3.0ha」に該当する経営体数                              | entities_by_farm_size_2010_miyagi      |
-| entities_3_0_5_0ha       | 「3.0-5.0ha」に該当する経営体数                              | entities_by_farm_size_2010_miyagi      |
-| entities_5_0_10_0ha      | 「5.0-10.0ha」に該当する経営体数                             | entities_by_farm_size_2010_miyagi      |
-| entities_10_0_20_0ha     | 「10.0-20.0ha」に該当する経営体数                            | entities_by_farm_size_2010_miyagi      |
-| entities_20_0_30_0ha     | 「20.0-30.0ha」に該当する経営体数                            | entities_by_farm_size_2010_miyagi      |
-| entities_30_0_50_0ha     | 「30.0-50.0ha」に該当する経営体数                            | entities_by_farm_size_2010_miyagi      |
-| entities_50_0_100_0ha    | 「50.0-100.0ha」に該当する経営体数                           | entities_by_farm_size_2010_miyagi      |
-| entities_over_100_0ha    | 「100.0ha以上」に該当する経営体数                            | entities_by_farm_size_2010_miyagi      |
-| entities_100_0_150_0ha   | 「100.0-150.0ha」に該当する経営体数。2020年センサスにのみ登場。 | entities_by_farm_size_2020_miyagi      |
-| entities_over_150_0ha    | 「150.0ha以上」に該当する経営体数。2020年センサスにのみ登場。 | entities_by_farm_size_202_miyagi       |
+## 各ファイル共通
+
+| 変数名      | 備考                                                         |
+| ----------- | ------------------------------------------------------------ |
+| census_year | どの時点のセンサスデータであるかを示す。                     |
+| area_name   | 地域名。県・区・町村などの階層情報は考慮しない（階層情報は市区町村コードに反映させる）。Excel元データでは地域名の列位置が階層によりずれているので、=TEXTJOIN("",TRUE,B6:D6)のようにして、1つの列に置く。 |
+| area_code   | 地域コード。市区町村コードと旧市区町村コードが連結されている。Rでは分割処理して使用する。 |
+
+## 経営耕地面積規模別経営体数
+
+| 変数名                   | 備考                                                         |
+| ------------------------ | ------------------------------------------------------------ |
+| entities_total           | 経営耕地面積規模別経営体数の合計                             |
+| prefecture_code          | 都道府県コード。（2020年センサスのみ登場）                   |
+| regional_bureau_code     | 振興局コード。2020年センサスのみ登場）                       |
+| municipality_code        | 市区町村コード。（2020年センサスのみ登場）                   |
+| former_municipality_code | 旧市区町村コード。（2020年センサスのみ登場）                 |
+| entities_no_land         | 「経営耕地なし」に該当する経営体数                           |
+| entities_under_0_3ha     | 「0.3ha未満」に該当する経営体数                              |
+| entities_0_3_0_5ha       | 「0.3-0.5ha」に該当する経営体数                              |
+| entities_0_5_1_0ha       | 「0.5-1.0ha」に該当する経営体数                              |
+| entities_1_0_1_5ha       | 「1.0-1.5ha」に該当する経営体数                              |
+| entities_1_5_2_0ha       | 「1.5-2.0ha」に該当する経営体数                              |
+| entities_2_0_3_0ha       | 「2.0-3.0ha」に該当する経営体数                              |
+| entities_3_0_5_0ha       | 「3.0-5.0ha」に該当する経営体数                              |
+| entities_5_0_10_0ha      | 「5.0-10.0ha」に該当する経営体数                             |
+| entities_10_0_20_0ha     | 「10.0-20.0ha」に該当する経営体数                            |
+| entities_20_0_30_0ha     | 「20.0-30.0ha」に該当する経営体数                            |
+| entities_30_0_50_0ha     | 「30.0-50.0ha」に該当する経営体数                            |
+| entities_50_0_100_0ha    | 「50.0-100.0ha」に該当する経営体数                           |
+| entities_over_100_0ha    | 「100.0ha以上」に該当する経営体数                            |
+| entities_100_0_150_0ha   | 「100.0-150.0ha」に該当する経営体数。（2020年センサスのみ登場） |
+| entities_over_150_0ha    | 「150.0ha以上」に該当する経営体数。（2020年センサスのみ登場） |
+
+
+
+## 組織形態別経営体数
+
+| 変数名                               | 備考                                                         |
+| ------------------------------------ | ------------------------------------------------------------ |
+| farm_entities_total                  | 農業経営体総数(センサスの元データでは「計」と表示されている) |
+| incorporated_total                   | 法人化している経営体数(センサスの元データでは「小計」と表示されている) |
+| agricultural_cooperative_corporation | 農事組合法人数                                               |
+| stock_company                        | 株式会社数                                                   |
+| general_or_limited_partnership       | 合名会社・合資会社数                                         |
+| limited_liability_company            | 合同会社数                                                   |
+| agricultural_cooperative             | 農業協同組合数                                               |
+| forestry_cooperative                 | 森林組合数                                                   |
+| other_association                    | その他の団体数                                               |
+| other_corporation                    | 上記以外の法人                                               |
+| local_government_or_property_ward    | 地方公共団体・財産区                                         |
+| unincorporated_total                 | 法人化していない経営体数                                     |
+| individual_entities                  | 個人経営体数                                                 |
+| company_total                        | 会社である経営体数(センサスの元データでは会社のカテゴリー内で「小計」と表示されている)　（2020年センサスのみ登場） |
+| association_total                    | 各種団体である経営体数(センサスの元データでは各種団体のカテゴリー内で「小計」と表示されている)　（2020年センサスのみ登場） |
+| mutual_company                       | 相互会社（2020年センサスのみ登場）                           |
+|                                      |                                                              |
 
