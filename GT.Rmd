@@ -1,0 +1,115 @@
+---
+title: "GT"
+output: html_document
+date: "2026-08-04"
+---
+
+# source
+```{r}
+source("preparation.R")
+df
+```
+
+基本的に旧市区町村のデータだけを分析に使う。以降、df2を分析に使おう。
+
+```{r}
+df2 <- df |> filter(old_municipality == "1")
+df2
+```
+
+# 大規模経営体の割合
+
+## 5ha以上経営体の割合（宮城県全体）
+
+```{r}
+large_farm_summary <- df2 |>
+  group_by(census_year) |>
+  summarise(
+    entities_total = sum(entities_total, na.rm = TRUE),
+    entities_over_5_0ha = sum(entities_over_5_0ha, na.rm = TRUE),
+    share_over_5_0ha =
+      round(entities_over_5_0ha / entities_total * 100, 1),
+    .groups = "drop"
+  )
+large_farm_summary
+```
+5ha以上層経営体の割合がかなり増えてるけど、それでも13.8%しかない。
+
+## 10ha以上経営体の割合（宮城県全体）
+
+```{r}
+large_farm_summary <- df2 |>
+  group_by(census_year) |>
+  summarise(
+    entities_total = sum(entities_total, na.rm = TRUE),
+    entities_over_10_0ha = sum(entities_over_10_0ha, na.rm = TRUE),
+    share_over_10_0ha =
+      round(entities_over_10_0ha / entities_total * 100,1),
+    .groups = "drop"
+  )
+large_farm_summary
+```
+10ha以上層となると10％を切る。
+
+## 20ha以上経営体の割合（宮城県全体）
+
+```{r}
+large_farm_summary <- df2 |>
+  group_by(census_year) |>
+  summarise(
+    entities_total = sum(entities_total, na.rm = TRUE),
+    entities_over_20_0ha = sum(entities_over_20_0ha, na.rm = TRUE),
+    share_over_20_0ha =
+      round(entities_over_20_0ha / entities_total * 100, 1),
+    .groups = "drop"
+  )
+large_farm_summary
+```
+
+## 30ha以上経営体の割合（宮城県全体）
+
+```{r}
+large_farm_summary <- df2 |>
+  group_by(census_year) |>
+  summarise(
+    entities_total = sum(entities_total, na.rm = TRUE),
+    entities_over_30_0ha = sum(entities_over_30_0ha, na.rm = TRUE),
+    share_over_30_0ha =
+      round(entities_over_30_0ha / entities_total * 100, 1),
+    .groups = "drop"
+  )
+large_farm_summary
+```
+
+## 50ha以上経営体の割合（宮城県全体）
+
+```{r}
+large_farm_summary <- df2 |>
+  group_by(census_year) |>
+  summarise(
+    entities_total = sum(entities_total, na.rm = TRUE),
+    entities_over_50_0ha = sum(entities_over_50_0ha, na.rm = TRUE),
+    share_over_50_0ha =
+      round(entities_over_50_0ha / entities_total * 100, 1),
+    .groups = "drop"
+  )
+large_farm_summary
+```
+
+## 100ha以上経営体の割合（宮城県全体）
+
+```{r}
+large_farm_summary <- df2 |>
+  group_by(census_year) |>
+  summarise(
+    entities_total = sum(entities_total, na.rm = TRUE),
+    entities_over_100_0ha = sum(entities_over_100_0ha, na.rm = TRUE),
+    share_over_100_0ha =
+      round(entities_over_100_0ha / entities_total * 100, 1),
+    .groups = "drop"
+  )
+large_farm_summary
+```
+
+
+

@@ -1,0 +1,30 @@
+---
+title: "strorage"
+output: html_document
+date: "2026-08-04"
+# いつか使うかもしれないコード置き場
+---
+
+# 各地域の大規模層の割合
+```{r}
+df2 <- df2 |>
+  mutate(
+    share_over_5_0ha =
+      entities_over_5_0ha / entities_total * 100,
+
+    share_over_10_0ha =
+      entities_over_10_0ha / entities_total * 100,
+
+    share_over_20_0ha =
+      entities_over_20_0ha / entities_total * 100,
+
+    share_over_30_0ha =
+      entities_over_30_0ha / entities_total * 100,
+
+    share_over_50_0ha =
+      entities_over_50_0ha / entities_total * 100,
+
+    share_over_100_0ha =
+      entities_over_100_0ha / entities_total * 100
+  )
+```
