@@ -290,3 +290,49 @@ df <- df |>
       entities_50_0_100_0ha +
       entities_over_100_0ha
   )
+
+
+# 津波被災農地面積データの結合----
+
+# 旧市区町村ごとの農地面積
+farmland_total_by_kcity <- read_csv("02_processed_data/farmland_total_by_kcity.csv")
+
+# 旧市区町村ごとの津波被災農地面積
+tunami_farmland_total_by_kcity <- read_csv("02_processed_data/tsunami_farmland_total_by_kcity.csv")
+
+# area_codeに重複がないことをチェック
+farmland_total_by_kcity |> count(area_code) |> filter(n > 1)
+tunami_farmland_total_by_kcity |> count(area_code) |> filter(n > 1)
+
+
+# 両データフレームを結合し、津波被災農地割合を求める
+tsunami_farmland_by_kcity <-
+  farmland_total_by_kcity |>
+  left_join(
+    tunami_farmland_total_by_kcity,
+    by = "area_code"
+  ) |>
+  mutate(
+    tsunami_farmland_share =
+      round(tunami_farmland_total_by_kcity / farmland_total_by_kcity, 2),
+    farmland_total_by_kcity = round(farmland_total_by_kcity, 3), 
+    tunami_farmland_total_by_kcity =  round(tunami_farmland_total_by_kcity, 3)
+  )
+
+# 割合の値がおかしくなっていないことをチェック
+tsunami_farmland_by_kcity |>
+  summarise(
+    min_share = min(tsunami_farmland_share, na.rm = TRUE),
+    max_share = max(tsunami_farmland_share, na.rm = TRUE)
+  )
+
+# dfに結合
+df <- df |>
+  left_join(
+    tsunami_farmland_by_kcity |>
+      select(area_code, 
+             farmland_total_by_kcity, 
+             tunami_farmland_total_by_kcity,
+             tsunami_farmland_share),
+    by = "area_code"
+  )

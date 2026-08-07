@@ -2,3 +2,9 @@
 .Rhistory
 .RData
 .Ruserdata
+
+# 大容量GISデータ
+01_raw_data/farmland_2009
+01_raw_data/MA0002_2010_2010_04
+01_raw_data/tsunami
+02_processed_data/GIS/
