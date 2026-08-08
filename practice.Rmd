@@ -6,6 +6,21 @@ date: "2026-08-03"
 
 
 ```{r}
+df |>
+  filter(substr(area_code, 1, 3) == "205") |>
+  select(area_name, area_code, farmland_total_by_kcity)
+
+df |>
+  filter(substr(area_code, 1, 3) == "202") |>
+  filter(area_code != "205-00") |>
+  distinct(area_code, farmland_total_by_kcity) |>
+  summarise(
+    farmland_total = sum(farmland_total_by_kcity, na.rm = TRUE)
+  )
+```
+
+
+```{r}
 df |> filter(census_year == "2010") |>
   arrange(desc(tsunami_farmland_share)) |>
   select(
@@ -39,7 +54,9 @@ tsunami_farmland_by_kcity <-
   ) |>
   mutate(
     tsunami_farmland_share =
-      round(tunami_farmland_total_by_kcity / farmland_total_by_kcity, 2)
+      round(tunami_farmland_total_by_kcity / farmland_total_by_kcity, 2),
+      round(farmland_total_by_kcity, 3), 
+      round(tunami_farmland_total_by_kcity, 3)
   )
 
 # 割合の値がおかしくなっていないことをチェック
