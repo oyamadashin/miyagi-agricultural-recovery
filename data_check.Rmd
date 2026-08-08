@@ -1,0 +1,239 @@
+---
+title: "data_check"
+output: html_document
+date: "2026-08-08"
+# データ自体にバイアスが入ってないかチェックする
+---
+
+# source
+```{r}
+source("preparation.R")
+df
+```
+
+# 津波被災関連
+
+
+QGISで求めた農地面積・被災農地面積と、農水省が公表したそれらの値との乖離程度をチェックする
+（農水省は旧市区町村単位ではなく市町村単位で公開しているので、まず、QGISで求めた値を市町村単位に直す必要がある）
+
+```{r}
+# まず、旧市区町村×1行のデータにする（2010～2020年の3時点のデータがあると扱いが面倒なので）
+gis_farmland_by_city <- df |>
+  mutate(
+    city_code = substr(area_code, 1, 3)
+  ) |>
+  distinct(
+    city_code,
+    area_code,
+    farmland_total_by_kcity,
+    tunami_farmland_total_by_kcity
+  )
+
+# 市町村別に農地面積と被災農地面積を整理したデータフレームをつくる
+gis_farmland_by_city <- gis_farmland_by_city |>
+  group_by(city_code) |>
+  summarise(
+    gis_farmland_total =
+      sum(farmland_total_by_kcity, na.rm = TRUE),
+
+    gis_tsunami_farmland_total =
+      sum(tunami_farmland_total_by_kcity, na.rm = TRUE)
+  ) |>
+  ungroup()
+
+gis_farmland_by_city <- gis_farmland_by_city |>
+  mutate(
+    city_code2 = case_when(
+      city_code %in% c("101", "102", "103", "104", "105") ~ "100",
+      TRUE ~ city_code
+    )
+  ) |>
+  group_by(city_code2) |>
+  summarise(
+    gis_farmland_total = sum(gis_farmland_total, na.rm = TRUE),
+    gis_tsunami_farmland_total = sum(gis_tsunami_farmland_total, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  rename(city_code = city_code2)
+
+# 被災市町村についてだけ市町村名列を追加
+gis_farmland_by_city <- gis_farmland_by_city |>
+  mutate(
+    city_name = case_when(
+      city_code == "100" ~ "仙台市",
+      city_code == "202" ~ "石巻市",
+      city_code == "203" ~ "塩竈市",
+      city_code == "205" ~ "気仙沼市",
+      city_code == "207" ~ "名取市",
+      city_code == "209" ~ "多賀城市",
+      city_code == "211" ~ "岩沼市",
+      city_code == "214" ~ "東松島市",
+      city_code == "361" ~ "亘理町",
+      city_code == "362" ~ "山元町",
+      city_code == "401" ~ "松島町",
+      city_code == "404" ~ "七ヶ浜町",
+      city_code == "406" ~ "利府町",
+      city_code == "581" ~ "女川町",
+      city_code == "606" ~ "南三陸町",
+      # 以下続ける
+      TRUE ~ NA_character_
+    )
+  )
+
+# 農水省公表の農地面積及び津波被災農地面積
+maff_data <- tibble(
+  city_name = c(
+    "気仙沼市",
+    "南三陸町",
+    "石巻市",
+    "女川町",
+    "東松島市",
+    "松島町",
+    "利府町",
+    "塩竈市",
+    "多賀城市",
+    "七ヶ浜町",
+    "仙台市",
+    "名取市",
+    "岩沼市",
+    "亘理町",
+    "山元町"
+  ),
+  official_farmland_total = c(
+    2220,
+    1210,
+    10200,
+    25,
+    3060,
+    1030,
+    471,
+    73,
+    365,
+    183,
+    6580,
+    2990,
+    1870,
+    3450,
+    2050
+  ),
+  official_tsunami_farmland = c(
+    1032,
+    262,
+    2107,
+    10,
+    1495,
+    91,
+    0,
+    27,
+    53,
+    171,
+    2681,
+    1561,
+    1206,
+    2711,
+    1595
+))
+
+comparison <- gis_farmland_by_city |>
+  filter(!is.na(city_name)) |>
+  left_join(maff_data, by = "city_name") |>
+  mutate(
+    # GIS / 農水省
+    farmland_ratio =
+      gis_farmland_total / official_farmland_total,
+
+    tsunami_farmland_ratio =
+      gis_tsunami_farmland_total / official_tsunami_farmland,
+
+    # 面積差
+    farmland_diff =
+      gis_farmland_total - official_farmland_total,
+
+    tsunami_farmland_diff =
+      gis_tsunami_farmland_total - official_tsunami_farmland,
+    
+    gis_damage_share =
+    gis_tsunami_farmland_total / gis_farmland_total,
+
+    official_damage_share =
+    official_tsunami_farmland / official_farmland_total,
+
+    damage_share_diff =
+    gis_damage_share - official_damage_share
+  )
+
+comparison |> select(city_name, farmland_ratio, tsunami_farmland_ratio, damage_share_diff)
+```
+
+全体的に、GISの方が面積を過大評価する傾向がある。これは、圃場データがメッシュなので、実際より面積が膨らんで計算されたためだろう。しかし、中には逆にGISの方が面積を過小評価するパターンもある。そういう地域だと被災面積割合の差が大きくなっている（塩竃、気仙沼、山元町）
+
+```{r}
+ggplot(
+  comparison,
+  aes(
+    x = official_damage_share,
+    y = gis_damage_share,
+    label = city_name
+  )
+) +
+  geom_point() +
+  geom_text(
+    nudge_y = 0.02,
+    check_overlap = TRUE
+  ) +
+  geom_abline(
+    intercept = 0,
+    slope = 1,
+    linetype = "dashed"
+  ) +
+  coord_equal() +
+  labs(
+    x = "農水省資料による津波被災農地割合",
+    y = "GISによる津波被災農地割合"
+  ) +
+  theme_minimal()
+```
+
+多くの市町村は45度線に近い位置にあるが、気仙沼、塩竃、山元町が大きく外れている。塩竃はGISで被災農地面積割合が過大評価され、山元町、気仙沼では逆に過小評価されている。
+
+
+```{r}
+comparison |>
+  summarise(
+    correlation = cor(
+      gis_damage_share,
+      official_damage_share,
+      use = "complete.obs"
+    ),
+    mae = mean(
+      abs(gis_damage_share - official_damage_share),
+      na.rm = TRUE
+    )
+  )
+```
+
+相関係数は非常に高い。平均絶対誤差は0.1程度。
+
+```{r}
+comparison |>
+  filter(city_name %in% c("気仙沼市", "塩竈市", "山元町")) |>
+  select(
+    city_name,
+    gis_farmland_total,
+    official_farmland_total,
+    farmland_ratio,
+    gis_tsunami_farmland_total,
+    official_tsunami_farmland,
+    tsunami_farmland_ratio,
+    gis_damage_share,
+    official_damage_share,
+    damage_share_diff
+  )
+```
+- 塩竈市は、農地面積を過小評価していて、津波被災面積はそれなりに正確に求めている。ただ、いずれも面積規模自体がかなり小さいので、誤差による影響は大きそうだ。
+- 気仙沼は、津波被災面積は割と正確に求められているが、農地面積を過大評価している（農水省公表値の2倍近い）。
+- 山元町は、農地面積はかなり正確に求めているが、津波被災農地面積を過小評価している（農水省公表値の3分の2くらいしかない）
+
+
+（もしかしたら、センサスの「畑」区分と圃場データの「その他の農用地」区分で定義にずれがあるのではないだろうか。だとすると、「その他の農用地」の比率が大きい地域ではGISを推計の誤差が生じやすい可能性がある。検証しよう）

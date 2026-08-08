@@ -6,6 +6,28 @@ date: "2026-08-03"
 
 
 ```{r}
+
+# 旧市区町村コードが00で下位区分にも旧町村がある、という地域を取り除く
+# たとえば気仙沼市（205-00）には下位区分の鹿折町（205-02）などがある。津波被災を表すGISデータでは、津波被災状況のデータが下位区分の町村の方には含まれるが、上位（たとえば気仙沼市（205-00））には含まれないので、そのままだと気仙沼市の津波被災農地面積がNAと表示されてしまう。
+df <- df |>
+  mutate(
+    city_code = substr(area_code, 1, 3),
+    kcity_code = substr(area_code, 5, 6)
+  )
+
+df <- df |>
+  group_by(city_code) |>
+  mutate(
+    has_subarea = any(kcity_code != "00")
+  ) |>
+  ungroup()
+
+df <- df |>
+  filter(!(kcity_code == "00" & has_subarea))
+```
+
+
+```{r}
 df |>
   filter(substr(area_code, 1, 3) == "205") |>
   select(area_name, area_code, farmland_total_by_kcity)
