@@ -1,0 +1,624 @@
+---
+title: "tsunami_farmland_share"
+output: html_document
+date: "2026-08-09"
+# tsunami_farmland_share関連の分析
+---
+
+# source
+```{r}
+source("preparation.R")
+df
+```
+
+基本的に被災のあった旧市区町村のデータだけを分析に使う。以降、df2を分析に使おう。
+
+```{r}
+df2 <- df |> filter(old_municipality == "1" & !is.na(tsunami_farmland_share))
+df2
+```
+
+# 津波被災面積割合 × 大規模化の程度
+
+
+## 閾値 = 5.0ha
+
+```{r}
+df2 <- df2 |>
+  mutate(
+    share_over_5ha = entities_over_5_0ha / entities_total
+  )
+
+ggplot(
+  df2,
+  aes(
+    x = tsunami_farmland_share,
+    y = share_over_5ha
+  )
+) +
+  geom_point() +
+  geom_smooth(
+    method = "lm",
+    se = FALSE
+  ) +
+  facet_wrap(~ census_year) +
+  labs(
+    x = "津波被災農地割合",
+    y = "5ha以上経営体割合"
+  ) +
+  theme_minimal()
+```
+
+## 閾値 = 10.0ha
+
+```{r}
+df2 <- df2 |>
+  mutate(
+    share_over_10ha = entities_over_10_0ha / entities_total
+  )
+
+ggplot(
+  df2,
+  aes(
+    x = tsunami_farmland_share,
+    y = share_over_10ha
+  )
+) +
+  geom_point() +
+  geom_smooth(
+    method = "lm",
+    se = FALSE
+  ) +
+  facet_wrap(~ census_year) +
+  labs(
+    x = "津波被災農地割合",
+    y = "10ha以上経営体割合"
+  ) +
+  theme_minimal()
+```
+
+## 閾値 = 20.0ha
+
+```{r}
+df2 <- df2 |>
+  mutate(
+    share_over_20ha = entities_over_20_0ha / entities_total
+  )
+
+ggplot(
+  df2,
+  aes(
+    x = tsunami_farmland_share,
+    y = share_over_20ha
+  )
+) +
+  geom_point() +
+  geom_smooth(
+    method = "lm",
+    se = FALSE
+  ) +
+  facet_wrap(~ census_year) +
+  labs(
+    x = "津波被災農地割合",
+    y = "20ha以上経営体割合"
+  ) +
+  theme_minimal()
+```
+## 閾値 = 30.0ha
+
+```{r}
+df2 <- df2 |>
+  mutate(
+    share_over_30ha = entities_over_30_0ha / entities_total
+  )
+
+ggplot(
+  df2,
+  aes(
+    x = tsunami_farmland_share,
+    y = share_over_30ha
+  )
+) +
+  geom_point() +
+  geom_smooth(
+    method = "lm",
+    se = FALSE
+  ) +
+  facet_wrap(~ census_year) +
+  labs(
+    x = "津波被災農地割合",
+    y = "30ha以上経営体割合"
+  ) +
+  theme_minimal()
+```
+
+30haが閾値のとき、この変化傾向（津波被災農地割合が大きい地域は年を経るとどんどん大規模になる）がもっとも明瞭になる（閾値を変えても基本的に同じ変化傾向だけど、その傾向がもっとも強くなるということ）。
+
+## 閾値 = 50.0ha
+
+```{r}
+df2 <- df2 |>
+  mutate(
+    share_over_50ha = entities_over_50_0ha / entities_total
+  )
+
+ggplot(
+  df2,
+  aes(
+    x = tsunami_farmland_share,
+    y = share_over_50ha
+  )
+) +
+  geom_point() +
+  geom_smooth(
+    method = "lm",
+    se = FALSE
+  ) +
+  facet_wrap(~ census_year) +
+  labs(
+    x = "津波被災農地割合",
+    y = "50ha以上経営体割合"
+  ) +
+  theme_minimal()
+```
+
+
+## 閾値 = 100.0ha
+
+```{r}
+df2 <- df2 |>
+  mutate(
+    share_over_100ha = entities_over_100_0ha / entities_total
+  )
+
+ggplot(
+  df2,
+  aes(
+    x = tsunami_farmland_share,
+    y = share_over_100ha
+  )
+) +
+  geom_point() +
+  geom_smooth(
+    method = "lm",
+    se = FALSE
+  ) +
+  facet_wrap(~ census_year) +
+  labs(
+    x = "津波被災農地割合",
+    y = "100ha以上経営体割合"
+  ) +
+  theme_minimal()
+```
+
+# 津波被災面積割合 × 大規模化進展ペース
+
+## 閾値 = 5.0ha
+
+```{r}
+change_5ha <- df2 |>
+  filter(census_year %in% c("2010", "2020")) |>
+  select(
+    area_code,
+    census_year,
+    share_over_5ha
+  ) |>
+  tidyr::pivot_wider(
+    id_cols = area_code,
+    names_from = census_year,
+    values_from = share_over_5ha,
+    names_prefix = "share_"
+  ) |>
+  mutate(
+    change_2010_2020 = share_2020 - share_2010
+  )
+
+change_10ha |>
+  summarise(
+    n = n(),
+    n_2010 = sum(!is.na(share_2010)),
+    n_2020 = sum(!is.na(share_2020)),
+    n_both = sum(!is.na(share_2010) & !is.na(share_2020))
+  )
+
+tsunami_share <- df2 |>
+  select(
+    area_code,
+    tsunami_farmland_share
+  ) |>
+  distinct()
+
+change_5ha <- change_5ha |>
+  left_join(
+    tsunami_share,
+    by = "area_code"
+  )
+
+ggplot(
+  change_5ha,
+  aes(
+    x = tsunami_farmland_share,
+    y = change_2010_2020
+  )
+) +
+  geom_point() +
+  geom_smooth(
+    method = "lm",
+    se = FALSE
+  ) +
+  labs(
+    x = "津波被災農地割合",
+    y = "5ha以上経営体割合の変化（2010–2020年）"
+  ) +
+  theme_minimal()
+```
+
+```{r}
+summary(lm(change_2010_2020 ~ tsunami_farmland_share, data = change_5ha))
+```
+
+## 閾値 = 10.0ha
+
+```{r}
+change_10ha <- df2 |>
+  filter(census_year %in% c("2010", "2020")) |>
+  select(
+    area_code,
+    census_year,
+    share_over_10ha
+  ) |>
+  tidyr::pivot_wider(
+    id_cols = area_code,
+    names_from = census_year,
+    values_from = share_over_10ha,
+    names_prefix = "share_"
+  ) |>
+  mutate(
+    change_2010_2020 = share_2020 - share_2010
+  )
+
+change_10ha |>
+  summarise(
+    n = n(),
+    n_2010 = sum(!is.na(share_2010)),
+    n_2020 = sum(!is.na(share_2020)),
+    n_both = sum(!is.na(share_2010) & !is.na(share_2020))
+  )
+
+tsunami_share <- df2 |>
+  select(
+    area_code,
+    tsunami_farmland_share
+  ) |>
+  distinct()
+
+change_10ha <- change_10ha |>
+  left_join(
+    tsunami_share,
+    by = "area_code"
+  )
+
+ggplot(
+  change_10ha,
+  aes(
+    x = tsunami_farmland_share,
+    y = change_2010_2020
+  )
+) +
+  geom_point() +
+  geom_smooth(
+    method = "lm",
+    se = FALSE
+  ) +
+  labs(
+    x = "津波被災農地割合",
+    y = "10ha以上経営体割合の変化（2010–2020年）"
+  ) +
+  theme_minimal()
+```
+
+```{r}
+summary(lm(change_2010_2020 ~ tsunami_farmland_share, data = change_10ha))
+```
+
+
+閾値10haだと直線からの乖離が小さくなるように見える。決定係数も大きい。
+
+## 閾値 = 20.0ha
+
+```{r}
+change_20ha <- df2 |>
+  filter(census_year %in% c("2010", "2020")) |>
+  select(
+    area_code,
+    census_year,
+    share_over_20ha
+  ) |>
+  tidyr::pivot_wider(
+    id_cols = area_code,
+    names_from = census_year,
+    values_from = share_over_20ha,
+    names_prefix = "share_"
+  ) |>
+  mutate(
+    change_2010_2020 = share_2020 - share_2010
+  )
+
+change_20ha |>
+  summarise(
+    n = n(),
+    n_2010 = sum(!is.na(share_2010)),
+    n_2020 = sum(!is.na(share_2020)),
+    n_both = sum(!is.na(share_2010) & !is.na(share_2020))
+  )
+
+tsunami_share <- df2 |>
+  select(
+    area_code,
+    tsunami_farmland_share
+  ) |>
+  distinct()
+
+change_20ha <- change_20ha |>
+  left_join(
+    tsunami_share,
+    by = "area_code"
+  )
+
+ggplot(
+  change_20ha,
+  aes(
+    x = tsunami_farmland_share,
+    y = change_2010_2020
+  )
+) +
+  geom_point() +
+  geom_smooth(
+    method = "lm",
+    se = FALSE
+  ) +
+  labs(
+    x = "津波被災農地割合",
+    y = "20ha以上経営体割合の変化（2010–2020年）"
+  ) +
+  theme_minimal()
+```
+
+```{r}
+summary(lm(change_2010_2020 ~ tsunami_farmland_share, data = change_20ha))
+```
+
+## 閾値 = 30.0ha
+
+```{r}
+change_30ha <- df2 |>
+  filter(census_year %in% c("2010", "2020")) |>
+  select(
+    area_code,
+    census_year,
+    share_over_30ha
+  ) |>
+  tidyr::pivot_wider(
+    id_cols = area_code,
+    names_from = census_year,
+    values_from = share_over_30ha,
+    names_prefix = "share_"
+  ) |>
+  mutate(
+    change_2010_2020 = share_2020 - share_2010
+  )
+
+change_30ha |>
+  summarise(
+    n = n(),
+    n_2010 = sum(!is.na(share_2010)),
+    n_2020 = sum(!is.na(share_2020)),
+    n_both = sum(!is.na(share_2010) & !is.na(share_2020))
+  )
+
+tsunami_share <- df2 |>
+  select(
+    area_code,
+    tsunami_farmland_share
+  ) |>
+  distinct()
+
+change_30ha <- change_30ha |>
+  left_join(
+    tsunami_share,
+    by = "area_code"
+  )
+
+ggplot(
+  change_30ha,
+  aes(
+    x = tsunami_farmland_share,
+    y = change_2010_2020
+  )
+) +
+  geom_point() +
+  geom_smooth(
+    method = "lm",
+    se = FALSE
+  ) +
+  labs(
+    x = "津波被災農地割合",
+    y = "30ha以上経営体割合の変化（2010–2020年）"
+  ) +
+  theme_minimal()
+```
+
+```{r}
+summary(lm(change_2010_2020 ~ tsunami_farmland_share, data = change_30ha))
+```
+
+## 閾値 = 50.0ha
+
+```{r}
+change_50ha <- df2 |>
+  filter(census_year %in% c("2010", "2020")) |>
+  select(
+    area_code,
+    census_year,
+    share_over_50ha
+  ) |>
+  tidyr::pivot_wider(
+    id_cols = area_code,
+    names_from = census_year,
+    values_from = share_over_50ha,
+    names_prefix = "share_"
+  ) |>
+  mutate(
+    change_2010_2020 = share_2020 - share_2010
+  )
+
+change_50ha |>
+  summarise(
+    n = n(),
+    n_2010 = sum(!is.na(share_2010)),
+    n_2020 = sum(!is.na(share_2020)),
+    n_both = sum(!is.na(share_2010) & !is.na(share_2020))
+  )
+
+tsunami_share <- df2 |>
+  select(
+    area_code,
+    tsunami_farmland_share
+  ) |>
+  distinct()
+
+change_50ha <- change_50ha |>
+  left_join(
+    tsunami_share,
+    by = "area_code"
+  )
+
+ggplot(
+  change_50ha,
+  aes(
+    x = tsunami_farmland_share,
+    y = change_2010_2020
+  )
+) +
+  geom_point() +
+  geom_smooth(
+    method = "lm",
+    se = FALSE
+  ) +
+  labs(
+    x = "津波被災農地割合",
+    y = "50ha以上経営体割合の変化（2010–2020年）"
+  ) +
+  theme_minimal()
+```
+
+```{r}
+summary(lm(change_2010_2020 ~ tsunami_farmland_share, data = change_50ha))
+```
+
+閾値50haあたりだと直線と点の乖離が結構大きい。津波被災以外の要因が影響するようになってくるからだろうか。決定係数も小さくなる。
+
+## 閾値 = 100.0ha
+
+```{r}
+change_100ha <- df2 |>
+  filter(census_year %in% c("2010", "2020")) |>
+  select(
+    area_code,
+    census_year,
+    share_over_100ha
+  ) |>
+  tidyr::pivot_wider(
+    id_cols = area_code,
+    names_from = census_year,
+    values_from = share_over_100ha,
+    names_prefix = "share_"
+  ) |>
+  mutate(
+    change_2010_2020 = share_2020 - share_2010
+  )
+
+change_100ha |>
+  summarise(
+    n = n(),
+    n_2010 = sum(!is.na(share_2010)),
+    n_2020 = sum(!is.na(share_2020)),
+    n_both = sum(!is.na(share_2010) & !is.na(share_2020))
+  )
+
+tsunami_share <- df2 |>
+  select(
+    area_code,
+    tsunami_farmland_share
+  ) |>
+  distinct()
+
+change_100ha <- change_100ha |>
+  left_join(
+    tsunami_share,
+    by = "area_code"
+  )
+
+ggplot(
+  change_100ha,
+  aes(
+    x = tsunami_farmland_share,
+    y = change_2010_2020
+  )
+) +
+  geom_point() +
+  geom_smooth(
+    method = "lm",
+    se = FALSE
+  ) +
+  labs(
+    x = "津波被災農地割合",
+    y = "100ha以上経営体割合の変化（2010–2020年）"
+  ) +
+  theme_minimal()
+```
+
+```{r}
+summary(lm(change_2010_2020 ~ tsunami_farmland_share, data = change_100ha))
+```
+
+
+## 閾値 × 決定係数
+
+```{r}
+lm_5ha <- summary(lm(change_2010_2020 ~ tsunami_farmland_share, data = change_5ha))
+lm_10ha <- summary(lm(change_2010_2020 ~ tsunami_farmland_share, data = change_10ha))
+lm_20ha <- summary(lm(change_2010_2020 ~ tsunami_farmland_share, data = change_20ha))
+lm_30ha <- summary(lm(change_2010_2020 ~ tsunami_farmland_share, data = change_30ha))
+lm_50ha <- summary(lm(change_2010_2020 ~ tsunami_farmland_share, data = change_50ha))
+lm_100ha <- summary(lm(change_2010_2020 ~ tsunami_farmland_share, data = change_100ha))
+
+thre_by_r_squared <- data.frame(
+  threshold = c(5, 10, 20, 30, 50, 100),
+  adjusted_r_squared = c(
+    lm_5ha$adj.r.squared,
+    lm_10ha$adj.r.squared,
+    lm_20ha$adj.r.squared,
+    lm_30ha$adj.r.squared,
+    lm_50ha$adj.r.squared,
+    lm_100ha$adj.r.squared
+)  
+)
+
+thre_by_r_squared |> 
+  ggplot(aes(x = threshold, y = adjusted_r_squared)) +
+  geom_line() +
+  geom_point() +
+  scale_x_continuous(
+    breaks = seq(0, 100, by = 5)
+  ) +
+  labs(
+    x = "大規模経営体判定の閾値(ha)",
+    y = "自由度修正済み決定係数"
+  )
+
+```
+津波被災農地割合は、震災後の「中規模以上への大規模化」はかなりよく説明するが、「超大規模経営体の形成」になるほど説明力が落ちる。
+
+
+

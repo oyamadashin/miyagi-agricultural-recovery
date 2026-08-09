@@ -6,6 +6,25 @@ date: "2026-08-03"
 
 
 ```{r}
+large_farm_summary <- df2 |>
+  group_by(census_year, area_code) |>
+  summarise(
+    entities_total = sum(entities_total, na.rm = TRUE),
+    entities_over_10_0ha = sum(entities_over_10_0ha, na.rm = TRUE),
+    share_over_10_0ha =
+      round(entities_over_10_0ha / entities_total * 100,1),
+    .groups = "drop"
+  )
+large_farm_summary
+```
+
+
+```{r}
+df |> filter(area_name == "志津川町")
+```
+
+
+```{r}
 
 # 旧市区町村コードが00で下位区分にも旧町村がある、という地域を取り除く
 # たとえば気仙沼市（205-00）には下位区分の鹿折町（205-02）などがある。津波被災を表すGISデータでは、津波被災状況のデータが下位区分の町村の方には含まれるが、上位（たとえば気仙沼市（205-00））には含まれないので、そのままだと気仙沼市の津波被災農地面積がNAと表示されてしまう。

@@ -100,6 +100,7 @@ maff_data <- tibble(
     "亘理町",
     "山元町"
   ),
+  # 農水省公式資料記載の各市町村の農地面積
   official_farmland_total = c(
     2220,
     1210,
@@ -117,6 +118,7 @@ maff_data <- tibble(
     3450,
     2050
   ),
+  # 農水省公式資料記載の各市町村の被災面積
   official_tsunami_farmland = c(
     1032,
     262,
@@ -133,7 +135,27 @@ maff_data <- tibble(
     1206,
     2711,
     1595
-))
+),
+  # 農水省公式資料記載の各市町の畑面積
+  official_upland_field_total = c(
+    449,
+    99,
+    97,
+    6,
+    181,
+    2,
+    0,
+    19,
+    0,
+    69,
+    142,
+    194,
+    157,
+    430,
+    472
+    
+  )
+)
 
 comparison <- gis_farmland_by_city |>
   filter(!is.na(city_name)) |>
@@ -160,10 +182,13 @@ comparison <- gis_farmland_by_city |>
     official_tsunami_farmland / official_farmland_total,
 
     damage_share_diff =
-    gis_damage_share - official_damage_share
+    gis_damage_share - official_damage_share,
+    
+    upland_field_ratio =
+      official_upland_field_total / official_farmland_total
   )
 
-comparison |> select(city_name, farmland_ratio, tsunami_farmland_ratio, damage_share_diff)
+comparison |> select(city_name, farmland_ratio, tsunami_farmland_ratio, damage_share_diff, upland_field_ratio)
 ```
 
 全体的に、GISの方が面積を過大評価する傾向がある。これは、圃場データがメッシュなので、実際より面積が膨らんで計算されたためだろう。しかし、中には逆にGISの方が面積を過小評価するパターンもある。そういう地域だと被災面積割合の差が大きくなっている（塩竃、気仙沼、山元町）
@@ -236,4 +261,72 @@ comparison |>
 - 山元町は、農地面積はかなり正確に求めているが、津波被災農地面積を過小評価している（農水省公表値の3分の2くらいしかない）
 
 
-（もしかしたら、センサスの「畑」区分と圃場データの「その他の農用地」区分で定義にずれがあるのではないだろうか。だとすると、「その他の農用地」の比率が大きい地域ではGISを推計の誤差が生じやすい可能性がある。検証しよう）
+（もしかしたら、センサスの「畑」区分と圃場データの「その他の農用地」区分で定義にずれがあるのではないだろうか。だとすると、「その他の農用地」の比率が大きい地域ではGISを推計の誤差が生じやすい可能性がある。あるいは農水省公式資料で「畑」の比率が大きい地域でみてみてもいい。検証しよう）
+
+```{r}
+ggplot(
+  comparison,
+  aes(
+    x = upland_field_ratio,
+    y = damage_share_diff,
+    label = city_name
+  )
+) +
+  geom_point() +
+  geom_text(
+    nudge_y = 0.02,
+    check_overlap = TRUE
+  ) +
+  coord_equal() +
+  labs(
+    x = "農地面積に占める畑面積の割合（農水省公表値）",
+    y = "GISによる津波被災農地割合の誤差"
+  ) +
+  theme_minimal()
+```
+```{r}
+comparison |>
+  mutate(
+    abs_damage_share_diff = abs(damage_share_diff)
+  ) |>
+  summarise(
+    correlation_abs = cor(
+      upland_field_ratio,
+      abs_damage_share_diff,
+      use = "complete.obs"
+    )
+  )
+
+```
+
+```{r}
+# Pearson
+cor.test(
+  comparison$upland_field_ratio,
+  abs(comparison$damage_share_diff)
+)
+
+# Spearman
+cor.test(
+  comparison$upland_field_ratio,
+  abs(comparison$damage_share_diff),
+  method = "spearman",
+  exact = FALSE
+)
+```
+
+```{r}
+comparison |>
+  filter(!city_name %in% c("塩竈市", "気仙沼市", "山元町")) |>
+  summarise(
+    correlation_abs = cor(
+      upland_field_ratio,
+      abs(damage_share_diff),
+      use = "complete.obs"
+    )
+  )
+```
+
+GIS推計による津波被災農地割合の誤差と農地に占める畑割合との間には、中程度の正の相関がみられた（Pearson r=0.49、Spearman ρ=0.52）。ただし、この関係は推計誤差の大きい塩竈市、気仙沼市、山元町の影響を強く受けており、これら3地域を除くと相関はほぼ消失した。したがって、畑割合は大きな推計誤差が生じる一因である可能性はあるものの、誤差を一般的に説明する単独要因とは考えにくい。
+
+（とはいっても、とりあえず、GIS推計に問題があったというよりも、センサスと圃場データとで「畑」「その他の農業地」のそれぞれの示す範囲が違うことにより引き起こされた誤差であるといえる部分はある。だから、あくまで2009年圃場データに基づく津波浸水農地割合として扱うのなら大きな問題はないだろう。）

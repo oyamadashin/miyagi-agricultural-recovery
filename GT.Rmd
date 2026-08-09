@@ -10,10 +10,10 @@ source("preparation.R")
 df
 ```
 
-基本的に旧市区町村のデータだけを分析に使う。以降、df2を分析に使おう。
+基本的に被災のあった旧市区町村のデータだけを分析に使う。以降、df2を分析に使おう。
 
 ```{r}
-df2 <- df |> filter(old_municipality == "1")
+df2 <- df |> filter(old_municipality == "1" & !is.na(tsunami_farmland_share))
 df2
 ```
 
@@ -33,7 +33,7 @@ large_farm_summary <- df2 |>
   )
 large_farm_summary
 ```
-5ha以上層経営体の割合がかなり増えてるけど、それでも13.8%しかない。
+5ha以上層経営体の割合がかなり増えてるけど、それでも14.3%しかない。
 
 ## 10ha以上経営体の割合（宮城県全体）
 
