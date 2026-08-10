@@ -5,6 +5,8 @@ date: "2026-08-03"
 ---
 
 
+
+
 ```{r}
 large_farm_summary <- df2 |>
   group_by(census_year, area_code) |>
