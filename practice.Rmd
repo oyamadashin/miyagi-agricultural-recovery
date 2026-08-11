@@ -8,6 +8,127 @@ date: "2026-08-03"
 
 
 ```{r}
+df2 |>
+  filter(
+    census_year == "2020",
+    !is.na(c_one),
+    tsunami_farmland_share > 0
+  ) |>
+  mutate(
+    share_over_10ha = entities_over_10_0ha / entities_total,
+    c_one = factor(
+      c_one,
+      levels = c(1, 0),
+      labels = c("C-1実施", "C-1非実施")
+    )
+  ) |>
+  ggplot(
+    aes(
+      x = tsunami_farmland_share,
+      y = share_over_10ha,
+      shape = c_one,
+      linetype = c_one
+    )
+  ) +
+  geom_point(size = 3) +
+  geom_smooth(
+    method = "lm",
+    se = FALSE
+  ) +
+  scale_shape_manual(
+    values = c(
+      "C-1実施" = 16,    # ○
+      "C-1非実施" = 17   # △
+    )
+  ) +
+  scale_linetype_manual(
+    values = c(
+      "C-1実施" = "solid",
+      "C-1非実施" = "dashed"
+    )
+  ) +
+  labs(
+    x = "津波被災農地割合",
+    y = "10ha以上経営体割合",
+    shape = "C-1事業",
+    linetype = "C-1事業"
+  )
+```
+
+```{r}
+df2 |>
+  filter(
+    census_year == "2020",
+    !is.na(c_one),
+    tsunami_farmland_share > 0
+  ) |>
+  group_by(c_one) |>
+  summarise(
+    n = n(),
+    mean_damage = mean(tsunami_farmland_share, na.rm = TRUE),
+    median_damage = median(tsunami_farmland_share, na.rm = TRUE),
+    min_damage = min(tsunami_farmland_share, na.rm = TRUE),
+    max_damage = max(tsunami_farmland_share, na.rm = TRUE)
+  )
+```
+
+
+```{r}
+df2 |>
+  filter(
+    census_year == "2020",
+    !is.na(c_one),
+    tsunami_farmland_share > 0
+  ) |>
+  ggplot(
+    aes(
+      x = factor(c_one),
+      y = tsunami_farmland_share
+    )
+  ) +
+  geom_boxplot() +
+  geom_jitter(width = 0.1) +
+  labs(
+    x = "C-1事業",
+    y = "津波被災農地割合"
+  )
+```
+
+```{r}
+c1_model <- df2 |>
+  filter(
+    census_year == "2010",
+    !is.na(c_one),
+    tsunami_farmland_share > 0
+  ) |>
+  glm(
+    c_one ~ tsunami_farmland_share,
+    family = binomial,
+    data = _
+  )
+
+summary(c1_model)
+```
+
+```{r}
+c1_model <- df2 |>
+  filter(
+    census_year == "2010",
+    !is.na(c_one),
+    tsunami_farmland_share > 0
+  ) |>
+  glm(
+    c_one ~ tsunami_farmland_share +
+          tunami_farmland_total_by_kcity,
+    family = binomial,
+    data = _
+  )
+
+summary(c1_model)
+```
+
+
+```{r}
 large_farm_summary <- df2 |>
   group_by(census_year, area_code) |>
   summarise(

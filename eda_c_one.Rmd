@@ -1,0 +1,1492 @@
+---
+title: "c_one"
+output: html_document
+date: "2026-08-11"
+# c-1事業実施変数関連のeda
+---
+
+# source
+
+```{r}
+source("preparation.R")
+df
+```
+
+基本的に被災のあった旧市区町村のデータだけを分析に使う。以降、df2を分析に使おう。
+
+```{r}
+df2 <- df |> filter(old_municipality == "1" & !is.na(tsunami_farmland_share))
+df2
+```
+
+
+# 津波被災面積割合 × c-1実施 × 大規模化の程度
+
+## 閾値 = 10ha
+
+```{r}
+df2 |>
+  filter(
+    census_year == "2020", # 2020年時に経営規模はどうなっているか
+    !is.na(c_one),
+    tsunami_farmland_share > 0
+  ) |>
+  mutate(
+    share_over_10ha = entities_over_10_0ha / entities_total,
+    c_one = factor(
+      c_one,
+      levels = c(1, 0),
+      labels = c("C-1実施", "C-1非実施")
+    )
+  ) |>
+  ggplot(
+    aes(
+      x = tsunami_farmland_share,
+      y = share_over_10ha,
+      shape = c_one,
+      linetype = c_one
+    )
+  ) +
+  geom_point(size = 3) +
+  geom_smooth(
+    method = "lm",
+    se = FALSE
+  ) +
+  scale_shape_manual(
+    values = c(
+      "C-1実施" = 16,    # ○
+      "C-1非実施" = 17   # △
+    )
+  ) +
+  scale_linetype_manual(
+    values = c(
+      "C-1実施" = "solid",
+      "C-1非実施" = "dashed"
+    )
+  ) +
+  labs(
+    x = "津波被災農地割合",
+    y = "10ha以上経営体割合",
+    shape = "C-1事業",
+    linetype = "C-1事業"
+  )
+```
+c-1事業実施地域の方が被災割合が大きいと大規模化しているようにみえるが、そもそも津波被災割合が大きいとc-1事業が実施されてる傾向が強いようにもみえる。これだけではなんともいえない。
+
+
+
+# 津波被災程度とc-1事業実施状況の関連
+
+## c-1事業実施有無による津波被災平均・中央値のちがい
+
+```{r}
+df2 |>
+  filter(
+    census_year == "2020", # ここの分析で使うデータは年次に関係ないのでとりあえず2020年で固定
+    !is.na(c_one),
+    tsunami_farmland_share > 0
+  ) |>
+  group_by(c_one) |>
+  summarise(
+    n = n(),
+    mean_damage = mean(tsunami_farmland_share, na.rm = TRUE),
+    median_damage = median(tsunami_farmland_share, na.rm = TRUE),
+    min_damage = min(tsunami_farmland_share, na.rm = TRUE),
+    max_damage = max(tsunami_farmland_share, na.rm = TRUE)
+  )
+```
+
+明らかに、c-1事業実施地域は津波被災割合が大きい傾向
+
+
+```{r}
+df2 |>
+  filter(
+    census_year == "2020",
+    !is.na(c_one),
+    tsunami_farmland_share > 0
+  ) |>
+  ggplot(
+    aes(
+      x = factor(c_one),
+      y = tsunami_farmland_share
+    )
+  ) +
+  geom_boxplot() +
+  geom_jitter(width = 0.1) +
+  labs(
+    x = "C-1事業",
+    y = "津波被災農地割合"
+  )
+```
+
+箱ひげ図にすると、たしかに差はあるものの、ばらつきもかなりあることがわかる→c-1実施には別の要因も作用しているのでは？
+
+
+## 被災農地の割合と絶対規模、どちらがc1実施に影響している？
+
+```{r}
+dat_c1 <- df2 |>
+  filter(
+    census_year == "2010",
+    !is.na(c_one),
+    tsunami_farmland_share > 0
+  )
+
+# ① 被災割合
+m1 <- glm(
+  c_one ~ tsunami_farmland_share,
+  family = binomial,
+  data = dat_c1
+)
+
+# ② 被災農地面積
+m2 <- glm(
+  c_one ~ tunami_farmland_total_by_kcity,
+  family = binomial,
+  data = dat_c1
+)
+
+# ③ 両方
+m3 <- glm(
+  c_one ~ tsunami_farmland_share +
+    tunami_farmland_total_by_kcity,
+  family = binomial,
+  data = dat_c1
+)
+
+AIC(m1, m2, m3)
+```
+m3よりm2の方がAICが小さいことから、被災農地面積「割合」ではなく、被災農地面積がc-1実施に影響しているようだ。
+
+## 元々の農地規模の影響もチェック
+
+```{r}
+dat_c1 <- df2 |>
+  filter(
+    census_year == "2010",
+    !is.na(c_one),
+    tsunami_farmland_share > 0
+  )
+
+# 元々の農地規模
+m4 <- glm(
+  c_one ~ farmland_total_by_kcity,
+  family = binomial,
+  data = dat_c1
+)
+
+# 津波農地割合 + 元々の農地規模
+m5 <- glm(
+  c_one ~ tsunami_farmland_share +
+    farmland_total_by_kcity,
+  family = binomial,
+  data = dat_c1
+)
+
+# 津波農地絶対規模 + 元々の農地規模
+m6 <- glm(
+  c_one ~ tunami_farmland_total_by_kcity +
+    farmland_total_by_kcity,
+  family = binomial,
+  data = dat_c1
+)
+
+AIC(m4, m5, m6) 
+summary(m5)
+```
+
+m5のAICがもっとも小さい。2つの係数はともに有意。
+  
+C-1事業は、震災前の農地規模が大きく、かつ津波被災農地割合が高い旧市区町村ほど実施される傾向が強いといえる。
+
+## m5によるc1実施予測と実際の結果の比較
+
+```{r}
+dat_c1 <- dat_c1 |>
+  mutate(
+    pred_c1 = predict(
+      m5,
+      newdata = dat_c1,
+      type = "response"
+    )
+  )
+
+ggplot(
+  dat_c1,
+  aes(
+    x = pred_c1,
+    y = c_one,
+    label = area_name
+  )
+) +
+  geom_point() +
+  geom_text(
+    nudge_y = 0.03,
+    check_overlap = TRUE
+  ) +
+  labs(
+    x = "C-1事業実施の予測確率",
+    y = "実際のC-1事業実施"
+  )
+```
+
+横軸が0.5を超えているのに未実施の地域や、0.5未満なのに実施している地域がちらほらみられる。
+
+```{r}
+# 実施しそうなのに未実施
+dat_c1 |>
+  filter(
+    c_one == 0,
+    pred_c1 >= 0.65
+  ) |>
+  arrange(desc(pred_c1))
+
+# 実施しそうでないのに実施
+dat_c1 |>
+  filter(
+    c_one == 1,
+    pred_c1 <= 0.35
+  ) |>
+  arrange(pred_c1)
+```
+
+これらの地域の特徴はまだよくわからない。未実施地域の方が沿岸部から離れている印象はある（でもそもそもc-1実施状況は実施したかどうかで見ているので、不正確になるのはしかたないともいえる。地域内圃場の何パーセントがc-1対象になったか、というデータがあるわけでもないので）。
+
+
+# 大規模化進展ペース ~ 被災農地割合 + c-1 + 震災前農地規模
+
+
+## 閾値 = 10ha
+
+### m7
+
+```{r}
+df2 <- df2 |>
+  mutate(
+    share_over_10ha = entities_over_10_0ha / entities_total
+  )
+
+change_10ha <- df2 |>
+  filter(census_year %in% c("2010", "2020")) |>
+  select(
+    area_code,
+    census_year,
+    share_over_10ha,
+    tsunami_farmland_share,
+    c_one,
+    farmland_total_by_kcity
+  ) |>
+  tidyr::pivot_wider(
+    id_cols = c(
+      area_code,
+      tsunami_farmland_share,
+      c_one,
+      farmland_total_by_kcity
+    ),
+    names_from = census_year,
+    values_from = share_over_10ha,
+    names_prefix = "share_"
+  ) |>
+  mutate(
+    change_2010_2020 = share_2020 - share_2010
+  )
+
+m7 <- lm(
+  change_2010_2020 ~
+    tsunami_farmland_share +
+    c_one +
+    farmland_total_by_kcity,
+  data = change_10ha
+)
+
+summary(m7)
+vif(m7)
+```
+
+### m8
+
+津波被災農地面積だけが効いている。c1事業実施状況は影響していない。
+
+```{r}
+m8 <- lm(
+  change_2010_2020 ~
+    tsunami_farmland_share * c_one +
+    farmland_total_by_kcity,
+  data = change_10ha
+)
+
+summary(m8)
+vif(m8, type = "predictor")
+```
+
+交差項を入れても結果に変わりなし。やはり津波被災農地面積だけが効いている。
+
+### m8の予測線
+
+```{r}
+newdat <- expand.grid(
+  tsunami_farmland_share = seq(0, 1, length.out = 100),
+  c_one = c(0, 1),
+  farmland_total_by_kcity =
+    mean(change_10ha$farmland_total_by_kcity, na.rm = TRUE)
+)
+
+newdat$pred <- predict(
+  m8,
+  newdata = newdat
+)
+
+newdat <- newdat |>
+  mutate(
+    c_one = factor(
+      c_one,
+      levels = c(0, 1),
+      labels = c("C-1非実施", "C-1実施")
+    )
+  )
+
+ggplot(
+  newdat,
+  aes(
+    x = tsunami_farmland_share,
+    y = pred,
+    linetype = c_one
+  )
+) +
+  geom_line(linewidth = 1) +
+  labs(
+    x = "津波被災農地割合",
+    y = "10ha以上経営体割合の変化（2010–2020）",
+    linetype = "C-1事業"
+  )
+
+ggplot(
+  change_10ha,
+  aes(
+    x = tsunami_farmland_share,
+    y = change_2010_2020,
+    shape = factor(c_one),
+    linetype = factor(c_one)
+  )
+) +
+  geom_point(size = 2.5) +
+  geom_smooth(
+    method = "lm",
+    se = FALSE
+  ) +
+  scale_shape_manual(
+    values = c(
+      "0" = 17,  # △ 非実施
+      "1" = 16   # ● 実施
+    ),
+    labels = c(
+      "0" = "C-1非実施",
+      "1" = "C-1実施"
+    )
+  ) +
+  scale_linetype_manual(
+    values = c(
+      "0" = "dashed", # 非実施
+      "1" = "solid"   # 実施
+    ),
+    labels = c(
+      "0" = "C-1非実施",
+      "1" = "C-1実施"
+    )
+  ) +
+  labs(
+    x = "津波被災農地割合",
+    y = "10ha以上経営体割合の変化（2010–2020）",
+    shape = "C-1事業",
+    linetype = "C-1事業"
+  )
+```
+
+閾値=10haだと交差項の影響は弱い。
+
+## 閾値 = 5ha
+
+### m9
+
+```{r}
+df2 <- df2 |>
+  mutate(
+    share_over_5ha = entities_over_5_0ha / entities_total
+  )
+
+change_5ha <- df2 |>
+  filter(census_year %in% c("2010", "2020")) |>
+  select(
+    area_code,
+    census_year,
+    share_over_5ha,
+    tsunami_farmland_share,
+    c_one,
+    farmland_total_by_kcity
+  ) |>
+  tidyr::pivot_wider(
+    id_cols = c(
+      area_code,
+      tsunami_farmland_share,
+      c_one,
+      farmland_total_by_kcity
+    ),
+    names_from = census_year,
+    values_from = share_over_5ha,
+    names_prefix = "share_"
+  ) |>
+  mutate(
+    change_2010_2020 = share_2020 - share_2010
+  )
+
+m9 <- lm(
+  change_2010_2020 ~
+    tsunami_farmland_share +
+    c_one +
+    farmland_total_by_kcity,
+  data = change_5ha
+)
+
+summary(m9)
+vif(m9)
+```
+
+津波被災農地面積だけが効いている。c1事業実施状況は影響していない(が、ぎりぎり有意になりそうではある)。
+
+### m10
+
+```{r}
+m10 <- lm(
+  change_2010_2020 ~
+    tsunami_farmland_share * c_one +
+    farmland_total_by_kcity,
+  data = change_5ha
+)
+
+summary(m10)
+vif(m10, type = "predictor")
+```
+
+交差項を入れても結果に変わりなし。やはり津波被災農地面積だけが効いている。
+
+
+### m10の予測線
+
+```{r}
+newdat <- expand.grid(
+  tsunami_farmland_share = seq(0, 1, length.out = 100),
+  c_one = c(0, 1),
+  farmland_total_by_kcity =
+    mean(change_5ha$farmland_total_by_kcity, na.rm = TRUE)
+)
+
+newdat$pred <- predict(
+  m10,
+  newdata = newdat
+)
+
+newdat <- newdat |>
+  mutate(
+    c_one = factor(
+      c_one,
+      levels = c(0, 1),
+      labels = c("C-1非実施", "C-1実施")
+    )
+  )
+
+ggplot(
+  newdat,
+  aes(
+    x = tsunami_farmland_share,
+    y = pred,
+    linetype = c_one
+  )
+) +
+  geom_line(linewidth = 1) +
+  labs(
+    x = "津波被災農地割合",
+    y = "5ha以上経営体割合の変化（2010–2020）",
+    linetype = "C-1事業"
+  )
+
+ggplot(
+  change_5ha,
+  aes(
+    x = tsunami_farmland_share,
+    y = change_2010_2020,
+    shape = factor(c_one),
+    linetype = factor(c_one)
+  )
+) +
+  geom_point(size = 2.5) +
+  geom_smooth(
+    method = "lm",
+    se = FALSE
+  ) +
+  scale_shape_manual(
+    values = c(
+      "0" = 17,  # △ 非実施
+      "1" = 16   # ● 実施
+    ),
+    labels = c(
+      "0" = "C-1非実施",
+      "1" = "C-1実施"
+    )
+  ) +
+  scale_linetype_manual(
+    values = c(
+      "0" = "dashed", # 非実施
+      "1" = "solid"   # 実施
+    ),
+    labels = c(
+      "0" = "C-1非実施",
+      "1" = "C-1実施"
+    )
+  ) +
+  labs(
+    x = "津波被災農地割合",
+    y = "5ha以上経営体割合の変化（2010–2020）",
+    shape = "C-1事業",
+    linetype = "C-1事業"
+  )
+```
+
+閾値=5haだと、交差項の影響はまったくみられない。
+
+## 閾値 = 20ha
+
+### m11
+
+```{r}
+df2 <- df2 |>
+  mutate(
+    share_over_20ha = entities_over_20_0ha / entities_total
+  )
+
+change_20ha <- df2 |>
+  filter(census_year %in% c("2010", "2020")) |>
+  select(
+    area_code,
+    census_year,
+    share_over_20ha,
+    tsunami_farmland_share,
+    c_one,
+    farmland_total_by_kcity
+  ) |>
+  tidyr::pivot_wider(
+    id_cols = c(
+      area_code,
+      tsunami_farmland_share,
+      c_one,
+      farmland_total_by_kcity
+    ),
+    names_from = census_year,
+    values_from = share_over_20ha,
+    names_prefix = "share_"
+  ) |>
+  mutate(
+    change_2010_2020 = share_2020 - share_2010
+  )
+
+m11 <- lm(
+  change_2010_2020 ~
+    tsunami_farmland_share +
+    c_one +
+    farmland_total_by_kcity,
+  data = change_20ha
+)
+
+summary(m11)
+vif(m11)
+```
+
+津波被災農地面積だけが効いている。c1事業実施状況は影響していない(が、ぎりぎり有意になりそうではある)。
+
+### m12
+
+```{r}
+m12 <- lm(
+  change_2010_2020 ~
+    tsunami_farmland_share * c_one +
+    farmland_total_by_kcity,
+  data = change_20ha
+)
+
+summary(m12)
+vif(m12, type = "predictor")
+```
+
+閾値を20haにすると、急に有意な変数が増える。決定係数も大きくなる。津波被災割合だけでなく、c1、これらの交差項も有意になる。不思議なのはc1が単体だと負の係数になっていること。津波被災が軽度なのにc1を実施するとかえって大規模化をさまたげるということ？
+
+たしかに、津波被災が軽度だと離農者が少なくなって個別営農を続ける人が多くなるだろう。一方で、区画を大規模化しても小規模な個別経営が多数残存しているので、彼らは担い手になりたがらないだろう　→というよりも、c-1が上手く機能するには被災割合が大きくて農地の出してが多い、という条件が必要ということではないだろうか。
+
+これを元にして予測線を描いてみる。
+
+
+### m12の予測線
+
+```{r}
+newdat <- expand.grid(
+  tsunami_farmland_share = seq(0, 1, length.out = 100),
+  c_one = c(0, 1),
+  farmland_total_by_kcity =
+    mean(change_20ha$farmland_total_by_kcity, na.rm = TRUE)
+)
+
+newdat$pred <- predict(
+  m12,
+  newdata = newdat
+)
+
+newdat <- newdat |>
+  mutate(
+    c_one = factor(
+      c_one,
+      levels = c(0, 1),
+      labels = c("C-1非実施", "C-1実施")
+    )
+  )
+
+ggplot(
+  newdat,
+  aes(
+    x = tsunami_farmland_share,
+    y = pred,
+    linetype = c_one
+  )
+) +
+  geom_line(linewidth = 1) +
+  labs(
+    x = "津波被災農地割合",
+    y = "20ha以上経営体割合の変化（2010–2020）",
+    linetype = "C-1事業"
+  )
+
+ggplot(
+  change_20ha,
+  aes(
+    x = tsunami_farmland_share,
+    y = change_2010_2020,
+    shape = factor(c_one),
+    linetype = factor(c_one)
+  )
+) +
+  geom_point(size = 2.5) +
+  geom_smooth(
+    method = "lm",
+    se = FALSE
+  ) +
+  scale_shape_manual(
+    values = c(
+      "0" = 17,  # △ 非実施
+      "1" = 16   # ● 実施
+    ),
+    labels = c(
+      "0" = "C-1非実施",
+      "1" = "C-1実施"
+    )
+  ) +
+  scale_linetype_manual(
+    values = c(
+      "0" = "dashed", # 非実施
+      "1" = "solid"   # 実施
+    ),
+    labels = c(
+      "0" = "C-1非実施",
+      "1" = "C-1実施"
+    )
+  ) +
+  labs(
+    x = "津波被災農地割合",
+    y = "20ha以上経営体割合の変化（2010–2020）",
+    shape = "C-1事業",
+    linetype = "C-1事業"
+  )
+```
+
+農地面積は平均に据え置いておいて、予測線を求めてみた。傾向がかなりきれいに見えている。これを他の閾値についてもやってみよう。
+
+
+## 閾値 = 30ha
+
+### m13
+
+```{r}
+df2 <- df2 |>
+  mutate(
+    share_over_30ha = entities_over_30_0ha / entities_total
+  )
+
+change_30ha <- df2 |>
+  filter(census_year %in% c("2010", "2020")) |>
+  select(
+    area_code,
+    census_year,
+    share_over_30ha,
+    tsunami_farmland_share,
+    c_one,
+    farmland_total_by_kcity
+  ) |>
+  tidyr::pivot_wider(
+    id_cols = c(
+      area_code,
+      tsunami_farmland_share,
+      c_one,
+      farmland_total_by_kcity
+    ),
+    names_from = census_year,
+    values_from = share_over_30ha,
+    names_prefix = "share_"
+  ) |>
+  mutate(
+    change_2010_2020 = share_2020 - share_2010
+  )
+
+m13 <- lm(
+  change_2010_2020 ~
+    tsunami_farmland_share +
+    c_one +
+    farmland_total_by_kcity,
+  data = change_30ha
+)
+
+summary(m13)
+vif(m13)
+```
+
+### m14
+
+```{r}
+m14 <- lm(
+  change_2010_2020 ~
+    tsunami_farmland_share * c_one +
+    farmland_total_by_kcity,
+  data = change_30ha
+)
+
+summary(m14)
+vif(m14, type = "predictor")
+```
+
+閾値=30haだと交差項がはっっきりと有意になる。
+
+
+### m14の予測線
+
+```{r}
+newdat <- expand.grid(
+  tsunami_farmland_share = seq(0, 1, length.out = 100),
+  c_one = c(0, 1),
+  farmland_total_by_kcity =
+    mean(change_30ha$farmland_total_by_kcity, na.rm = TRUE)
+)
+
+newdat$pred <- predict(
+  m14,
+  newdata = newdat
+)
+
+newdat <- newdat |>
+  mutate(
+    c_one = factor(
+      c_one,
+      levels = c(0, 1),
+      labels = c("C-1非実施", "C-1実施")
+    )
+  )
+
+ggplot(
+  newdat,
+  aes(
+    x = tsunami_farmland_share,
+    y = pred,
+    linetype = c_one
+  )
+) +
+  geom_line(linewidth = 1) +
+  labs(
+    x = "津波被災農地割合",
+    y = "30ha以上経営体割合の変化（2010–2020）",
+    linetype = "C-1事業"
+  )
+
+ggplot(
+  change_30ha,
+  aes(
+    x = tsunami_farmland_share,
+    y = change_2010_2020,
+    shape = factor(c_one),
+    linetype = factor(c_one)
+  )
+) +
+  geom_point(size = 2.5) +
+  geom_smooth(
+    method = "lm",
+    se = FALSE
+  ) +
+  scale_shape_manual(
+    values = c(
+      "0" = 17,  # △ 非実施
+      "1" = 16   # ● 実施
+    ),
+    labels = c(
+      "0" = "C-1非実施",
+      "1" = "C-1実施"
+    )
+  ) +
+  scale_linetype_manual(
+    values = c(
+      "0" = "dashed", # 非実施
+      "1" = "solid"   # 実施
+    ),
+    labels = c(
+      "0" = "C-1非実施",
+      "1" = "C-1実施"
+    )
+  ) +
+  labs(
+    x = "津波被災農地割合",
+    y = "30ha以上経営体割合の変化（2010–2020）",
+    shape = "C-1事業",
+    linetype = "C-1事業"
+  )
+```
+
+閾値=20haより傾向がさらに明確になる。c-1事業を実施するかどうかが30ha以上の経営体が誕生する条件になっている？
+
+## 閾値 = 50ha
+
+### m15
+
+```{r}
+df2 <- df2 |>
+  mutate(
+    share_over_50ha = entities_over_50_0ha / entities_total
+  )
+
+change_50ha <- df2 |>
+  filter(census_year %in% c("2010", "2020")) |>
+  select(
+    area_code,
+    census_year,
+    share_over_50ha,
+    tsunami_farmland_share,
+    c_one,
+    farmland_total_by_kcity
+  ) |>
+  tidyr::pivot_wider(
+    id_cols = c(
+      area_code,
+      tsunami_farmland_share,
+      c_one,
+      farmland_total_by_kcity
+    ),
+    names_from = census_year,
+    values_from = share_over_50ha,
+    names_prefix = "share_"
+  ) |>
+  mutate(
+    change_2010_2020 = share_2020 - share_2010
+  )
+
+m15 <- lm(
+  change_2010_2020 ~
+    tsunami_farmland_share +
+    c_one +
+    farmland_total_by_kcity,
+  data = change_50ha
+)
+
+summary(m15)
+vif(m15)
+```
+
+### m16
+
+```{r}
+m16 <- lm(
+  change_2010_2020 ~
+    tsunami_farmland_share * c_one +
+    farmland_total_by_kcity,
+  data = change_50ha
+)
+
+summary(m16)
+vif(m16, type = "predictor")
+```
+
+これも交差項がかなり効いてくる。
+
+### m16の予測線
+
+```{r}
+newdat <- expand.grid(
+  tsunami_farmland_share = seq(0, 1, length.out = 100),
+  c_one = c(0, 1),
+  farmland_total_by_kcity =
+    mean(change_50ha$farmland_total_by_kcity, na.rm = TRUE)
+)
+
+newdat$pred <- predict(
+  m16,
+  newdata = newdat
+)
+
+newdat <- newdat |>
+  mutate(
+    c_one = factor(
+      c_one,
+      levels = c(0, 1),
+      labels = c("C-1非実施", "C-1実施")
+    )
+  )
+
+ggplot(
+  newdat,
+  aes(
+    x = tsunami_farmland_share,
+    y = pred,
+    linetype = c_one
+  )
+) +
+  geom_line(linewidth = 1) +
+  labs(
+    x = "津波被災農地割合",
+    y = "50ha以上経営体割合の変化（2010–2020）",
+    linetype = "C-1事業"
+  )
+
+ggplot(
+  change_50ha,
+  aes(
+    x = tsunami_farmland_share,
+    y = change_2010_2020,
+    shape = factor(c_one),
+    linetype = factor(c_one)
+  )
+) +
+  geom_point(size = 2.5) +
+  geom_smooth(
+    method = "lm",
+    se = FALSE
+  ) +
+  scale_shape_manual(
+    values = c(
+      "0" = 17,  # △ 非実施
+      "1" = 16   # ● 実施
+    ),
+    labels = c(
+      "0" = "C-1非実施",
+      "1" = "C-1実施"
+    )
+  ) +
+  scale_linetype_manual(
+    values = c(
+      "0" = "dashed", # 非実施
+      "1" = "solid"   # 実施
+    ),
+    labels = c(
+      "0" = "C-1非実施",
+      "1" = "C-1実施"
+    )
+  ) +
+  labs(
+    x = "津波被災農地割合",
+    y = "50ha以上経営体割合の変化（2010–2020）",
+    shape = "C-1事業",
+    linetype = "C-1事業"
+  )
+```
+
+## 閾値 = 100ha
+
+### m17
+
+```{r}
+df2 <- df2 |>
+  mutate(
+    share_over_100ha = entities_over_100_0ha / entities_total
+  )
+
+change_100ha <- df2 |>
+  filter(census_year %in% c("2010", "2020")) |>
+  select(
+    area_code,
+    census_year,
+    share_over_100ha,
+    tsunami_farmland_share,
+    c_one,
+    farmland_total_by_kcity
+  ) |>
+  tidyr::pivot_wider(
+    id_cols = c(
+      area_code,
+      tsunami_farmland_share,
+      c_one,
+      farmland_total_by_kcity
+    ),
+    names_from = census_year,
+    values_from = share_over_100ha,
+    names_prefix = "share_"
+  ) |>
+  mutate(
+    change_2010_2020 = share_2020 - share_2010
+  )
+
+m17 <- lm(
+  change_2010_2020 ~
+    tsunami_farmland_share +
+    c_one +
+    farmland_total_by_kcity,
+  data = change_100ha
+)
+
+summary(m17)
+vif(m17)
+```
+
+閾値100haだと元々の農地規模も影響してくる。まあ、これくらい大規模になると、元になる農地がなければ実現不可能ということか(構造的制約ということ)。
+
+### m18
+
+```{r}
+m18 <- lm(
+  change_2010_2020 ~
+    tsunami_farmland_share * c_one +
+    farmland_total_by_kcity,
+  data = change_100ha
+)
+
+summary(m18)
+vif(m18, type = "predictor")
+```
+元々の農地規模、c-1、そして交差項が効いてくる。
+
+### m18の予測線
+
+```{r}
+newdat <- expand.grid(
+  tsunami_farmland_share = seq(0, 1, length.out = 100),
+  c_one = c(0, 1),
+  farmland_total_by_kcity =
+    mean(change_100ha$farmland_total_by_kcity, na.rm = TRUE)
+)
+
+newdat$pred <- predict(
+  m18,
+  newdata = newdat
+)
+
+newdat <- newdat |>
+  mutate(
+    c_one = factor(
+      c_one,
+      levels = c(0, 1),
+      labels = c("C-1非実施", "C-1実施")
+    )
+  )
+
+ggplot(
+  newdat,
+  aes(
+    x = tsunami_farmland_share,
+    y = pred,
+    linetype = c_one
+  )
+) +
+  geom_line(linewidth = 1) +
+  labs(
+    x = "津波被災農地割合",
+    y = "100ha以上経営体割合の変化（2010–2020）",
+    linetype = "C-1事業"
+  )
+
+ggplot(
+  change_100ha,
+  aes(
+    x = tsunami_farmland_share,
+    y = change_2010_2020,
+    shape = factor(c_one),
+    linetype = factor(c_one)
+  )
+) +
+  geom_point(size = 2.5) +
+  geom_smooth(
+    method = "lm",
+    se = FALSE
+  ) +
+  scale_shape_manual(
+    values = c(
+      "0" = 17,  # △ 非実施
+      "1" = 16   # ● 実施
+    ),
+    labels = c(
+      "0" = "C-1非実施",
+      "1" = "C-1実施"
+    )
+  ) +
+  scale_linetype_manual(
+    values = c(
+      "0" = "dashed", # 非実施
+      "1" = "solid"   # 実施
+    ),
+    labels = c(
+      "0" = "C-1非実施",
+      "1" = "C-1実施"
+    )
+  ) +
+  labs(
+    x = "津波被災農地割合",
+    y = "100ha以上経営体割合の変化（2010–2020）",
+    shape = "C-1事業",
+    linetype = "C-1事業"
+  )
+```
+
+## 閾値 × 決定係数（交差項モデルについてのみ）
+
+```{r}
+lm_5ha <- summary(m10)
+lm_10ha <- summary(m8)
+lm_20ha <- summary(m12)
+lm_30ha <- summary(m14)
+lm_50ha <- summary(m16)
+lm_100ha <- summary(m18)
+
+thre_by_r_squared <- data.frame(
+  threshold = c(5, 10, 20, 30, 50, 100),
+  adjusted_r_squared = c(
+    lm_5ha$adj.r.squared,
+    lm_10ha$adj.r.squared,
+    lm_20ha$adj.r.squared,
+    lm_30ha$adj.r.squared,
+    lm_50ha$adj.r.squared,
+    lm_100ha$adj.r.squared
+)  
+)
+
+thre_by_r_squared |> 
+  ggplot(aes(x = threshold, y = adjusted_r_squared)) +
+  geom_line() +
+  geom_point() +
+  scale_x_continuous(
+    breaks = seq(0, 100, by = 5)
+  ) +
+  labs(
+    x = "大規模経営体判定の閾値(ha)",
+    y = "自由度修正済み決定係数"
+  )
+
+```
+20haまで増加し、そこからは減少。
+
+## 閾値 × 津波被災割合の係数（交差項モデルについてのみ）
+
+```{r}
+lm_5ha <- summary(m10)
+lm_10ha <- summary(m8)
+lm_20ha <- summary(m12)
+lm_30ha <- summary(m14)
+lm_50ha <- summary(m16)
+lm_100ha <- summary(m18)
+
+thre_by_r_squared <- data.frame(
+  threshold = c(5, 10, 20, 30, 50, 100),
+  tsunami_estimates = c(
+    lm_5ha$coefficients["tsunami_farmland_share", "Estimate"],
+    lm_10ha$coefficients["tsunami_farmland_share", "Estimate"],
+    lm_20ha$coefficients["tsunami_farmland_share", "Estimate"],
+    lm_30ha$coefficients["tsunami_farmland_share", "Estimate"],
+    lm_50ha$coefficients["tsunami_farmland_share", "Estimate"],
+    lm_100ha$coefficients["tsunami_farmland_share", "Estimate"]
+)  
+)
+
+thre_by_r_squared |> 
+  ggplot(aes(x = threshold, y = tsunami_estimates)) +
+  geom_line() +
+  geom_point() +
+  scale_x_continuous(
+    breaks = seq(0, 100, by = 5)
+  ) +
+  labs(
+    x = "大規模経営体判定の閾値(ha)",
+    y = "津波被災割合の係数"
+  )
+
+```
+閾値が小さいときは津波被災割合の係数は大きいけれど、20haを超えるとほぼ0になる。
+
+## 閾値 × 津波被災割合のp値（交差項モデルについてのみ）
+
+```{r}
+lm_5ha <- summary(m10)
+lm_10ha <- summary(m8)
+lm_20ha <- summary(m12)
+lm_30ha <- summary(m14)
+lm_50ha <- summary(m16)
+lm_100ha <- summary(m18)
+
+thre_by_r_squared <- data.frame(
+  threshold = c(5, 10, 20, 30, 50, 100),
+  tsunami_p_values = c(
+    lm_5ha$coefficients["tsunami_farmland_share", "Pr(>|t|)"],
+    lm_10ha$coefficients["tsunami_farmland_share", "Pr(>|t|)"],
+    lm_20ha$coefficients["tsunami_farmland_share", "Pr(>|t|)"],
+    lm_30ha$coefficients["tsunami_farmland_share", "Pr(>|t|)"],
+    lm_50ha$coefficients["tsunami_farmland_share", "Pr(>|t|)"],
+    lm_100ha$coefficients["tsunami_farmland_share", "Pr(>|t|)"]
+)  
+)
+
+thre_by_r_squared |> 
+  ggplot(aes(x = threshold, y = tsunami_p_values)) +
+  geom_line() +
+  geom_point() +
+  scale_x_continuous(
+    breaks = seq(0, 100, by = 5)
+  ) +
+  labs(
+    x = "大規模経営体判定の閾値(ha)",
+    y = "津波被災割合のp値"
+  )
+
+```
+
+
+有意なのは20haまで。閾値がそれ以上になるとまったく有意でなくなる。
+
+
+## 閾値 × c1の係数（交差項モデルについてのみ）
+
+```{r}
+lm_5ha <- summary(m10)
+lm_10ha <- summary(m8)
+lm_20ha <- summary(m12)
+lm_30ha <- summary(m14)
+lm_50ha <- summary(m16)
+lm_100ha <- summary(m18)
+
+thre_by_r_squared <- data.frame(
+  threshold = c(5, 10, 20, 30, 50, 100),
+  c_one_estimates = c(
+    lm_5ha$coefficients["c_one", "Estimate"],
+    lm_10ha$coefficients["c_one", "Estimate"],
+    lm_20ha$coefficients["c_one", "Estimate"],
+    lm_30ha$coefficients["c_one", "Estimate"],
+    lm_50ha$coefficients["c_one", "Estimate"],
+    lm_100ha$coefficients["c_one", "Estimate"]
+)  
+)
+
+thre_by_r_squared |> 
+  ggplot(aes(x = threshold, y = c_one_estimates)) +
+  geom_line() +
+  geom_point() +
+  scale_x_continuous(
+    breaks = seq(0, 100, by = 5)
+  ) +
+  labs(
+    x = "大規模経営体判定の閾値(ha)",
+    y = "c1の係数"
+  )
+
+```
+
+## 閾値 × c1のp値（交差項モデルについてのみ）
+
+```{r}
+lm_5ha <- summary(m10)
+lm_10ha <- summary(m8)
+lm_20ha <- summary(m12)
+lm_30ha <- summary(m14)
+lm_50ha <- summary(m16)
+lm_100ha <- summary(m18)
+
+thre_by_r_squared <- data.frame(
+  threshold = c(5, 10, 20, 30, 50, 100),
+  c_one_p_values = c(
+    lm_5ha$coefficients["c_one", "Pr(>|t|)"],
+    lm_10ha$coefficients["c_one", "Pr(>|t|)"],
+    lm_20ha$coefficients["c_one", "Pr(>|t|)"],
+    lm_30ha$coefficients["c_one", "Pr(>|t|)"],
+    lm_50ha$coefficients["c_one", "Pr(>|t|)"],
+    lm_100ha$coefficients["c_one", "Pr(>|t|)"]
+)  
+)
+
+thre_by_r_squared |> 
+  ggplot(aes(x = threshold, y = c_one_p_values)) +
+  geom_line() +
+  geom_point() +
+  scale_x_continuous(
+    breaks = seq(0, 100, by = 5)
+  ) +
+  labs(
+    x = "大規模経営体判定の閾値(ha)",
+    y = "c1のp値"
+  )
+
+```
+
+閾値20haあたりからc1は有意になっていく（そして、有意になると、係数は負になる）。
+
+閾値20haあたりで大規模経営体割合の規定メカニズムがシフトするようだ。
+
+
+## 閾値 × 交差項（被災面積割合×c1）の係数（交差項モデルについてのみ）
+
+```{r}
+lm_5ha <- summary(m10)
+lm_10ha <- summary(m8)
+lm_20ha <- summary(m12)
+lm_30ha <- summary(m14)
+lm_50ha <- summary(m16)
+lm_100ha <- summary(m18)
+
+thre_by_r_squared <- data.frame(
+  threshold = c(5, 10, 20, 30, 50, 100),
+  tsunami_c_one_estimates = c(
+    lm_5ha$coefficients["tsunami_farmland_share:c_one", "Estimate"],
+    lm_10ha$coefficients["tsunami_farmland_share:c_one", "Estimate"],
+    lm_20ha$coefficients["tsunami_farmland_share:c_one", "Estimate"],
+    lm_30ha$coefficients["tsunami_farmland_share:c_one", "Estimate"],
+    lm_50ha$coefficients["tsunami_farmland_share:c_one", "Estimate"],
+    lm_100ha$coefficients["tsunami_farmland_share:c_one", "Estimate"]
+)  
+)
+
+thre_by_r_squared |> 
+  ggplot(aes(x = threshold, y = tsunami_c_one_estimates)) +
+  geom_line() +
+  geom_point() +
+  scale_x_continuous(
+    breaks = seq(0, 100, by = 5)
+  ) +
+  labs(
+    x = "大規模経営体判定の閾値(ha)",
+    y = "交差項（津波被災割合×c1）の係数"
+  )
+
+```
+交差項は20haでピーク。50haまではそれなりに高い値だけど、100haではかなり低くなる（ただし、有意なのは20ha以上。100haでも有意）。
+
+
+## 閾値 × 交差項（被災面積割合×c1）のp値（交差項モデルについてのみ）
+
+```{r}
+lm_5ha <- summary(m10)
+lm_10ha <- summary(m8)
+lm_20ha <- summary(m12)
+lm_30ha <- summary(m14)
+lm_50ha <- summary(m16)
+lm_100ha <- summary(m18)
+
+thre_by_r_squared <- data.frame(
+  threshold = c(5, 10, 20, 30, 50, 100),
+  tsunami_c_one_p_values = c(
+    lm_5ha$coefficients["tsunami_farmland_share:c_one", "Pr(>|t|)"],
+    lm_10ha$coefficients["tsunami_farmland_share:c_one", "Pr(>|t|)"],
+    lm_20ha$coefficients["tsunami_farmland_share:c_one", "Pr(>|t|)"],
+    lm_30ha$coefficients["tsunami_farmland_share:c_one", "Pr(>|t|)"],
+    lm_50ha$coefficients["tsunami_farmland_share:c_one", "Pr(>|t|)"],
+    lm_100ha$coefficients["tsunami_farmland_share:c_one", "Pr(>|t|)"]
+)  
+)
+
+thre_by_r_squared |> 
+  ggplot(aes(x = threshold, y = tsunami_c_one_p_values)) +
+  geom_line() +
+  geom_point() +
+  scale_x_continuous(
+    breaks = seq(0, 100, by = 5)
+  ) +
+  labs(
+    x = "大規模経営体判定の閾値(ha)",
+    y = "交差項（津波被災割合×c1）のp値"
+  )
+
+```
+
+
+閾値20ha以上だと有意になる。
+
+
+
+## 閾値 × 震災前農地面積の係数（交差項モデルについてのみ）
+
+```{r}
+lm_5ha <- summary(m10)
+lm_10ha <- summary(m8)
+lm_20ha <- summary(m12)
+lm_30ha <- summary(m14)
+lm_50ha <- summary(m16)
+lm_100ha <- summary(m18)
+
+thre_by_r_squared <- data.frame(
+  threshold = c(5, 10, 20, 30, 50, 100),
+  farmland_total_estimates = c(
+    lm_5ha$coefficients["farmland_total_by_kcity", "Estimate"],
+    lm_10ha$coefficients["farmland_total_by_kcity", "Estimate"],
+    lm_20ha$coefficients["farmland_total_by_kcity", "Estimate"],
+    lm_30ha$coefficients["farmland_total_by_kcity", "Estimate"],
+    lm_50ha$coefficients["farmland_total_by_kcity", "Estimate"],
+    lm_100ha$coefficients["farmland_total_by_kcity", "Estimate"]
+)  
+)
+
+thre_by_r_squared |> 
+  ggplot(aes(x = threshold, y = farmland_total_estimates)) +
+  geom_line() +
+  geom_point() +
+  scale_x_continuous(
+    breaks = seq(0, 100, by = 5)
+  ) +
+  labs(
+    x = "大規模経営体判定の閾値(ha)",
+    y = "震災前農地面積の係数"
+  )
+
+```
+
+係数が小さいけれど、これは変数のスケールが大きいからだろう。有意なのは100haのときだけ。
+
+## 閾値 × 震災前農地面積のp値（交差項モデルについてのみ）
+
+```{r}
+lm_5ha <- summary(m10)
+lm_10ha <- summary(m8)
+lm_20ha <- summary(m12)
+lm_30ha <- summary(m14)
+lm_50ha <- summary(m16)
+lm_100ha <- summary(m18)
+
+thre_by_r_squared <- data.frame(
+  threshold = c(5, 10, 20, 30, 50, 100),
+  farmland_total_p_values = c(
+    lm_5ha$coefficients["farmland_total_by_kcity", "Pr(>|t|)"],
+    lm_10ha$coefficients["farmland_total_by_kcity", "Pr(>|t|)"],
+    lm_20ha$coefficients["farmland_total_by_kcity", "Pr(>|t|)"],
+    lm_30ha$coefficients["farmland_total_by_kcity", "Pr(>|t|)"],
+    lm_50ha$coefficients["farmland_total_by_kcity", "Pr(>|t|)"],
+    lm_100ha$coefficients["farmland_total_by_kcity", "Pr(>|t|)"]
+)  
+)
+
+thre_by_r_squared |> 
+  ggplot(aes(x = threshold, y = farmland_total_p_values)) +
+  geom_line() +
+  geom_point() +
+  scale_x_continuous(
+    breaks = seq(0, 100, by = 5)
+  ) +
+  labs(
+    x = "大規模経営体判定の閾値(ha)",
+    y = "震災前農地面積のp値"
+  )
+
+```
+
+
+有意になるのは閾値が100haになったときだけ。

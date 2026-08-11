@@ -1,6 +1,7 @@
 # パッケージ読み込み----
 library(tidyverse)
 library(readxl) # Excelデータを読み込む
+library(car) # VIFを求めるのに使う
 
 # インポート----
 
@@ -355,3 +356,16 @@ df <- df |>
 
 df <- df |>
   filter(!(kcity_code == "00" & has_subarea))
+
+
+# c-1事業実施地域データの結合
+
+c_one <- read_csv("02_processed_data/c1_check.csv")
+
+df <- df |>
+  left_join(
+    c_one |>
+      select(area_code, 
+             c_one),
+    by = "area_code"
+  )
