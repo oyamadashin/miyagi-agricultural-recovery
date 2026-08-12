@@ -358,14 +358,15 @@ df <- df |>
   filter(!(kcity_code == "00" & has_subarea))
 
 
-# c-1事業実施地域データの結合
+# c-1、c-4事業実施地域データの結合----
 
-c_one <- read_csv("02_processed_data/c1_check.csv")
+c_one_four <- read_csv("02_processed_data/c1_c4_check.csv")
 
 df <- df |>
   left_join(
-    c_one |>
+    c_one_four |>
       select(area_code, 
-             c_one),
+             c_one,
+             c_four),
     by = "area_code"
   )
