@@ -6,10 +6,92 @@ date: "2026-08-03"
 
 
 ```{r}
-df2 |> filter(area_code == )
+
+df2 <- df2 |>
+  mutate(
+    share_over_20ha = entities_over_20_0ha / entities_total
+  )
+
+change_20ha <- df2 |>
+  filter(census_year %in% c("2010", "2020")) |>
+  select(
+    area_code,
+    census_year,
+    share_over_20ha,
+    tsunami_farmland_share,
+    c_one,
+    c_four,
+    farmland_total_by_kcity
+  ) |>
+  tidyr::pivot_wider(
+    id_cols = c(
+      area_code,
+      tsunami_farmland_share,
+      c_one,
+      c_four,
+      farmland_total_by_kcity
+    ),
+    names_from = census_year,
+    values_from = share_over_20ha,
+    names_prefix = "share_"
+  ) |>
+  mutate(
+    change_2010_2020 = share_2020 - share_2010
+  )
+
+m13 <- lm(
+  change_2010_2020 ~
+    tsunami_farmland_share +
+    c_one +
+    c_four +
+    tsunami_farmland_share:c_one +
+    tsunami_farmland_share:c_four,
+  data = change_20ha
+)
+
+summary(m13)
+vif(m13)
 ```
 
 
+
+```{r}
+change_20ha <- change_20ha |>
+  mutate(
+    tsunami_c = tsunami_farmland_share -
+      mean(tsunami_farmland_share, na.rm = TRUE)
+  )
+  
+m1 <- lm(
+  change_2010_2020 ~
+    tsunami_c * c_one +
+    c_four,
+  data = change_20ha
+)
+
+m1 |> summary()
+vif(m1)
+```
+
+
+
+```{r}
+change_20ha <- change_20ha |>
+  mutate(
+    tsunami_c = tsunami_farmland_share -
+      mean(tsunami_farmland_share, na.rm = TRUE)
+  )
+  
+m1 <- lm(
+  change_2010_2020 ~
+    tsunami_c +
+    c_one*c_four,
+  data = change_20ha
+)
+
+m1 |> summary()
+vif(m1)
+```
 
 
 ```{r}

@@ -1,0 +1,141 @@
+---
+title: "eda_c_four"
+output: html_document
+date: "2026-08-13"
+# c4事業関連のeda
+---
+
+# source
+
+```{r}
+source("preparation.R")
+df
+```
+
+基本的に被災のあった旧市区町村のデータだけを分析に使う。以降、df2を分析に使おう。
+
+```{r}
+df2 <- df |> filter(old_municipality == "1" & !is.na(tsunami_farmland_share))
+df2
+```
+
+
+# c4実施の規定要因は？
+
+## 被災農地の割合と絶対規模、どちらがc4実施に影響している？
+
+
+これはc1についてはすでにやっている分析だ。c4についてもやってみよう。
+
+```{r}
+dat_c4 <- df2 |>
+  filter(
+    census_year == "2010",
+    !is.na(c_four),
+    tsunami_farmland_share > 0
+  )
+
+# ① 被災割合
+m1 <- glm(
+  c_four ~ tsunami_farmland_share,
+  family = binomial,
+  data = dat_c4
+)
+
+# ② 被災農地面積
+m2 <- glm(
+  c_four ~ tunami_farmland_total_by_kcity,
+  family = binomial,
+  data = dat_c4
+)
+
+# ③ 両方
+m3 <- glm(
+  c_four ~ tsunami_farmland_share +
+    tunami_farmland_total_by_kcity,
+  family = binomial,
+  data = dat_c4
+)
+
+AIC(m1, m2, m3)
+```
+
+c1のときと同様で、m2が一番AICが小さい。
+
+## 元々の農地規模の影響もチェック
+
+
+```{r}
+dat_c4 <- df2 |>
+  filter(
+    census_year == "2010",
+    !is.na(c_four),
+    tsunami_farmland_share > 0
+  )
+
+# 元々の農地規模
+m4 <- glm(
+  c_four ~ farmland_total_by_kcity,
+  family = binomial,
+  data = dat_c4
+)
+
+# 津波農地割合 + 元々の農地規模
+m5 <- glm(
+  c_four ~ tsunami_farmland_share +
+    farmland_total_by_kcity,
+  family = binomial,
+  data = dat_c4
+)
+
+# 津波農地絶対規模 + 元々の農地規模
+m6 <- glm(
+  c_four ~ tunami_farmland_total_by_kcity +
+    farmland_total_by_kcity,
+  family = binomial,
+  data = dat_c4
+)
+
+AIC(m4, m5, m6)
+summary(m6)
+summary(m5)
+```
+
+c1ではm5のAICが小さかったけど、c4ではm6のAICが明らかに小さい。
+
+ただ、m5の係数の有意傾向はc1のときと同様。やはり、震災前の農地規模が大きく、かつ津波被災農地割合が高い旧市区町村ほど実施される傾向が強い。
+
+
+
+## m6によるc4実施予測と実際の結果の比較
+
+```{r}
+dat_c4 <- dat_c4 |>
+  mutate(
+    pred_c4 = predict(
+      m6,
+      newdata = dat_c4,
+      type = "response"
+    )
+  )
+
+ggplot(
+  dat_c4,
+  aes(
+    x = pred_c4,
+    y = c_four,
+    label = area_name
+  )
+) +
+  geom_point() +
+  geom_text(
+    nudge_y = 0.03,
+    check_overlap = TRUE
+  ) +
+  labs(
+    x = "C-4事業実施の予測確率",
+    y = "実際のC-4事業実施"
+  )
+```
+
+c-1に比べると当てはまりがあまりよくない。

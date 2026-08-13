@@ -1,0 +1,1204 @@
+---
+title: "eda_c_one_and_four"
+output: html_document
+date: "2026-08-13"
+---
+
+# source
+
+```{r}
+source("preparation.R")
+df
+```
+
+基本的に被災のあった旧市区町村のデータだけを分析に使う。以降、df2を分析に使おう。
+
+```{r}
+df2 <- df |> filter(old_municipality == "1" & !is.na(tsunami_farmland_share))
+df2
+```
+
+# c1実施とc4実施の関連性
+
+```{r}
+policy_df <- df2 |>
+  distinct(area_code, c_one, c_four)
+
+table(policy_df$c_one, policy_df$c_four)
+table(policy_df$c_one, policy_df$c_four) |> prop.table() * 100
+
+cor(policy_df$c_one, policy_df$c_four)
+
+```
+
+行がc1、列がc4。c1を実施しているがc4は実施していないというパターン、c1は実施していないがc4は実施しているというパターンを足したら全体の20％ある。相関は互いが、これらの例外パターンも一定割合あることに注意。
+
+# 津波被災程度と各事業実施パターンの関連
+
+## 事業実施パターンごとの津波被災平均・中央値
+
+```{r}
+policy_df2 <- df2 |>
+  filter(census_year == "2010") |>
+  distinct(
+    area_code,
+    c_one,
+    c_four,
+    tsunami_farmland_share
+  ) |>
+  mutate(
+    policy_type = case_when(
+      c_one == 0 & c_four == 0 ~ "Neither",
+      c_one == 1 & c_four == 0 ~ "C1 only",
+      c_one == 0 & c_four == 1 ~ "C4 only",
+      c_one == 1 & c_four == 1 ~ "C1 + C4"
+    )
+  )
+
+policy_df2 |>
+  group_by(policy_type) |>
+  summarise(
+    n = n(),
+    mean_damage = mean(tsunami_farmland_share, na.rm = TRUE),
+    median_damage = median(tsunami_farmland_share, na.rm = TRUE)
+  )
+```
+
+C1とC4の両方を実施しているのは津波被災農地割合が7割近くに達する、被害の大きい地域だ。津波被災の大きさと補助の手厚さにきれいな正の関係性がみられる。
+
+## 事業実施パターンごとの津波被災箱ひげ図
+
+```{r}
+ggplot(
+  policy_df2,
+  aes(x = policy_type, y = tsunami_farmland_share)
+) +
+  geom_boxplot() +
+  geom_jitter(width = 0.15, alpha = 0.6) +
+  labs(
+    x = NULL,
+    y = "Tsunami-damaged farmland share"
+  )
+```
+ただし、箱ひげ図にすると、必ずしも被災割合だけで事業実施が決まってくるわけではないように見える。とくに、どちらの事業も実施していない地域には被災割合のかなり大きい地域がみられる。
+
+
+# 震災前農地規模と各事業実施パターンの関連
+
+## 事業実施パターンごとの震災前農地規模平均・中央値
+
+```{r}
+policy_df3 <- df2 |>
+  filter(census_year == "2010") |>
+  distinct(
+    area_code,
+    c_one,
+    c_four,
+    tsunami_farmland_share,
+    farmland_total_by_kcity
+  ) |>
+  mutate(
+    policy_type = case_when(
+      c_one == 0 & c_four == 0 ~ "Neither",
+      c_one == 1 & c_four == 0 ~ "C1 only",
+      c_one == 0 & c_four == 1 ~ "C4 only",
+      c_one == 1 & c_four == 1 ~ "C1 + C4"
+    )
+  )
+
+policy_df3 |>
+  group_by(policy_type) |>
+  summarise(
+    n = n(),
+    mean_farmland = mean(farmland_total_by_kcity, na.rm = TRUE),
+    median_farmland = median(farmland_total_by_kcity, na.rm = TRUE)
+  )
+```
+
+元々農地規模の大きい地域の方が事業を実施する傾向があるようだ。
+
+## 事業実施パターンごとの震災前農地規模箱ひげ図
+
+```{r}
+ggplot(
+  policy_df3,
+  aes(x = policy_type, y = farmland_total_by_kcity)
+) +
+  geom_boxplot() +
+  geom_jitter(width = 0.15, alpha = 0.6) +
+  labs(
+    x = NULL,
+    y = "farmland_total_by_kcity"
+  )
+```
+
+縦軸が津波被災割合だったときはNeitherのばらつきがかなり見られたけれど、縦軸が震災前農地面積だとばらつきがかなり小さくなる。
+
+
+# 津波被災農地規模と各事業実施パターンの関連
+
+## 事業実施パターンごとの津波被災農地規模平均・中央値
+
+```{r}
+policy_df4 <- df2 |>
+  filter(census_year == "2010") |>
+  distinct(
+    area_code,
+    c_one,
+    c_four,
+    tunami_farmland_total_by_kcity
+  ) |>
+  mutate(
+    policy_type = case_when(
+      c_one == 0 & c_four == 0 ~ "Neither",
+      c_one == 1 & c_four == 0 ~ "C1 only",
+      c_one == 0 & c_four == 1 ~ "C4 only",
+      c_one == 1 & c_four == 1 ~ "C1 + C4"
+    )
+  )
+
+
+policy_df4 |>
+  group_by(policy_type) |>
+  summarise(
+    n = n(),
+    mean_tsunami_farmland = mean(tunami_farmland_total_by_kcity, na.rm = TRUE),
+    median_tsunami_farmland = median(tunami_farmland_total_by_kcity, na.rm = TRUE)
+  )
+```
+
+津波被災農地規模の大きい地域の方が事業を実施する傾向があるようだ。
+
+
+## 事業実施パターンごとの震災前農地規模箱ひげ図
+
+```{r}
+ggplot(
+  policy_df4,
+  aes(x = policy_type, y = tunami_farmland_total_by_kcity)
+) +
+  geom_boxplot() +
+  geom_jitter(width = 0.15, alpha = 0.6) +
+  labs(
+    x = NULL,
+    y = "tunami_farmland_total_by_kcity"
+  )
+```
+
+津波被災農地規模が一番当てはまりがいい気がする…。
+
+# 大規模化進展ペース ~ 被災農地割合 + 津波被災農地規模 + c-1 + c-4
+
+
+## 閾値 = 10ha
+
+### m7 (交差項なし)
+
+```{r}
+df2 <- df2 |>
+  mutate(
+    share_over_10ha = entities_over_10_0ha / entities_total
+  )
+
+change_10ha <- df2 |>
+  filter(census_year %in% c("2010", "2020")) |>
+  select(
+    area_code,
+    census_year,
+    share_over_10ha,
+    tsunami_farmland_share,
+    tunami_farmland_total_by_kcity, 
+    c_one,
+    c_four
+  ) |>
+  tidyr::pivot_wider(
+    id_cols = c(
+      area_code,
+      tsunami_farmland_share,
+      tunami_farmland_total_by_kcity,
+      c_one,
+      c_four
+    ),
+    names_from = census_year,
+    values_from = share_over_10ha,
+    names_prefix = "share_"
+  ) |>
+  mutate(
+    change_2010_2020 = share_2020 - share_2010
+  )
+
+m7 <- lm(
+  change_2010_2020 ~
+    tsunami_farmland_share +
+    tunami_farmland_total_by_kcity +
+    c_one +
+    c_four,
+  data = change_10ha
+)
+
+summary(m7)
+vif(m7)
+```
+有意なのは津波被災面積割合だけ。決定係数がかなり大きい。
+
+### m8_1 (c1と津波被災割合の交差項)
+
+```{r}
+m8_1 <- lm(
+  change_2010_2020 ~
+    tsunami_farmland_share * c_one +
+    tunami_farmland_total_by_kcity,
+  data = change_10ha
+)
+
+summary(m8_1)
+vif(m8_1, type = "predictor")
+```
+c1と津波被災割合で交差項を作ったけど有意ではない。
+
+
+### m8_2 (c4と津波被災割合の交差項)
+
+```{r}
+m8_2 <- lm(
+  change_2010_2020 ~
+    tsunami_farmland_share * c_four +
+    tunami_farmland_total_by_kcity,
+  data = change_10ha
+)
+
+summary(m8_2)
+vif(m8_2, type = "predictor")
+```
+c1をc4にしても傾向変わらず。
+
+
+## 閾値 = 20ha
+
+### m9 (交差項なし)
+
+```{r}
+df2 <- df2 |>
+  mutate(
+    share_over_20ha = entities_over_20_0ha / entities_total
+  )
+
+change_20ha <- df2 |>
+  filter(census_year %in% c("2010", "2020")) |>
+  select(
+    area_code,
+    census_year,
+    share_over_20ha,
+    tsunami_farmland_share,
+    tunami_farmland_total_by_kcity, 
+    c_one,
+    c_four
+  ) |>
+  tidyr::pivot_wider(
+    id_cols = c(
+      area_code,
+      tsunami_farmland_share,
+      tunami_farmland_total_by_kcity,
+      c_one,
+      c_four
+    ),
+    names_from = census_year,
+    values_from = share_over_20ha,
+    names_prefix = "share_"
+  ) |>
+  mutate(
+    change_2010_2020 = share_2020 - share_2010
+  )
+
+m9 <- lm(
+  change_2010_2020 ~
+    tsunami_farmland_share +
+    tunami_farmland_total_by_kcity +
+    c_one +
+    c_four,
+  data = change_20ha
+)
+
+summary(m9)
+vif(m9)
+```
+
+やはり有意なのは有意なのは津波被災面積割合だけ。
+
+### m10_1 (c1と津波被災割合の交差項)
+
+```{r}
+m10_1 <- lm(
+  change_2010_2020 ~
+    tsunami_farmland_share * c_one +
+    tunami_farmland_total_by_kcity,
+  data = change_20ha
+)
+
+summary(m10_1)
+vif(m10_1, type = "predictor")
+```
+
+閾値20haだと津波被災割合とc1の交差項が有意になる。
+
+
+### m10_1の予測線
+
+```{r}
+newdat <- expand.grid(
+  tsunami_farmland_share = seq(0, 1, length.out = 100),
+  c_one = c(0, 1),
+  tunami_farmland_total_by_kcity =
+    mean(change_20ha$tunami_farmland_total_by_kcity, na.rm = TRUE)
+)
+
+newdat$pred <- predict(
+  m10_1,
+  newdata = newdat
+)
+
+newdat <- newdat |>
+  mutate(
+    c_one = factor(
+      c_one,
+      levels = c(0, 1),
+      labels = c("C-1非実施", "C-1実施")
+    )
+  )
+
+ggplot(
+  newdat,
+  aes(
+    x = tsunami_farmland_share,
+    y = pred,
+    linetype = c_one
+  )
+) +
+  geom_line(linewidth = 1) +
+  labs(
+    x = "津波被災農地割合",
+    y = "20ha以上経営体割合の変化（2010–2020）",
+    linetype = "C-1事業"
+  )
+
+ggplot(
+  change_20ha,
+  aes(
+    x = tsunami_farmland_share,
+    y = change_2010_2020,
+    shape = factor(c_one),
+    linetype = factor(c_one)
+  )
+) +
+  geom_point(size = 2.5) +
+  geom_smooth(
+    method = "lm",
+    se = FALSE
+  ) +
+  scale_shape_manual(
+    values = c(
+      "0" = 17,  # △ 非実施
+      "1" = 16   # ● 実施
+    ),
+    labels = c(
+      "0" = "C-1非実施",
+      "1" = "C-1実施"
+    )
+  ) +
+  scale_linetype_manual(
+    values = c(
+      "0" = "dashed", # 非実施
+      "1" = "solid"   # 実施
+    ),
+    labels = c(
+      "0" = "C-1非実施",
+      "1" = "C-1実施"
+    )
+  ) +
+  labs(
+    x = "津波被災農地割合",
+    y = "20ha以上経営体割合の変化（2010–2020）",
+    shape = "C-1事業",
+    linetype = "C-1事業"
+  )
+```
+
+
+### m10_2 (c4と津波被災割合の交差項)
+
+```{r}
+m10_2 <- lm(
+  change_2010_2020 ~
+    tsunami_farmland_share * c_four +
+    tunami_farmland_total_by_kcity,
+  data = change_20ha
+)
+
+summary(m10_2)
+vif(m10_2, type = "predictor")
+```
+
+c4でも被災割合との交差項が有意になっている。
+
+
+### m10_2の予測線
+
+```{r}
+newdat <- expand.grid(
+  tsunami_farmland_share = seq(0, 1, length.out = 100),
+  c_four = c(0, 1),
+  tunami_farmland_total_by_kcity =
+    mean(change_20ha$tunami_farmland_total_by_kcity, na.rm = TRUE)
+)
+
+newdat$pred <- predict(
+  m10_2,
+  newdata = newdat
+)
+
+newdat <- newdat |>
+  mutate(
+    c_four = factor(
+      c_four,
+      levels = c(0, 1),
+      labels = c("C-4非実施", "C-4実施")
+    )
+  )
+
+ggplot(
+  newdat,
+  aes(
+    x = tsunami_farmland_share,
+    y = pred,
+    linetype = c_four
+  )
+) +
+  geom_line(linewidth = 1) +
+  labs(
+    x = "津波被災農地割合",
+    y = "20ha以上経営体割合の変化（2010–2020）",
+    linetype = "C-4事業"
+  )
+
+ggplot(
+  change_20ha,
+  aes(
+    x = tsunami_farmland_share,
+    y = change_2010_2020,
+    shape = factor(c_four),
+    linetype = factor(c_four)
+  )
+) +
+  geom_point(size = 2.5) +
+  geom_smooth(
+    method = "lm",
+    se = FALSE
+  ) +
+  scale_shape_manual(
+    values = c(
+      "0" = 17,  # △ 非実施
+      "1" = 16   # ● 実施
+    ),
+    labels = c(
+      "0" = "C-4非実施",
+      "1" = "C-4実施"
+    )
+  ) +
+  scale_linetype_manual(
+    values = c(
+      "0" = "dashed", # 非実施
+      "1" = "solid"   # 実施
+    ),
+    labels = c(
+      "0" = "C-4非実施",
+      "1" = "C-4実施"
+    )
+  ) +
+  labs(
+    x = "津波被災農地割合",
+    y = "20ha以上経営体割合の変化（2010–2020）",
+    shape = "C-4事業",
+    linetype = "C-4事業"
+  )
+```
+
+## 閾値 = 30ha
+
+### m11 (交差項なし)
+
+```{r}
+df2 <- df2 |>
+  mutate(
+    share_over_30ha = entities_over_30_0ha / entities_total
+  )
+
+change_30ha <- df2 |>
+  filter(census_year %in% c("2010", "2020")) |>
+  select(
+    area_code,
+    census_year,
+    share_over_30ha,
+    tsunami_farmland_share,
+    tunami_farmland_total_by_kcity, 
+    c_one,
+    c_four
+  ) |>
+  tidyr::pivot_wider(
+    id_cols = c(
+      area_code,
+      tsunami_farmland_share,
+      tunami_farmland_total_by_kcity,
+      c_one,
+      c_four
+    ),
+    names_from = census_year,
+    values_from = share_over_30ha,
+    names_prefix = "share_"
+  ) |>
+  mutate(
+    change_2010_2020 = share_2020 - share_2010
+  )
+
+m11 <- lm(
+  change_2010_2020 ~
+    tsunami_farmland_share +
+    tunami_farmland_total_by_kcity +
+    c_one +
+    c_four,
+  data = change_30ha
+)
+
+summary(m11)
+vif(m11)
+```
+
+閾値30haになると津波被災割合だけでなく津波被災農地規模も有意になってきている。
+
+津波被災農地規模が大きいということは、それだけ、再編に使える農地が多く出回るため、30ha以上の大規模経営体が育つ余地があるということだ。そして、津波被災割合が大きいということは、再編に伴い地域の農業構造が大きく変化するインパクトがあるということだろう。
+
+### m12_1 (c1と津波被災割合の交差項)
+
+```{r}
+m12_1 <- lm(
+  change_2010_2020 ~
+    tsunami_farmland_share * c_one +
+    tunami_farmland_total_by_kcity,
+  data = change_30ha
+)
+
+summary(m12_1)
+vif(m12_1, type = "predictor")
+```
+決定係数がかなり大きくなる。c-1自体は負で有意。津波被災割合の交差項が明確に有意になっている。また、10%有意だが、このあたりから津波被災面積絶対量も有意になっている。
+
+### m12_1の予測線
+
+```{r}
+newdat <- expand.grid(
+  tsunami_farmland_share = seq(0, 1, length.out = 100),
+  c_one = c(0, 1),
+  tunami_farmland_total_by_kcity =
+    mean(change_30ha$tunami_farmland_total_by_kcity, na.rm = TRUE)
+)
+
+newdat$pred <- predict(
+  m12_1,
+  newdata = newdat
+)
+
+newdat <- newdat |>
+  mutate(
+    c_one = factor(
+      c_one,
+      levels = c(0, 1),
+      labels = c("C-1非実施", "C-1実施")
+    )
+  )
+
+ggplot(
+  newdat,
+  aes(
+    x = tsunami_farmland_share,
+    y = pred,
+    linetype = c_one
+  )
+) +
+  geom_line(linewidth = 1) +
+  labs(
+    x = "津波被災農地割合",
+    y = "30ha以上経営体割合の変化（2010–2020）",
+    linetype = "C-1事業"
+  )
+
+ggplot(
+  change_30ha,
+  aes(
+    x = tsunami_farmland_share,
+    y = change_2010_2020,
+    shape = factor(c_one),
+    linetype = factor(c_one)
+  )
+) +
+  geom_point(size = 2.5) +
+  geom_smooth(
+    method = "lm",
+    se = FALSE
+  ) +
+  scale_shape_manual(
+    values = c(
+      "0" = 17,  # △ 非実施
+      "1" = 16   # ● 実施
+    ),
+    labels = c(
+      "0" = "C-1非実施",
+      "1" = "C-1実施"
+    )
+  ) +
+  scale_linetype_manual(
+    values = c(
+      "0" = "dashed", # 非実施
+      "1" = "solid"   # 実施
+    ),
+    labels = c(
+      "0" = "C-1非実施",
+      "1" = "C-1実施"
+    )
+  ) +
+  labs(
+    x = "津波被災農地割合",
+    y = "30ha以上経営体割合の変化（2010–2020）",
+    shape = "C-1事業",
+    linetype = "C-1事業"
+  )
+```
+
+### m12_2 (c4と津波被災割合の交差項)
+
+```{r}
+m12_2 <- lm(
+  change_2010_2020 ~
+    tsunami_farmland_share * c_four +
+    tunami_farmland_total_by_kcity,
+  data = change_30ha
+)
+
+summary(m12_2)
+vif(m12_2, type = "predictor")
+```
+
+c-4の場合もc-1と傾向は変わらない。
+
+## 閾値 = 50ha
+
+### m13 (交差項なし)
+
+```{r}
+df2 <- df2 |>
+  mutate(
+    share_over_50ha = entities_over_50_0ha / entities_total
+  )
+
+change_50ha <- df2 |>
+  filter(census_year %in% c("2010", "2020")) |>
+  select(
+    area_code,
+    census_year,
+    share_over_50ha,
+    tsunami_farmland_share,
+    tunami_farmland_total_by_kcity, 
+    c_one,
+    c_four
+  ) |>
+  tidyr::pivot_wider(
+    id_cols = c(
+      area_code,
+      tsunami_farmland_share,
+      tunami_farmland_total_by_kcity,
+      c_one,
+      c_four
+    ),
+    names_from = census_year,
+    values_from = share_over_50ha,
+    names_prefix = "share_"
+  ) |>
+  mutate(
+    change_2010_2020 = share_2020 - share_2010
+  )
+
+m13 <- lm(
+  change_2010_2020 ~
+    tsunami_farmland_share +
+    tunami_farmland_total_by_kcity +
+    c_one +
+    c_four,
+  data = change_50ha
+)
+
+summary(m13)
+vif(m13)
+```
+閾値50haでも閾値30haと同様の有意傾向（ただし決定係数はやや小さくなる）。
+
+
+### m14_1 (c1と津波被災割合の交差項)
+
+```{r}
+m14_1 <- lm(
+  change_2010_2020 ~
+    tsunami_farmland_share * c_one +
+    tunami_farmland_total_by_kcity,
+  data = change_50ha
+)
+
+summary(m14_1)
+vif(m14_1, type = "predictor")
+```
+
+50haになると津波被災割合の主効果がなくなる。交差項は相変わらず効いてる→大規模層だと津波被災割合ではなく津波被災農地の絶対量を使った方が良いのかも。
+
+### m14_2 (c4と津波被災割合の交差項)
+
+```{r}
+m14_2 <- lm(
+  change_2010_2020 ~
+    tsunami_farmland_share * c_four +
+    tunami_farmland_total_by_kcity,
+  data = change_50ha
+)
+
+summary(m14_2)
+vif(m14_2, type = "predictor")
+```
+
+c4だと津波被災農地絶対量だけが有意になる。
+
+## 閾値 = 100ha
+
+### m15 (交差項なし)
+
+```{r}
+df2 <- df2 |>
+  mutate(
+    share_over_100ha = entities_over_100_0ha / entities_total
+  )
+
+change_100ha <- df2 |>
+  filter(census_year %in% c("2010", "2020")) |>
+  select(
+    area_code,
+    census_year,
+    share_over_100ha,
+    tsunami_farmland_share,
+    tunami_farmland_total_by_kcity, 
+    c_one,
+    c_four
+  ) |>
+  tidyr::pivot_wider(
+    id_cols = c(
+      area_code,
+      tsunami_farmland_share,
+      tunami_farmland_total_by_kcity,
+      c_one,
+      c_four
+    ),
+    names_from = census_year,
+    values_from = share_over_100ha,
+    names_prefix = "share_"
+  ) |>
+  mutate(
+    change_2010_2020 = share_2020 - share_2010
+  )
+
+m15 <- lm(
+  change_2010_2020 ~
+    tsunami_farmland_share +
+    tunami_farmland_total_by_kcity +
+    c_one +
+    c_four,
+  data = change_100ha
+)
+
+summary(m15)
+vif(m15)
+```
+
+閾値100haになると、今度は津波被災の絶対量だけが有意になった。決定係数はだいぶ下がる。
+
+100ha以上の大規模経営体をつくるにはともかく農地の絶対量が必要ということか。逆に20haくらいだと、被災面積割合が大きくて、地域内のどこにいても農地を獲得できる確率が高い方が、大規模経営体がたくさん生まれやすくなる。
+
+
+### m16_1 (c1と津波被災割合の交差項)
+
+```{r}
+m16_1 <- lm(
+  change_2010_2020 ~
+    tsunami_farmland_share * c_one +
+    tunami_farmland_total_by_kcity,
+  data = change_100ha
+)
+
+summary(m16_1)
+vif(m16_1, type = "predictor")
+```
+100haになると、c-1の方も被災農地絶対量だけが有意になる。
+
+
+### m16_2 (c4と津波被災割合の交差項)
+
+```{r}
+m16_2 <- lm(
+  change_2010_2020 ~
+    tsunami_farmland_share * c_four +
+    tunami_farmland_total_by_kcity,
+  data = change_100ha
+)
+
+summary(m16_2)
+vif(m16_2, type = "predictor")
+```
+
+なぜかc4だと交差項がまた有意になる。いずれにしても、これくらい大規模層だと
+被災面積割合ではなく被災絶対量で見た方が良いと思う。
+
+
+# 大規模化進展ペース ~ 津波被災農地絶対量 × c-1 or c-4
+
+## 10ha
+
+### m17_1 (c1と津波被災農地絶対量の交差項)
+
+```{r}
+df2 <- df2 |>
+  mutate(
+    share_over_10ha = entities_over_10_0ha / entities_total
+  )
+
+change_10ha <- df2 |>
+  filter(census_year %in% c("2010", "2020")) |>
+  select(
+    area_code,
+    census_year,
+    share_over_10ha,
+    tsunami_farmland_share,
+    tunami_farmland_total_by_kcity, 
+    c_one,
+    c_four
+  ) |>
+  tidyr::pivot_wider(
+    id_cols = c(
+      area_code,
+      tsunami_farmland_share,
+      tunami_farmland_total_by_kcity,
+      c_one,
+      c_four
+    ),
+    names_from = census_year,
+    values_from = share_over_10ha,
+    names_prefix = "share_"
+  ) |>
+  mutate(
+    change_2010_2020 = share_2020 - share_2010
+  )
+
+
+m17_1 <- lm(
+  change_2010_2020 ~
+    tsunami_farmland_share +
+    tunami_farmland_total_by_kcity * c_one,
+  data = change_10ha
+)
+
+summary(m17_1)
+vif(m17_1, type = "predictor")
+
+```
+
+10haだと被災農地絶対量とc1の交差項は全く効いていない。
+
+
+### m17_2 (c4と津波被災割合の交差項)
+
+```{r}
+m17_2 <- lm(
+  change_2010_2020 ~
+    tsunami_farmland_share +
+    tunami_farmland_total_by_kcity* c_four ,
+  data = change_10ha
+)
+
+summary(m17_2)
+vif(m17_2, type = "predictor")
+```
+c4も同様。
+
+## 20ha
+
+### m18_1 (c1と津波被災農地絶対量の交差項)
+
+```{r}
+df2 <- df2 |>
+  mutate(
+    share_over_20ha = entities_over_20_0ha / entities_total
+  )
+
+change_20ha <- df2 |>
+  filter(census_year %in% c("2010", "2020")) |>
+  select(
+    area_code,
+    census_year,
+    share_over_20ha,
+    tsunami_farmland_share,
+    tunami_farmland_total_by_kcity, 
+    c_one,
+    c_four
+  ) |>
+  tidyr::pivot_wider(
+    id_cols = c(
+      area_code,
+      tsunami_farmland_share,
+      tunami_farmland_total_by_kcity,
+      c_one,
+      c_four
+    ),
+    names_from = census_year,
+    values_from = share_over_20ha,
+    names_prefix = "share_"
+  ) |>
+  mutate(
+    change_2010_2020 = share_2020 - share_2010
+  )
+
+
+m18_1 <- lm(
+  change_2010_2020 ~
+    tsunami_farmland_share +
+    tunami_farmland_total_by_kcity * c_one,
+  data = change_20ha
+)
+
+summary(m18_1)
+vif(m18_1, type = "predictor")
+
+```
+20haでも効いているのは津波被災割合だけ。
+
+
+### m18_2 (c4と津波被災割合の交差項)
+
+```{r}
+m18_2 <- lm(
+  change_2010_2020 ~
+    tsunami_farmland_share +
+    tunami_farmland_total_by_kcity* c_four ,
+  data = change_20ha
+)
+
+summary(m18_2)
+vif(m18_2, type = "predictor")
+```
+
+c4も同様。
+
+
+## 30ha
+
+### m19_1 (c1と津波被災農地絶対量の交差項)
+
+```{r}
+df2 <- df2 |>
+  mutate(
+    share_over_30ha = entities_over_30_0ha / entities_total
+  )
+
+change_30ha <- df2 |>
+  filter(census_year %in% c("2010", "2020")) |>
+  select(
+    area_code,
+    census_year,
+    share_over_30ha,
+    tsunami_farmland_share,
+    tunami_farmland_total_by_kcity, 
+    c_one,
+    c_four
+  ) |>
+  tidyr::pivot_wider(
+    id_cols = c(
+      area_code,
+      tsunami_farmland_share,
+      tunami_farmland_total_by_kcity,
+      c_one,
+      c_four
+    ),
+    names_from = census_year,
+    values_from = share_over_30ha,
+    names_prefix = "share_"
+  ) |>
+  mutate(
+    change_2010_2020 = share_2020 - share_2010
+  )
+
+
+m19_1 <- lm(
+  change_2010_2020 ~
+    tsunami_farmland_share +
+    tunami_farmland_total_by_kcity * c_one,
+  data = change_30ha
+)
+
+summary(m19_1)
+vif(m19_1, type = "predictor")
+
+```
+30haでも交差項は効かない。
+
+### m19_2 (c4と津波被災割合の交差項)
+
+```{r}
+m19_2 <- lm(
+  change_2010_2020 ~
+    tsunami_farmland_share +
+    tunami_farmland_total_by_kcity* c_four ,
+  data = change_30ha
+)
+
+summary(m19_2)
+vif(m19_2, type = "predictor")
+```
+
+c4も同様。
+
+
+## 50ha
+
+### m20_1 (c1と津波被災農地絶対量の交差項)
+
+```{r}
+df2 <- df2 |>
+  mutate(
+    share_over_50ha = entities_over_50_0ha / entities_total
+  )
+
+change_50ha <- df2 |>
+  filter(census_year %in% c("2010", "2020")) |>
+  select(
+    area_code,
+    census_year,
+    share_over_50ha,
+    tsunami_farmland_share,
+    tunami_farmland_total_by_kcity, 
+    c_one,
+    c_four
+  ) |>
+  tidyr::pivot_wider(
+    id_cols = c(
+      area_code,
+      tsunami_farmland_share,
+      tunami_farmland_total_by_kcity,
+      c_one,
+      c_four
+    ),
+    names_from = census_year,
+    values_from = share_over_50ha,
+    names_prefix = "share_"
+  ) |>
+  mutate(
+    change_2010_2020 = share_2020 - share_2010
+  )
+
+
+m20_1 <- lm(
+  change_2010_2020 ~
+    tsunami_farmland_share +
+    tunami_farmland_total_by_kcity * c_one,
+  data = change_50ha
+)
+
+summary(m20_1)
+vif(m20_1, type = "predictor")
+
+```
+50haも同様だ。交差項効かない。
+
+
+### m20_2 (c4と津波被災割合の交差項)
+
+```{r}
+m20_2 <- lm(
+  change_2010_2020 ~
+    tsunami_farmland_share +
+    tunami_farmland_total_by_kcity* c_four ,
+  data = change_50ha
+)
+
+summary(m20_2)
+vif(m20_2, type = "predictor")
+```
+c4も同様。
+
+
+## 100ha
+
+### m21_1 (c1と津波被災農地絶対量の交差項)
+
+```{r}
+df2 <- df2 |>
+  mutate(
+    share_over_100ha = entities_over_100_0ha / entities_total
+  )
+
+change_100ha <- df2 |>
+  filter(census_year %in% c("2010", "2020")) |>
+  select(
+    area_code,
+    census_year,
+    share_over_100ha,
+    tsunami_farmland_share,
+    tunami_farmland_total_by_kcity, 
+    c_one,
+    c_four
+  ) |>
+  tidyr::pivot_wider(
+    id_cols = c(
+      area_code,
+      tsunami_farmland_share,
+      tunami_farmland_total_by_kcity,
+      c_one,
+      c_four
+    ),
+    names_from = census_year,
+    values_from = share_over_100ha,
+    names_prefix = "share_"
+  ) |>
+  mutate(
+    change_2010_2020 = share_2020 - share_2010
+  )
+
+
+m21_1 <- lm(
+  change_2010_2020 ~
+    tsunami_farmland_share +
+    tunami_farmland_total_by_kcity * c_one,
+  data = change_100ha
+)
+
+summary(m21_1)
+vif(m21_1, type = "predictor")
+
+```
+
+100haになると有意な変数が完全に消えた。
+
+### m21_2 (c4と津波被災割合の交差項)
+
+```{r}
+m21_2 <- lm(
+  change_2010_2020 ~
+    tsunami_farmland_share +
+    tunami_farmland_total_by_kcity* c_four ,
+  data = change_100ha
+)
+
+summary(m20_2)
+vif(m21_2, type = "predictor")
+```
+結局、津波被災農地絶対量と復興事業の交差項は有意にならないようだ。
