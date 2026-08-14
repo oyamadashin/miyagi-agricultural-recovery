@@ -4,6 +4,31 @@ output: html_document
 date: "2026-08-03"
 ---
 
+```{r}
+m <- lm(
+  change_share_over_10ha ~
+    change_individual_share * c_one +
+    tsunami_farmland_share +
+    farmland_total_by_kcity,
+  data = df_change2
+)
+
+summary(m)
+```
+
+
+```{r}
+m <- lm(
+  change_share_over_10ha ~
+    change_individual_share * c_four +
+    tsunami_farmland_share +
+    farmland_total_by_kcity,
+  data = df_change2
+)
+
+summary(m)
+```
+
 
 ```{r}
 

@@ -139,3 +139,1198 @@ ggplot(
 ```
 
 c-1に比べると当てはまりがあまりよくない。
+
+# 法人経営体の割合の分析
+
+## 2010→2020の法人経営体割合の変化　×　津波被災割合　×　c4実施状況
+
+```{r}
+df2 <- df2 |>
+  mutate(
+    incorporated_share = incorporated_total / farm_entities_total * 100
+  )
+
+df2 |>
+  filter(tsunami_farmland_share > 0 & census_year != "2015") |>
+  ggplot(
+    aes(
+      x = tsunami_farmland_share,
+      y = incorporated_share,
+      group = area_code
+    )
+  ) +
+  geom_path(
+    aes(group = area_code),
+    arrow = arrow(length = unit(0.12, "cm")),
+    alpha = 0.5
+  ) +
+  geom_point(aes(shape = factor(census_year)), size = 2.5) +
+  labs(
+    x = "津波被災農地割合（%）",
+    y = "法人化経営体割合（%）",
+    shape = "センサス年"
+  ) +
+  facet_wrap(~c_four)
+```
+
+c4未実施の地域は点が重なる傾向が強い（つまり、法人化割合に差がない傾向が強い）。
+
+## （同じ分析を、縦軸を割合変化量にして実施）
+
+```{r}
+df2 <- df2 |>
+  mutate(
+    incorporated_share = incorporated_total / farm_entities_total * 100,
+    individual_share   = individual_entities / farm_entities_total * 100
+  )
+
+df_change <- df2 |>
+  filter(census_year %in% c("2010", "2020")) |>
+  select(
+    area_code,
+    census_year,
+    incorporated_share,
+    tsunami_farmland_share,
+    c_four,
+    farmland_total_by_kcity
+  ) |>
+  pivot_wider(
+    id_cols = c(
+      area_code,
+      tsunami_farmland_share,
+      c_four,
+      farmland_total_by_kcity
+    ),
+    names_from = census_year,
+    values_from = incorporated_share,
+    names_prefix = "incorporated_share_"
+  ) |>
+  mutate(
+    change_incorporated_share =
+      incorporated_share_2020 - incorporated_share_2010
+  )
+
+df_change |>
+  group_by(c_four) |>
+  summarise(
+    n = n(),
+    mean_change = mean(change_incorporated_share, na.rm = TRUE),
+    median_change = median(change_incorporated_share, na.rm = TRUE),
+    sd_change = sd(change_incorporated_share, na.rm = TRUE)
+  )
+
+ggplot(
+  df_change,
+  aes(
+    x = tsunami_farmland_share,
+    y = change_incorporated_share
+  )
+) +
+  geom_point() +
+  facet_wrap(~ c_four)
+```
+そもそも津波被災割合は関係なさそうなので分析から外す。
+
+## 2010→2020の法人経営体割合の変化　×　c4実施状況
+
+```{r}
+ggplot(
+  df_change,
+  aes(
+    x = factor(c_four),
+    y = change_incorporated_share
+  )
+) +
+  geom_boxplot() +
+  geom_jitter(width = 0.1, alpha = 0.6) +
+  labs(
+    x = "C-4事業",
+    y = "法人化経営体割合の変化（ポイント）"
+  )
+```
+c4実施は法人化経営体割合変化にあまり影響していないようにみえる
+
+## 回帰分析で最終確認
+
+```{r}
+m1 <- lm(
+  change_incorporated_share ~ c_four,
+  data = df_change
+)
+
+summary(m1)
+```
+
+```{r}
+m2 <- lm(
+  change_incorporated_share ~
+    c_four +
+    tsunami_farmland_share +
+    farmland_total_by_kcity,
+  data = df_change
+)
+
+summary(m2)
+```
+
+法人経営体割合とc4事業実施の間には、あまり関連はなさそう。
+
+
+# 個人経営体の割合の分析
+
+## 2010→2020の個人経営体割合の変化　×　津波被災割合　×　c4実施状況
+
+```{r}
+df2 <- df2 |>
+  mutate(
+    individual_share =
+  individual_entities / farm_entities_total * 100
+  )
+
+df2 |>
+  filter(individual_share > 0 & census_year != "2015") |>
+  ggplot(
+    aes(
+      x = tsunami_farmland_share,
+      y = individual_share,
+      group = area_code
+    )
+  ) +
+  geom_path(
+    aes(group = area_code),
+    arrow = arrow(length = unit(0.12, "cm")),
+    alpha = 0.5
+  ) +
+  geom_point(aes(shape = factor(census_year)), size = 2.5) +
+  labs(
+    x = "津波被災農地割合（%）",
+    y = "個人経営体割合（%）",
+    shape = "センサス年"
+  ) +
+  facet_wrap(~c_four)
+```
+## （同じ分析を、縦軸を割合変化量にして実施）
+
+```{r}
+df2 <- df2 |>
+  mutate(
+    individual_share   = individual_entities / farm_entities_total * 100
+  )
+
+df_change <- df2 |>
+  filter(census_year %in% c("2010", "2020")) |>
+  select(
+    area_code,
+    census_year,
+    individual_share,
+    tsunami_farmland_share,
+    c_four,
+    farmland_total_by_kcity
+  ) |>
+  pivot_wider(
+    id_cols = c(
+      area_code,
+      tsunami_farmland_share,
+      c_four,
+      farmland_total_by_kcity
+    ),
+    names_from = census_year,
+    values_from = individual_share,
+    names_prefix = "individual_share_"
+  ) |>
+  mutate(
+    change_individual_share =
+      individual_share_2020 - individual_share_2010
+  )
+
+df_change |>
+  group_by(c_four) |>
+  summarise(
+    n = n(),
+    mean_change = mean(change_individual_share, na.rm = TRUE),
+    median_change = median(change_individual_share, na.rm = TRUE),
+    sd_change = sd(change_individual_share, na.rm = TRUE)
+  )
+
+ggplot(
+  df_change,
+  aes(
+    x = tsunami_farmland_share,
+    y = change_individual_share
+  )
+) +
+  geom_point() +
+  facet_wrap(~ c_four)
+```
+## 2010→2020の個人経営体割合の変化　×　c4実施状況
+
+```{r}
+ggplot(
+  df_change,
+  aes(
+    x = factor(c_four),
+    y = change_individual_share
+  )
+) +
+  geom_boxplot() +
+  geom_jitter(width = 0.1, alpha = 0.6) +
+  labs(
+    x = "C-4事業",
+    y = "個人経営体割合の変化（ポイント）"
+  )
+```
+
+## 回帰分析で最終確認
+
+```{r}
+m3 <- lm(
+  change_individual_share ~ c_four,
+  data = df_change
+)
+
+summary(m3)
+```
+
+
+```{r}
+m4 <- lm(
+  change_individual_share ~
+    c_four +
+    tsunami_farmland_share +
+    farmland_total_by_kcity,
+  data = df_change
+)
+
+summary(m4)
+```
+
+
+# 大規模経営体比率×個人経営体比率×c4
+
+## 閾値=5ha
+
+### 2010/2020 × 個人経営体割合 × 大規模経営体割合
+
+```{r}
+
+df2 <- df2 |>
+  mutate(
+    share_over_5ha = entities_over_5_0ha / entities_total * 100, 
+    individual_share =
+  individual_entities / farm_entities_total * 100
+  )
+
+ggplot(
+  df2 |>
+    filter(census_year %in% c("2010", "2020")),
+  aes(
+    x = individual_share,
+    y = share_over_5ha
+  )
+) +
+  geom_point() +
+  facet_grid(census_year ~ c_four) +
+  labs(
+    x = "個人経営体割合",
+    y = "5ha以上経営体割合"
+  )
+```
+### Δ個人経営体割合 × Δ大規模経営体割合
+
+```{r}
+
+df3 <- df2 |>
+  mutate(
+    individual_share =
+      individual_entities / farm_entities_total * 100,
+
+    share_over_5ha =
+      entities_over_5_0ha / entities_total * 100
+  )
+
+df_change2 <- df3 |>
+  filter(census_year %in% c("2010", "2020")) |>
+  select(
+    area_code,
+    census_year,
+    individual_share,
+    share_over_5ha,
+    c_four,
+    c_one,
+    tsunami_farmland_share,
+    farmland_total_by_kcity
+  ) |>
+  pivot_wider(
+    id_cols = c(
+      area_code,
+      c_four,
+      c_one,
+      tsunami_farmland_share,
+      farmland_total_by_kcity
+    ),
+    names_from = census_year,
+    values_from = c(
+      individual_share,
+      share_over_5ha
+    ),
+    names_sep = "_"
+  ) |>
+  mutate(
+    change_individual_share =
+      individual_share_2020 - individual_share_2010,
+
+    change_share_over_5ha =
+      share_over_5ha_2020 - share_over_5ha_2010
+  )
+
+ggplot(
+  df_change2,
+  aes(
+    x = change_individual_share,
+    y = change_share_over_5ha
+  )
+) +
+  geom_hline(
+    yintercept = 0,
+    linetype = "dashed"
+  ) +
+  geom_vline(
+    xintercept = 0,
+    linetype = "dashed"
+  ) +
+  geom_point() +
+  facet_wrap(~ c_four) +
+  labs(
+    x = "個人経営体割合の変化（2020－2010）",
+    y = "5ha以上経営体割合の変化（2020－2010）",
+    title = "個人経営体割合と大規模経営体割合の変化"
+  )
+
+
+```
+c4実施地域の方が5ha以上経営体の増加割合が大きい。また、横方向のばらつきも大きい。
+
+###  Δ個人経営体割合 × Δ大規模経営体割合（名前付き）
+
+```{r}
+area_name_2020 <- df3 |>
+  filter(census_year == "2020") |>
+  select(
+    area_code,
+    area_name
+  )
+
+df_change2 <- df_change2 |>
+  left_join(
+    area_name_2020,
+    by = "area_code"
+  )
+
+ggplot(
+  df_change2,
+  aes(
+    x = change_individual_share,
+    y = change_share_over_5ha,
+    label = area_name
+  )
+) +
+  geom_hline(
+    yintercept = 0,
+    linetype = "dashed"
+  ) +
+  geom_vline(
+    xintercept = 0,
+    linetype = "dashed"
+  ) +
+  geom_point() +
+  geom_text(
+    check_overlap = TRUE,
+    vjust = -0.5,
+    size = 3
+  ) +
+  facet_wrap(~ c_four) +
+  geom_point(
+  data = df_change2 |> filter(area_code == "404-00"),
+  color = "red",
+  size = 3
+) 
+  
+```
+
+## 閾値=10ha
+
+### 2010/2020 × 個人経営体割合 × 大規模経営体割合
+
+```{r}
+df2 <- df2 |>
+  mutate(
+    share_over_10ha = entities_over_10_0ha / entities_total * 100, 
+    individual_share =
+  individual_entities / farm_entities_total * 100
+  )
+
+
+ggplot(
+  df2 |>
+    filter(census_year %in% c("2010", "2020")),
+  aes(
+    x = individual_share,
+    y = share_over_10ha
+  )
+) +
+  geom_point() +
+  facet_grid(census_year ~ c_four) +
+  labs(
+    x = "個人経営体割合",
+    y = "10ha以上経営体割合"
+  )
+```
+c4実施地域の方が2020年時点で10ha以上経営体割合が多い傾向。
+
+### Δ個人経営体割合 × Δ大規模経営体割合
+
+```{r}
+
+df3 <- df2 |>
+  mutate(
+    individual_share =
+      individual_entities / farm_entities_total * 100,
+
+    share_over_10ha =
+      entities_over_10_0ha / entities_total * 100
+  )
+
+df_change2 <- df3 |>
+  filter(census_year %in% c("2010", "2020")) |>
+  select(
+    area_code,
+    census_year,
+    individual_share,
+    share_over_10ha,
+    c_four,
+    c_one,
+    tsunami_farmland_share,
+    farmland_total_by_kcity
+  ) |>
+  pivot_wider(
+    id_cols = c(
+      area_code,
+      c_four,
+      c_one,
+      tsunami_farmland_share,
+      farmland_total_by_kcity
+    ),
+    names_from = census_year,
+    values_from = c(
+      individual_share,
+      share_over_10ha
+    ),
+    names_sep = "_"
+  ) |>
+  mutate(
+    change_individual_share =
+      individual_share_2020 - individual_share_2010,
+
+    change_share_over_10ha =
+      share_over_10ha_2020 - share_over_10ha_2010
+  )
+
+ggplot(
+  df_change2,
+  aes(
+    x = change_individual_share,
+    y = change_share_over_10ha
+  )
+) +
+  geom_hline(
+    yintercept = 0,
+    linetype = "dashed"
+  ) +
+  geom_vline(
+    xintercept = 0,
+    linetype = "dashed"
+  ) +
+  geom_point() +
+  facet_wrap(~ c_four) +
+  labs(
+    x = "個人経営体割合の変化（2020－2010）",
+    y = "10ha以上経営体割合の変化（2020－2010）",
+    title = "個人経営体割合と大規模経営体割合の変化"
+  )
+
+
+```
+c4実施地域の方が横方向のばらつきが大きい気がする。
+
+###  Δ個人経営体割合 × Δ大規模経営体割合（名前付き）
+
+```{r}
+area_name_2020 <- df3 |>
+  filter(census_year == "2020") |>
+  select(
+    area_code,
+    area_name
+  )
+
+df_change2 <- df_change2 |>
+  left_join(
+    area_name_2020,
+    by = "area_code"
+  )
+
+ggplot(
+  df_change2,
+  aes(
+    x = change_individual_share,
+    y = change_share_over_10ha,
+    label = area_name
+  )
+) +
+  geom_hline(
+    yintercept = 0,
+    linetype = "dashed"
+  ) +
+  geom_vline(
+    xintercept = 0,
+    linetype = "dashed"
+  ) +
+  geom_point() +
+  geom_text(
+    check_overlap = TRUE,
+    vjust = -0.5,
+    size = 3
+  ) +
+  facet_wrap(~ c_four) +
+  geom_point(
+  data = df_change2 |> filter(area_code == "404-00"),
+  color = "red",
+  size = 3
+) 
+```
+
+## 閾値=20ha
+
+### 2010/2020 × 個人経営体割合 × 大規模経営体割合
+
+```{r}
+df2 <- df2 |>
+  mutate(
+    share_over_20ha = entities_over_20_0ha / entities_total * 100, 
+    individual_share =
+  individual_entities / farm_entities_total * 100
+  )
+
+
+ggplot(
+  df2 |>
+    filter(census_year %in% c("2010", "2020")),
+  aes(
+    x = individual_share,
+    y = share_over_20ha
+  )
+) +
+  geom_point() +
+  facet_grid(census_year ~ c_four) +
+  labs(
+    x = "個人経営体割合",
+    y = "20ha以上経営体割合"
+  )
+```
+
+### Δ個人経営体割合 × Δ大規模経営体割合
+
+```{r}
+
+df3 <- df2 |>
+  mutate(
+    individual_share =
+      individual_entities / farm_entities_total * 100,
+
+    share_over_20ha =
+      entities_over_20_0ha / entities_total * 100
+  )
+
+df_change2 <- df3 |>
+  filter(census_year %in% c("2010", "2020")) |>
+  select(
+    area_code,
+    census_year,
+    individual_share,
+    share_over_20ha,
+    c_four,
+    c_one,
+    tsunami_farmland_share,
+    farmland_total_by_kcity
+  ) |>
+  pivot_wider(
+    id_cols = c(
+      area_code,
+      c_four,
+      c_one,
+      tsunami_farmland_share,
+      farmland_total_by_kcity
+    ),
+    names_from = census_year,
+    values_from = c(
+      individual_share,
+      share_over_20ha
+    ),
+    names_sep = "_"
+  ) |>
+  mutate(
+    change_individual_share =
+      individual_share_2020 - individual_share_2010,
+
+    change_share_over_20ha =
+      share_over_20ha_2020 - share_over_20ha_2010
+  )
+
+ggplot(
+  df_change2,
+  aes(
+    x = change_individual_share,
+    y = change_share_over_20ha
+  )
+) +
+  geom_hline(
+    yintercept = 0,
+    linetype = "dashed"
+  ) +
+  geom_vline(
+    xintercept = 0,
+    linetype = "dashed"
+  ) +
+  geom_point() +
+  facet_wrap(~ c_four) +
+  labs(
+    x = "個人経営体割合の変化（2020－2010）",
+    y = "20ha以上経営体割合の変化（2020－2010）",
+    title = "個人経営体割合と大規模経営体割合の変化"
+  )
+
+
+```
+
+c4実施地域の方が明らかに20ha以上経営体割合の増加率が大きい
+
+###  Δ個人経営体割合 × Δ大規模経営体割合（名前付き）
+
+```{r}
+area_name_2020 <- df3 |>
+  filter(census_year == "2020") |>
+  select(
+    area_code,
+    area_name
+  )
+
+df_change2 <- df_change2 |>
+  left_join(
+    area_name_2020,
+    by = "area_code"
+  )
+
+ggplot(
+  df_change2,
+  aes(
+    x = change_individual_share,
+    y = change_share_over_20ha,
+    label = area_name
+  )
+) +
+  geom_hline(
+    yintercept = 0,
+    linetype = "dashed"
+  ) +
+  geom_vline(
+    xintercept = 0,
+    linetype = "dashed"
+  ) +
+  geom_point() +
+  geom_text(
+    check_overlap = TRUE,
+    vjust = -0.5,
+    size = 3
+  ) +
+  facet_wrap(~ c_four) +
+  geom_point(
+  data = df_change2 |> filter(area_code == "404-00"),
+  color = "red",
+  size = 3
+) 
+```
+## 閾値=30ha
+
+### 2010/2020 × 個人経営体割合 × 大規模経営体割合
+
+```{r}
+df2 <- df2 |>
+  mutate(
+    share_over_30ha = entities_over_30_0ha / entities_total * 100, 
+    individual_share =
+  individual_entities / farm_entities_total * 100
+  )
+
+
+ggplot(
+  df2 |>
+    filter(census_year %in% c("2010", "2020")),
+  aes(
+    x = individual_share,
+    y = share_over_30ha
+  )
+) +
+  geom_point() +
+  facet_grid(census_year ~ c_four) +
+  labs(
+    x = "個人経営体割合",
+    y = "30ha以上経営体割合"
+  )
+```
+
+### Δ個人経営体割合 × Δ大規模経営体割合
+
+```{r}
+
+df3 <- df2 |>
+  mutate(
+    individual_share =
+      individual_entities / farm_entities_total * 100,
+
+    share_over_30ha =
+      entities_over_30_0ha / entities_total * 100
+  )
+
+df_change2 <- df3 |>
+  filter(census_year %in% c("2010", "2020")) |>
+  select(
+    area_code,
+    census_year,
+    individual_share,
+    share_over_30ha,
+    c_four,
+    c_one,
+    tsunami_farmland_share,
+    farmland_total_by_kcity
+  ) |>
+  pivot_wider(
+    id_cols = c(
+      area_code,
+      c_four,
+      c_one,
+      tsunami_farmland_share,
+      farmland_total_by_kcity
+    ),
+    names_from = census_year,
+    values_from = c(
+      individual_share,
+      share_over_30ha
+    ),
+    names_sep = "_"
+  ) |>
+  mutate(
+    change_individual_share =
+      individual_share_2020 - individual_share_2010,
+
+    change_share_over_30ha =
+      share_over_30ha_2020 - share_over_30ha_2010
+  )
+
+ggplot(
+  df_change2,
+  aes(
+    x = change_individual_share,
+    y = change_share_over_30ha
+  )
+) +
+  geom_hline(
+    yintercept = 0,
+    linetype = "dashed"
+  ) +
+  geom_vline(
+    xintercept = 0,
+    linetype = "dashed"
+  ) +
+  geom_point() +
+  facet_wrap(~ c_four) +
+  labs(
+    x = "個人経営体割合の変化（2020－2010）",
+    y = "30ha以上経営体割合の変化（2020－2010）",
+    title = "個人経営体割合と大規模経営体割合の変化"
+  )
+
+
+```
+
+c4実施地域の方が明らかに30ha以上経営体割合の増加率が大きい
+(閾値30haより先はずっとこんな感じ)
+
+###  Δ個人経営体割合 × Δ大規模経営体割合（名前付き）
+
+```{r}
+area_name_2020 <- df3 |>
+  filter(census_year == "2020") |>
+  select(
+    area_code,
+    area_name
+  )
+
+df_change2 <- df_change2 |>
+  left_join(
+    area_name_2020,
+    by = "area_code"
+  )
+
+ggplot(
+  df_change2,
+  aes(
+    x = change_individual_share,
+    y = change_share_over_30ha,
+    label = area_name
+  )
+) +
+  geom_hline(
+    yintercept = 0,
+    linetype = "dashed"
+  ) +
+  geom_vline(
+    xintercept = 0,
+    linetype = "dashed"
+  ) +
+  geom_point() +
+  geom_text(
+    check_overlap = TRUE,
+    vjust = -0.5,
+    size = 3
+  ) +
+  facet_wrap(~ c_four) +
+  geom_point(
+  data = df_change2 |> filter(area_code == "404-00"),
+  color = "red",
+  size = 3
+) +
+geom_text(
+  data = df_change2 |> filter(area_code == "404-00"),
+  aes(label = area_name),
+  color = "red",
+  vjust = -0.8,
+  size = 3.5,
+  check_overlap = FALSE
+)
+```
+## 閾値=50ha
+
+### 2010/2020 × 個人経営体割合 × 大規模経営体割合
+
+```{r}
+df2 <- df2 |>
+  mutate(
+    share_over_50ha = entities_over_50_0ha / entities_total * 100, 
+    individual_share =
+  individual_entities / farm_entities_total * 100
+  )
+
+
+ggplot(
+  df2 |>
+    filter(census_year %in% c("2010", "2020")),
+  aes(
+    x = individual_share,
+    y = share_over_50ha
+  )
+) +
+  geom_point() +
+  facet_grid(census_year ~ c_four) +
+  labs(
+    x = "個人経営体割合",
+    y = "50ha以上経営体割合"
+  )
+```
+
+### Δ個人経営体割合 × Δ大規模経営体割合
+
+```{r}
+
+df3 <- df2 |>
+  mutate(
+    individual_share =
+      individual_entities / farm_entities_total * 100,
+
+    share_over_50ha =
+      entities_over_50_0ha / entities_total * 100
+  )
+
+df_change2 <- df3 |>
+  filter(census_year %in% c("2010", "2020")) |>
+  select(
+    area_code,
+    census_year,
+    individual_share,
+    share_over_50ha,
+    c_four,
+    c_one,
+    tsunami_farmland_share,
+    farmland_total_by_kcity
+  ) |>
+  pivot_wider(
+    id_cols = c(
+      area_code,
+      c_four,
+      c_one,
+      tsunami_farmland_share,
+      farmland_total_by_kcity
+    ),
+    names_from = census_year,
+    values_from = c(
+      individual_share,
+      share_over_50ha
+    ),
+    names_sep = "_"
+  ) |>
+  mutate(
+    change_individual_share =
+      individual_share_2020 - individual_share_2010,
+
+    change_share_over_50ha =
+      share_over_50ha_2020 - share_over_50ha_2010
+  )
+
+ggplot(
+  df_change2,
+  aes(
+    x = change_individual_share,
+    y = change_share_over_50ha
+  )
+) +
+  geom_hline(
+    yintercept = 0,
+    linetype = "dashed"
+  ) +
+  geom_vline(
+    xintercept = 0,
+    linetype = "dashed"
+  ) +
+  geom_point() +
+  facet_wrap(~ c_four) +
+  labs(
+    x = "個人経営体割合の変化（2020－2010）",
+    y = "50ha以上経営体割合の変化（2020－2010）",
+    title = "個人経営体割合と大規模経営体割合の変化"
+  )
+
+
+```
+
+c4実施地域の方が明らかに50ha以上経営体割合の増加率が大きい
+
+###  Δ個人経営体割合 × Δ大規模経営体割合（名前付き）
+
+```{r}
+area_name_2020 <- df3 |>
+  filter(census_year == "2020") |>
+  select(
+    area_code,
+    area_name
+  )
+
+df_change2 <- df_change2 |>
+  left_join(
+    area_name_2020,
+    by = "area_code"
+  )
+
+ggplot(
+  df_change2,
+  aes(
+    x = change_individual_share,
+    y = change_share_over_50ha,
+    label = area_name
+  )
+) +
+  geom_hline(
+    yintercept = 0,
+    linetype = "dashed"
+  ) +
+  geom_vline(
+    xintercept = 0,
+    linetype = "dashed"
+  ) +
+  geom_point() +
+  geom_text(
+    check_overlap = TRUE,
+    vjust = -0.5,
+    size = 3
+  ) +
+  facet_wrap(~ c_four) +
+  geom_point(
+  data = df_change2 |> filter(area_code == "404-00"),
+  color = "red",
+  size = 3
+) +
+geom_text(
+  data = df_change2 |> filter(area_code == "404-00"),
+  aes(label = area_name),
+  color = "red",
+  vjust = -0.8,
+  size = 3.5,
+  check_overlap = FALSE
+)
+```
+
+## 閾値=100ha
+
+### 2010/2020 × 個人経営体割合 × 大規模経営体割合
+
+```{r}
+df2 <- df2 |>
+  mutate(
+    share_over_100ha = entities_over_100_0ha / entities_total * 100, 
+    individual_share =
+  individual_entities / farm_entities_total * 100
+  )
+
+
+ggplot(
+  df2 |>
+    filter(census_year %in% c("2010", "2020")),
+  aes(
+    x = individual_share,
+    y = share_over_100ha
+  )
+) +
+  geom_point() +
+  facet_grid(census_year ~ c_four) +
+  labs(
+    x = "個人経営体割合",
+    y = "100ha以上経営体割合"
+  )
+```
+
+### Δ個人経営体割合 × Δ大規模経営体割合
+
+```{r}
+
+df3 <- df2 |>
+  mutate(
+    individual_share =
+      individual_entities / farm_entities_total * 100,
+
+    share_over_100ha =
+      entities_over_100_0ha / entities_total * 100
+  )
+
+df_change2 <- df3 |>
+  filter(census_year %in% c("2010", "2020")) |>
+  select(
+    area_code,
+    census_year,
+    individual_share,
+    share_over_100ha,
+    c_four,
+    c_one,
+    tsunami_farmland_share,
+    farmland_total_by_kcity
+  ) |>
+  pivot_wider(
+    id_cols = c(
+      area_code,
+      c_four,
+      c_one,
+      tsunami_farmland_share,
+      farmland_total_by_kcity
+    ),
+    names_from = census_year,
+    values_from = c(
+      individual_share,
+      share_over_100ha
+    ),
+    names_sep = "_"
+  ) |>
+  mutate(
+    change_individual_share =
+      individual_share_2020 - individual_share_2010,
+
+    change_share_over_100ha =
+      share_over_100ha_2020 - share_over_100ha_2010
+  )
+
+ggplot(
+  df_change2,
+  aes(
+    x = change_individual_share,
+    y = change_share_over_100ha
+  )
+) +
+  geom_hline(
+    yintercept = 0,
+    linetype = "dashed"
+  ) +
+  geom_vline(
+    xintercept = 0,
+    linetype = "dashed"
+  ) +
+  geom_point() +
+  facet_wrap(~ c_four) +
+  labs(
+    x = "個人経営体割合の変化（2020－2010）",
+    y = "100ha以上経営体割合の変化（2020－2010）",
+    title = "個人経営体割合と大規模経営体割合の変化"
+  )
+
+
+```
+
+c4実施地域の方が明らかに100ha以上経営体割合の増加率が大きい
+
+###  Δ個人経営体割合 × Δ大規模経営体割合（名前付き）
+
+```{r}
+area_name_2020 <- df3 |>
+  filter(census_year == "2020") |>
+  select(
+    area_code,
+    area_name
+  )
+
+df_change2 <- df_change2 |>
+  left_join(
+    area_name_2020,
+    by = "area_code"
+  )
+
+ggplot(
+  df_change2,
+  aes(
+    x = change_individual_share,
+    y = change_share_over_100ha,
+    label = area_name
+  )
+) +
+  geom_hline(
+    yintercept = 0,
+    linetype = "dashed"
+  ) +
+  geom_vline(
+    xintercept = 0,
+    linetype = "dashed"
+  ) +
+  geom_point() +
+  geom_text(
+    check_overlap = TRUE,
+    vjust = -0.5,
+    size = 3
+  ) +
+  facet_wrap(~ c_four) +
+  geom_point(
+  data = df_change2 |> filter(area_code == "404-00"),
+  color = "red",
+  size = 3
+) +
+geom_text(
+  data = df_change2 |> filter(area_code == "404-00"),
+  aes(label = area_name),
+  color = "red",
+  vjust = -0.8,
+  size = 3.5,
+  check_overlap = FALSE
+)
+```
