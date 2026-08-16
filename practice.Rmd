@@ -5,6 +5,66 @@ date: "2026-08-03"
 ---
 
 ```{r}
+machinery_change <- machinery_change |>
+  mutate(
+    tsunami_c =
+      tsunami_farmland_share_2010 -
+      mean(tsunami_farmland_share_2010, na.rm = TRUE),
+
+    combine_owner_min_c =
+      individual_combine_owner_share_min_2010 -
+      mean(individual_combine_owner_share_min_2010, na.rm = TRUE)
+  )
+
+m_individual3 <- lm(
+  individual_share_2015 ~
+    individual_share_2010 +
+    c_four * combine_owner_min_c,
+  data = machinery_change
+)
+
+summary(m_individual3)
+
+cor(
+  machinery_change$individual_share_2010,
+  machinery_change$individual_combine_owner_share_min_2010,
+  use = "complete.obs"
+)
+
+car::vif(m_individual3)
+```
+
+```{r}
+machinery_change <- machinery_change |>
+  mutate(
+    tsunami_c =
+      tsunami_farmland_share_2015 -
+      mean(tsunami_farmland_share_2015, na.rm = TRUE),
+
+    combine_owner_min_c =
+      individual_combine_owner_share_min_2015 -
+      mean(individual_combine_owner_share_min_2015, na.rm = TRUE)
+  )
+
+m_individual4 <- lm(
+  individual_share_2015 ~
+    individual_share_2010 +
+    c_four * combine_owner_min_c,
+  data = machinery_change
+)
+
+summary(m_individual4)
+
+cor(
+  machinery_change$individual_share_2010,
+  machinery_change$individual_combine_owner_share_min_2010,
+  use = "complete.obs"
+)
+
+car::vif(m_individual4)
+```
+
+```{r}
 m <- lm(
   change_share_over_10ha ~
     change_individual_share * c_one +

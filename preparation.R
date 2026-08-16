@@ -370,3 +370,42 @@ df <- df |>
              c_four),
     by = "area_code"
   )
+
+
+# 機械所有データの結合----
+
+entities_by_agricultural_machinery_2010 <- read_excel(
+  "02_processed_data/entities_by_agricultural_machinery_2010_miyagi_processed.xlsx",
+  col_types = "text"
+)
+
+entities_by_agricultural_machinery_2015 <- read_excel(
+  "02_processed_data/entities_by_agricultural_machinery_2015_miyagi_processed.xlsx",
+  col_types = "text"
+)
+
+# 2010年と2015年を縦に結合
+entities_by_agricultural_machinery <- bind_rows(
+  entities_by_agricultural_machinery_2010,
+  entities_by_agricultural_machinery_2015
+) |> 
+  select(
+    census_year,
+    area_code,
+    rice_transplanter_entities,
+    rice_transplanter_units,
+    tractor_entities,
+    tractor_units,
+    combine_entities,
+    combine_units
+  )
+
+# dfに結合
+df <- df |> 
+  left_join(
+    entities_by_agricultural_machinery,
+    by = c("census_year", "area_code")
+  )
+
+# 秘匿データなどの処理をしておく
+df <- convert_entity_columns(df)

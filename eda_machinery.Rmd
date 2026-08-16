@@ -1,0 +1,899 @@
+---
+title: "eda_machinery"
+output: html_document
+date: "2026-08-16"
+---
+
+# source
+
+```{r}
+source("preparation.R")
+df
+```
+
+基本的に被災のあった旧市区町村のデータだけを分析に使う。以降、df2を分析に使おう。
+
+```{r}
+df2 <- df |> filter(old_municipality == "1" & !is.na(tsunami_farmland_share))
+df2
+```
+
+
+# 分析用変数作成
+
+```{r}
+# 各機械の所有経営体割合
+df2 <- df2 |>
+  mutate(
+    rice_transplanter_share =
+      rice_transplanter_entities / farm_entities_total,
+    tractor_share =
+      tractor_entities / farm_entities_total,
+    combine_share =
+      combine_entities / farm_entities_total
+  )
+
+
+# 1保有経営体当たり機械台数(つまり機械保有の集中度合いを示す変数)
+df2 <-  df2 |> 
+  mutate(
+    rice_transplanter_units_per_entity = 
+      rice_transplanter_units / rice_transplanter_entities,
+    tractor_units_per_entity = 
+      tractor_units / tractor_entities,
+    combine_units_per_entity =
+      combine_units / combine_entities
+  )
+```
+
+
+
+
+# 津波被災による機械所有割合の変化
+
+## 分析用データフレーム作成
+
+```{r}
+# 機械所有割合の変化変数を含むデータフレーム
+
+machinery_share_change <- df2 |>
+  filter(census_year %in% c("2010", "2015")) |>
+  select(
+    area_code,
+    census_year,
+    tsunami_farmland_share,
+    rice_transplanter_share,
+    tractor_share,
+    combine_share,
+    c_one,
+    c_four
+  ) |>
+  pivot_wider(
+    names_from = census_year,
+    values_from = c(
+      tsunami_farmland_share,
+      rice_transplanter_share,
+      tractor_share,
+      combine_share
+    )
+  ) |>
+  mutate(
+    change_share_rice_transplanter =
+      rice_transplanter_share_2015 - rice_transplanter_share_2010,
+    change_share_tractor =
+      tractor_share_2015 - tractor_share_2010,
+    change_share_combine =
+      combine_share_2015 - combine_share_2010
+  )
+```
+
+## トラクター
+
+###グラフで確認
+
+```{r}
+ggplot(
+  machinery_share_change,
+  aes(
+    x = tsunami_farmland_share_2010,
+    y = change_share_tractor
+  )
+) +
+  geom_point() +
+  geom_smooth(method = "lm", se = TRUE) +
+  labs(
+    x = "津波被災農地割合",
+    y = "トラクター保有経営体割合の変化（2010–2015）"
+  ) +
+  theme_minimal()
+```
+
+### m1
+
+```{r}
+m1 <- lm(change_share_tractor ~ 
+           tsunami_farmland_share_2010 * c_four, 
+         data = machinery_share_change)
+
+m1 |> summary()
+vif(m1)
+```
+
+C-4実施地域では、トラクター所有経営体割合の低下がより大きい。これは、C-4が個別経営体への機械所有の維持ではなく、担い手への機械・施設の集約を通じて復興を支援する制度であったことと整合的である。
+
+
+## 田植機
+
+### グラフで確認
+
+```{r}
+ggplot(
+  machinery_share_change,
+  aes(
+    x = tsunami_farmland_share_2010,
+    y = change_share_rice_transplanter
+  )
+) +
+  geom_point() +
+  geom_smooth(method = "lm", se = TRUE) +
+  labs(
+    x = "津波被災農地割合",
+    y = "田植機保有経営体割合の変化（2010–2015）"
+  ) +
+  theme_minimal()
+```
+### m2
+
+```{r}
+m2 <- lm(change_share_rice_transplanter ~ 
+           tsunami_farmland_share_2010 * c_four, 
+         data = machinery_share_change)
+
+m2 |> summary()
+vif(m1)
+```
+
+田植機だと有意な係数が消える（おしいけど）。
+
+
+
+## コンバイン
+
+### グラフで確認
+
+
+```{r}
+ggplot(
+  machinery_share_change,
+  aes(
+    x = tsunami_farmland_share_2010,
+    y = change_share_combine
+  )
+) +
+  geom_point() +
+  geom_smooth(method = "lm", se = TRUE) +
+  labs(
+    x = "津波被災農地割合",
+    y = "コンバイン保有経営体割合の変化（2010–2015）"
+  ) +
+  theme_minimal()
+```
+
+### m3
+
+```{r}
+m3 <- lm(change_share_combine ~ 
+           tsunami_farmland_share_2010 * c_four, 
+         data = machinery_share_change)
+
+m3 |> summary()
+vif(m1)
+```
+コンバインだとc4単体の効果が完全に消える。一方、交差項が有意で負になっている。
+
+C-4事業実施地域では、機械・施設の貸与を受けた営農組織を通じて営農を継続するという選択肢が存在するため、個々の経営体が必ずしも農業機械を自ら所有する必要はない。この点は、とくにコンバインで強く現れる可能性がある。トラクターや田植機に比べ、コンバインは購入価格が高く、年間の利用期間も限られるため、津波によって機械を失った経営体にとって個別に再取得する負担が大きい。そのため、被災程度が高いC-4実施地域ほど、個別経営体によるコンバインの再取得を行わず、営農組織等が保有する機械を利用する方向へ移行した可能性がある。
+
+
+# 津波被災による機械所有経営体数の変化
+
+## 分析用データフレーム作成
+
+```{r}
+# 機械所有経営体数の変化変数を含むデータフレーム
+
+machinery_change <- df2 |>
+  filter(census_year %in% c("2010", "2015")) |>
+  select(
+    area_code,
+    census_year,
+    tsunami_farmland_share,
+    rice_transplanter_entities,
+    tractor_entities,
+    combine_entities,
+    c_one,
+    c_four
+  ) |>
+  pivot_wider(
+    names_from = census_year,
+    values_from = c(
+      tsunami_farmland_share,
+      rice_transplanter_entities,
+      tractor_entities,
+      combine_entities
+    )
+  ) |>
+  mutate(
+    change_rice_transplanter =
+      rice_transplanter_entities_2015 - rice_transplanter_entities_2010,
+    change_tractor =
+      tractor_entities_2015 - tractor_entities_2010,
+    change_combine =
+      combine_entities_2015 - combine_entities_2010
+  )
+```
+
+
+## トラクター
+
+### グラフで確認
+
+```{r}
+ggplot(
+  machinery_change,
+  aes(
+    x = tsunami_farmland_share_2010,
+    y = change_tractor
+  )
+) +
+  geom_point() +
+  geom_smooth(method = "lm", se = TRUE) +
+  labs(
+    x = "津波被災農地割合",
+    y = "トラクター保有経営体数の変化（2010–2015）"
+  ) +
+  theme_minimal()
+```
+
+### m4
+
+```{r}
+m4 <- lm(tractor_entities_2015 ~ 
+           tsunami_farmland_share_2010 * c_four + tractor_entities_2010, 
+         data = machinery_change)
+
+m4 |> summary()
+vif(m4)
+```
+
+### m4とm4_0の比較
+
+tractor_entities_2010を説明変数に入れれば決定係数が非常に大きくなるのは当たり前なので、それ以外の変数の効果をみてみる。
+
+```{r}
+m4_0 <- lm(
+  tractor_entities_2015 ~ tractor_entities_2010,
+  data = machinery_change
+)
+
+anova(m4_0, m4)
+```
+
+モデルは有意に改善されている。
+
+
+### m4で予測線を描く
+
+```{r}
+newdata_tractor <- expand.grid(
+  tsunami_farmland_share_2010 = seq(0, 1, length.out = 100),
+  c_four = c(0, 1),
+  tractor_entities_2010 = median(
+    machinery_change$tractor_entities_2010,
+    na.rm = TRUE
+  )
+)
+
+pred_tractor <- predict(
+  m4,
+  newdata = newdata_tractor,
+  interval = "confidence"
+)
+
+newdata_tractor <- bind_cols(
+  newdata_tractor,
+  as.data.frame(pred_tractor)
+)
+
+
+ggplot(
+  newdata_tractor,
+  aes(
+    x = tsunami_farmland_share_2010,
+    y = fit,
+    linetype = factor(c_four),
+    group = factor(c_four)
+  )
+) +
+  geom_ribbon(
+    aes(
+      ymin = lwr,
+      ymax = upr,
+      fill = factor(c_four)
+    ),
+    alpha = 0.15,
+    colour = NA
+  ) +
+  geom_line(linewidth = 1) +
+  labs(
+    x = "津波被災農地割合",
+    y = "2015年トラクター所有経営体数（予測値）",
+    linetype = "C-4事業"
+  ) +
+  scale_linetype_manual(
+    values = c(
+      "0" = "dashed",
+      "1" = "solid"
+    ),
+    labels = c(
+      "0" = "未実施",
+      "1" = "実施"
+    )
+  ) +
+  scale_fill_discrete(
+    labels = c(
+      "0" = "未実施",
+      "1" = "実施"
+    )
+  ) +
+  guides(
+    fill = "none"
+  ) +
+  coord_cartesian(
+    xlim = c(0, 1),
+    ylim = c(0, 140)
+  ) +
+  theme_minimal()
+```
+
+
+## 田植機
+
+```{r}
+ggplot(
+  machinery_change,
+  aes(
+    x = tsunami_farmland_share_2010,
+    y = change_rice_transplanter
+  )
+) +
+  geom_point() +
+  geom_smooth(method = "lm", se = TRUE) +
+  labs(
+    x = "津波被災農地割合",
+    y = "田植機保有経営体数の変化（2010–2015）"
+  ) +
+  theme_minimal()
+```
+
+### m5
+
+```{r}
+m5 <- lm(rice_transplanter_entities_2015 ~ 
+           tsunami_farmland_share_2010 * c_four + rice_transplanter_entities_2010, 
+         data = machinery_change)
+
+m5 |> summary()
+vif(m5)
+```
+### m5とm5_0との比較
+
+```{r}
+m5_0 <- lm(
+  rice_transplanter_entities_2015 ~ rice_transplanter_entities_2010,
+  data = machinery_change
+)
+
+anova(m5_0, m5)
+```
+
+これも有意。
+
+
+### m5で予測線を描く
+
+```{r}
+newdata_rice_transplanter <- expand.grid(
+  tsunami_farmland_share_2010 = seq(0, 1, length.out = 100),
+  c_four = c(0, 1),
+  rice_transplanter_entities_2010 = median(
+    machinery_change$rice_transplanter_entities_2010,
+    na.rm = TRUE
+  )
+)
+
+pred_rice_transplanter <- predict(
+  m5,
+  newdata = newdata_rice_transplanter,
+  interval = "confidence"
+)
+
+newdata_rice_transplanter <- bind_cols(
+  newdata_rice_transplanter,
+  as.data.frame(pred_rice_transplanter)
+)
+
+
+ggplot(
+  newdata_rice_transplanter,
+  aes(
+    x = tsunami_farmland_share_2010,
+    y = fit,
+    linetype = factor(c_four),
+    group = factor(c_four)
+  )
+) +
+  geom_ribbon(
+    aes(
+      ymin = lwr,
+      ymax = upr,
+      fill = factor(c_four)
+    ),
+    alpha = 0.15,
+    colour = NA
+  ) +
+  geom_line(linewidth = 1) +
+  labs(
+    x = "津波被災農地割合",
+    y = "2015年田植機所有経営体数（予測値）",
+    linetype = "C-4事業"
+  ) +
+  scale_linetype_manual(
+    values = c(
+      "0" = "dashed",
+      "1" = "solid"
+    ),
+    labels = c(
+      "0" = "未実施",
+      "1" = "実施"
+    )
+  ) +
+  scale_fill_discrete(
+    labels = c(
+      "0" = "未実施",
+      "1" = "実施"
+    )
+  ) +
+  guides(
+    fill = "none"
+  ) +
+  coord_cartesian(
+    xlim = c(0, 1),
+    ylim = c(0, 140)
+  ) +
+  theme_minimal()
+```
+
+## コンバイン
+
+```{r}
+ggplot(
+  machinery_change,
+  aes(
+    x = tsunami_farmland_share_2010,
+    y = change_combine
+  )
+) +
+  geom_point() +
+  geom_smooth(method = "lm", se = TRUE) +
+  labs(
+    x = "津波被災農地割合",
+    y = "コンバイン保有経営体数の変化（2010–2015）"
+  ) +
+  theme_minimal()
+```
+
+### m6
+
+```{r}
+m6 <- lm(combine_entities_2015 ~ 
+           tsunami_farmland_share_2010 * c_four　+
+    combine_entities_2010, 
+         data = machinery_change)
+
+m6 |> summary()
+vif(m6)
+```
+
+m4-6はいずれも同じ傾向。津波被災割合とc4の交差項が負で、コンバインモデルだけが5％水準有意（田植機モデルだと10％水準有意）。決定係数はいずれも非常に大きい。これは、combine_entities_2010等の変数が説明変数に入っているから（もともとコンバインがたくさんあれば、コンバインが減る余地が大きいということ）。
+
+m1-m3の場合、分子だけでなく分母も一緒に動いてしまうので、効果が見えにくかったのだろう。
+
+コンバインモデルで交差項が5％水準有意なのは、m3の考察をそのまま使える。
+
+### m6とm6_0との比較
+
+```{r}
+m6_0 <- lm(
+  combine_entities_2015 ~ combine_entities_2010,
+  data = machinery_change
+)
+
+anova(m6_0, m6)
+```
+
+
+### m6で予測線を描く
+
+```{r}
+newdata_combine <- expand.grid(
+  tsunami_farmland_share_2010 = seq(0, 1, length.out = 100),
+  c_four = c(0, 1),
+  combine_entities_2010 = median(
+    machinery_change$combine_entities_2010,
+    na.rm = TRUE
+  )
+)
+
+pred_combine <- predict(
+  m6,
+  newdata = newdata_combine,
+  interval = "confidence"
+)
+
+newdata_combine <- bind_cols(
+  newdata_combine,
+  as.data.frame(pred_combine)
+)
+
+
+ggplot(
+  newdata_combine,
+  aes(
+    x = tsunami_farmland_share_2010,
+    y = fit,
+    linetype = factor(c_four),
+    group = factor(c_four)
+  )
+) +
+  geom_ribbon(
+    aes(
+      ymin = lwr,
+      ymax = upr,
+      fill = factor(c_four)
+    ),
+    alpha = 0.15,
+    colour = NA
+  ) +
+  geom_line(linewidth = 1) +
+  labs(
+    x = "津波被災農地割合",
+    y = "2015年コンバイン所有経営体数（予測値）",
+    linetype = "C-4事業"
+  ) +
+  scale_linetype_manual(
+    values = c(
+      "0" = "dashed",
+      "1" = "solid"
+    ),
+    labels = c(
+      "0" = "未実施",
+      "1" = "実施"
+    )
+  ) +
+  scale_fill_discrete(
+    labels = c(
+      "0" = "未実施",
+      "1" = "実施"
+    )
+  ) +
+  guides(
+    fill = "none"
+  ) +
+  coord_cartesian(
+    xlim = c(0, 1),
+    ylim = c(0, 140)
+  ) +
+  theme_minimal()
+```
+
+
+# 津波被災による1保有経営体当たり機械台数の変化
+
+
+## 分析用データフレーム作成
+
+```{r}
+machinery_concentration_change <- df2 |>
+  filter(census_year %in% c("2010", "2015")) |>
+  select(
+    area_code,
+    census_year,
+    tsunami_farmland_share,
+    rice_transplanter_units_per_entity,
+    tractor_units_per_entity,
+    combine_units_per_entity
+  ) |>
+  pivot_wider(
+    names_from = census_year,
+    values_from = c(
+      tsunami_farmland_share,
+      rice_transplanter_units_per_entity,
+      tractor_units_per_entity,
+      combine_units_per_entity
+    )
+  ) |>
+  mutate(
+    change_concentration_rice_transplanter =
+      rice_transplanter_units_per_entity_2015 - rice_transplanter_units_per_entity_2010,
+    change_concentration_tractor =
+      tractor_units_per_entity_2015 - tractor_units_per_entity_2010,
+    change_concentration_combine =
+      combine_units_per_entity_2015 - combine_units_per_entity_2010
+  )
+```
+
+
+## トラクター
+
+```{r}
+ggplot(
+  machinery_concentration_change,
+  aes(
+    x = tsunami_farmland_share_2010,
+    y = change_concentration_tractor
+  )
+) +
+  geom_point() +
+  geom_smooth(method = "lm", se = TRUE) +
+  labs(
+    x = "津波被災農地割合",
+    y = "1トラクター保有経営体当たりトラクター保有台数の変化（2010–2015）"
+  ) +
+  theme_minimal()
+```
+## 田植機
+
+```{r}
+ggplot(
+  machinery_concentration_change,
+  aes(
+    x = tsunami_farmland_share_2010,
+    y = change_concentration_rice_transplanter
+  )
+) +
+  geom_point() +
+  geom_smooth(method = "lm", se = TRUE) +
+  labs(
+    x = "津波被災農地割合",
+    y = "1田植機保有経営体当たり田植機保有台数の変化（2010–2015）"
+  ) +
+  theme_minimal()
+```
+
+## コンバイン
+
+```{r}
+ggplot(
+  machinery_concentration_change,
+  aes(
+    x = tsunami_farmland_share_2010,
+    y = change_concentration_combine
+  )
+) +
+  geom_point() +
+  geom_smooth(method = "lm", se = TRUE) +
+  labs(
+    x = "津波被災農地割合",
+    y = "1コンバイン所有経営体当たりコンバイン保有台数の変化（2010–2015）"
+  ) +
+  theme_minimal()
+```
+
+
+# 個人経営体割合との関連に関する分析
+
+## 分析用データフレーム作成
+
+```{r}
+machinery_change <- df2 |>
+  filter(census_year %in% c("2010", "2015")) |>
+  select(
+    area_code,
+    census_year,
+    tsunami_farmland_share,
+    rice_transplanter_entities,
+    tractor_entities,
+    combine_entities,
+    c_one,
+    c_four,
+    individual_entities,
+    farm_entities_total
+  ) |>
+  pivot_wider(
+    names_from = census_year,
+    values_from = c(
+      tsunami_farmland_share,
+      rice_transplanter_entities,
+      tractor_entities,
+      combine_entities,
+      individual_entities,
+      farm_entities_total
+    )
+  ) |>
+  mutate(
+    change_rice_transplanter =
+      rice_transplanter_entities_2015 - rice_transplanter_entities_2010,
+    change_tractor =
+      tractor_entities_2015 - tractor_entities_2010,
+    change_combine =
+      combine_entities_2015 - combine_entities_2010,
+    individual_share_2010 =
+      individual_entities_2010 / farm_entities_total_2010,
+    individual_share_2015 =
+      individual_entities_2015 / farm_entities_total_2015,
+    change_individual_share =
+      individual_share_2015 - individual_share_2010
+  )
+```
+
+
+## 変数作成
+
+### コンバイン所有個人経営体数の下限（2010年）
+
+個人コンバイン所有者数=コンバイン所有経営体数−非個人のコンバイン所有経営体数
+
+しかし、「非個人のコンバイン所有経営体数」はセンサスからはわからないので、代わりに「非個人経営体数」を使う。
+
+「非個人経営体数 >= 非個人のコンバイン所有経営体数」なので、「非個人経営体数」は「非個人のコンバイン所有経営体数」の上限である。したがって、ここで求める「個人コンバイン所有経営体数」は、正確な値ではなく、下限値である、ということになる。
+
+また、「個人コンバイン所有者数」は、「コンバイン所有経営体数」と「個人経営体数」を上回ることはありえない。だから、「コンバイン所有経営体数」と「個人経営体数」のうち、値の小さい方が、「個人コンバイン所有経営体数」の上限値ということになる。
+
+```{r}
+
+machinery_change <- machinery_change |>
+  mutate(
+    nonindividual_entities_2010 =
+      farm_entities_total_2010 - individual_entities_2010,
+
+    individual_combine_owner_min_2010 =
+      pmax(
+        combine_entities_2010 - nonindividual_entities_2010,
+        0
+      ),
+
+    individual_combine_owner_max_2010 =
+      pmin(
+        combine_entities_2010,
+        individual_entities_2010
+      ),
+
+    individual_combine_owner_share_min_2010 =
+      individual_combine_owner_min_2010 /
+      individual_entities_2010,
+
+    individual_combine_owner_share_max_2010 =
+      individual_combine_owner_max_2010 /
+      individual_entities_2010
+  )
+```
+
+
+### トラクター所有個人経営体数の下限（2010年）
+
+
+```{r}
+
+machinery_change <- machinery_change |>
+  mutate(
+    nonindividual_entities_2010 =
+      farm_entities_total_2010 - individual_entities_2010,
+
+    individual_tractor_owner_min_2010 =
+      pmax(
+        tractor_entities_2010 - nonindividual_entities_2010,
+        0
+      ),
+
+    individual_tractor_owner_max_2010 =
+      pmin(
+        tractor_entities_2010,
+        individual_entities_2010
+      ),
+
+    individual_tractor_owner_share_min_2010 =
+      individual_tractor_owner_min_2010 /
+      individual_entities_2010,
+
+    individual_tractor_owner_share_max_2010 =
+      individual_tractor_owner_max_2010 /
+      individual_entities_2010
+  )
+```
+
+### 田植機所有個人経営体数の下限（2010年）
+
+
+```{r}
+
+machinery_change <- machinery_change |>
+  mutate(
+    nonindividual_entities_2010 =
+      farm_entities_total_2010 - individual_entities_2010,
+
+    individual_rice_transplanter_owner_min_2010 =
+      pmax(
+        rice_transplanter_entities_2010 - nonindividual_entities_2010,
+        0
+      ),
+
+    individual_rice_transplanter_owner_max_2010 =
+      pmin(
+        rice_transplanter_entities_2010,
+        individual_entities_2010
+      ),
+
+    individual_rice_transplanter_owner_share_min_2010 =
+      individual_rice_transplanter_owner_min_2010 /
+      individual_entities_2010,
+
+    individual_rice_transplanter_owner_share_max_2010 =
+      individual_rice_transplanter_owner_max_2010 /
+      individual_entities_2010
+  )
+```
+
+## 2015年個人経営体割合の規定要因
+
+
+### m7(コンバイン)
+
+```{r}
+m7 <- lm(
+  individual_share_2015 ~
+    individual_share_2010 +
+    tsunami_farmland_share_2010 +
+    c_four +
+    individual_combine_owner_share_min_2010,
+  data = machinery_change
+)
+
+m7 |> summary()
+vif(m7)
+```
+震災前の個人経営体割合には強い持続性がある。さらに、それだけではなく、震災前に個人がコンバインを所有できる構造だった地域ほど、震災後にも個人経営体が残りやすい。また、c4事業の実施は個人経営体割合に影響が見られない。
+
+→　つまり、組織側にC-4で機械を整備しても、個人で営農できるだけの機械資本を持つ農業者まで組織へ引き込めるとは限らない、ということ。これはフォールバック仮説と整合的である。
+
+(これは以下の様に、コンバインだけでなく他の機械でも同様)
+
+### m8(トラクター)
+
+```{r}
+m8 <- lm(
+  individual_share_2015 ~
+    individual_share_2010 +
+    tsunami_farmland_share_2010 +
+    c_four +
+    individual_tractor_owner_share_min_2010,
+  data = machinery_change
+)
+
+m8 |> summary()
+vif(m8)
+```
+### m9(田植機)
+
+```{r}
+m9 <- lm(
+  individual_share_2015 ~
+    individual_share_2010 +
+    tsunami_farmland_share_2010 +
+    c_four +
+    individual_rice_transplanter_owner_share_min_2010,
+  data = machinery_change
+)
+
+m9 |> summary()
+vif(m9)
+```
