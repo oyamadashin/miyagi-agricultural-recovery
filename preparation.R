@@ -409,3 +409,5 @@ df <- df |>
 
 # 秘匿データなどの処理をしておく
 df <- convert_entity_columns(df)
+
+

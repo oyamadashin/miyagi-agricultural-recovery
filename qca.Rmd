@@ -1,0 +1,244 @@
+---
+title: "qca"
+output: html_document
+date: "2026-07-29"
+---
+
+# ライブラリ
+
+```{r}
+library(tidyverse)
+library(QCA)
+```
+
+
+
+# source
+
+```{r}
+df_qca <- read_csv("02_processed_data/shichigahama_qca.csv")
+df_qca
+```
+
+# 後継者欠損データを控除した分析
+
+まず後継者欠損のデータ控除したデータフレームを作成。
+
+```{r}
+vars <- c("name", "indint", "successor", "mechcap", "agecap")
+
+# 各変数の欠損数
+colSums(is.na(df_qca[vars]))
+
+# 分析に使用できるケース
+df_qca_complete <- df_qca[complete.cases(df_qca[vars]), vars]
+
+nrow(df_qca_complete)
+df_qca_complete
+```
+
+## 肯定アウトカムの分析
+
+### 真理値表を求める
+
+```{r}
+tt <- truthTable(
+  df_qca_complete,
+  outcome = "indint",
+  conditions = c("successor", "mechcap", "agecap"),
+  incl.cut = 0.80,
+  n.cut = 1,
+  show.cases = TRUE,
+  complete = TRUE
+)
+
+tt
+```
+
+機械＆年齢が個人営農の十分条件になっている。後継者有無は関係なさそう。
+
+### 複雑解を求める
+
+```{r}
+sol_complex <- minimize(
+  tt,
+  details = TRUE,
+  show.cases = TRUE
+)
+
+sol_complex
+```
+
+きれいな結果。主要機械が無傷で年齢的に余裕→個人営農という関係が100％成り立っている。
+
+### 必要条件分析
+
+```{r}
+df_qca_nec <- as.data.frame(
+  df_qca_complete[, c(
+    "indint", "successor", "mechcap", "agecap"
+  )]
+)
+
+nec <- pofind(
+  data = df_qca_nec,
+  outcome = "indint",
+  conditions = c("successor", "mechcap", "agecap"),
+  relation = "necessity"
+)
+
+nec
+```
+
+covNは必要条件被覆度。具体的には、機械があるケースの80％は個人営農意向がある。一方、年齢に余裕があるケースの44％は個人営農意向がある。
+
+RoNは必要条件としての関連性。mechapは0.875もあるが（個人営農意向との結びつきが強い）が、agecapは0.375しかない（個人営農がないケースでもみられる）。
+
+以上から、条件としてはmechcapの方が重要だということがわかる。
+
+
+## 否定アウトカムの分析
+
+### 真理値表を求める
+
+```{r}
+tt_not <- truthTable(
+  df_qca_complete,
+  outcome = "~indint",
+  conditions = c("successor", "mechcap", "agecap"),
+  incl.cut = 0.80,
+  n.cut = 1,
+  show.cases = TRUE,
+  complete = TRUE
+)
+
+tt_not
+```
+
+やはり、機械と年齢に問題なしで個人営農意向なしとなっているパターンはみられない。
+3行目のように、機械だけあっても高齢だと営農意向はなしになる。やはり機械と年齢の組み合わせが大事だということだ。
+
+### 複雑解を求める
+
+```{r}
+sol_complex <- minimize(
+  tt_not,
+  details = TRUE,
+  show.cases = TRUE
+)
+
+sol_complex
+```
+
+- 後継者がいない＆高齢だと個人での営農意向を持たない（covSが0.375なので、個人営農意向を持たないケースの37.5%をこの経路が説明している）。
+- 年齢は問題ないが機械がない、という場合でも個人での営農意向は持たない（CovSが0.625なので、個人営農意向を持たないケースの62.5%をこの経路が説明している）。
+- また、inclS(整合度)=1、PRI(被覆度)=1なので、反例はない。
+
+
+> 個人営農意向の形成には、年齢面と機械面の両方の余力が必要であった。反対に、個人営農意向を持たない経路は二つあり、第一は後継者もなく本人の年齢面の余力もない場合、第二は本人に年齢面の余力があっても機械面の余力がない場合であった。（AI）
+
+
+# 震災前の経営面積の大きさ（largescale）も条件に加える
+
+ただ、これだと条件に対してケースが少なすぎるので、先の分析では重要でなかった条件であるsuccessorを外す。つまり、successorをlargescaleに入れ替えて3条件の分析をする。
+
+まず欠損のデータ控除したデータフレームを作成。
+
+```{r}
+vars <- c("name", "indint", "mechcap", "agecap", "largescale")
+
+# 各変数の欠損数
+colSums(is.na(df_qca[vars]))
+
+# 分析に使用できるケース
+df_qca_complete <- df_qca[complete.cases(df_qca[vars]), vars]
+
+nrow(df_qca_complete)
+df_qca_complete
+```
+## 肯定アウトカムの分析
+
+### 真理値表を求める
+
+```{r}
+tt <- truthTable(
+  df_qca_complete,
+  outcome = "indint",
+  conditions = c( "mechcap", "agecap", "largescale"),
+  incl.cut = 0.80,
+  n.cut = 1,
+  show.cases = TRUE,
+  complete = TRUE
+)
+
+tt
+```
+### 複雑解を求める
+
+```{r}
+sol_complex <- minimize(
+  tt,
+  details = TRUE,
+  show.cases = TRUE
+)
+
+sol_complex
+```
+このように、largescaleも残らず、結局はmechap*agecapで営農意向が決まってくる。
+
+### 必要条件分析
+
+```{r}
+df_qca_nec <- as.data.frame(
+  df_qca_complete[, c(
+    "indint", "mechcap", "agecap", "largescale"
+  )]
+)
+
+nec <- pofind(
+  data = df_qca_nec,
+  outcome = "indint",
+  conditions = c("mechcap", "agecap", "largescale"),
+  relation = "necessity"
+)
+
+nec
+```
+
+
+やはり重要なのは機械だった。
+
+## 否定アウトカムの分析
+
+### 真理値表を求める
+
+```{r}
+tt_not <- truthTable(
+  df_qca_complete,
+  outcome = "~indint",
+  conditions = c("mechcap", "agecap", "largescale"),
+  incl.cut = 0.80,
+  n.cut = 1,
+  show.cases = TRUE,
+  complete = TRUE
+)
+
+tt_not
+```
+
+### 複雑解を求める
+
+```{r}
+sol_complex <- minimize(
+  tt_not,
+  details = TRUE,
+  show.cases = TRUE
+)
+
+sol_complex
+```
+
+個人営農を選ばないのは、
+
+1. まだ営農できる年齢でも、機械的基盤がない場合
+2. 年齢面で難しく、かつ小規模な場合

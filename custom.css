@@ -1,0 +1,51 @@
+/* 全体の背景色 */
+.reveal {
+  background-color: #f3f1eb;
+}
+
+/* タイトルスライド */
+.reveal .title-slide h1,
+.reveal #title-slide h1 {
+  font-size: 2.15em;
+  line-height: 1.25;
+  font-weight: 700;
+}
+
+/* 副題 */
+.reveal #title-slide .subtitle {
+  font-size: 1.15em;
+  margin-top: 0.8em;
+}
+
+/* 著者 */
+.reveal #title-slide .author {
+  font-size: 1.05em;
+  margin-top: 1.4em;
+}
+
+/* 所属 */
+.reveal #title-slide .institute {
+  font-size: 0.8em;
+}
+
+/* セクション区切りスライド*/
+.reveal .slides section.section-slide {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.reveal .section-heading {
+  font-size: 2em;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+/* 注記用の小さい文字*/
+.note-small {
+  font-size: 0.55em;
+  line-height: 1.4;
+  color: #555;
+  margin-top: 0.5em;
+}

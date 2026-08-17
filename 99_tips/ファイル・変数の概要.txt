@@ -59,6 +59,13 @@
   - tunami_farmland_total_by_kcity
     - tsunamiのスペル間違ってるけど加工用に使うだけだから気にしない
 
+
+
+### QCAデータ
+
+- shichigahama_qca.csv
+- 報告論文作成までひとつのプロジェクトで済ませたいので、組合員のQCA関連のデータを入れておく。
+
 # Git管理
 
 リポジトリ名はmiyagi-agricultural-recoveryとする。
