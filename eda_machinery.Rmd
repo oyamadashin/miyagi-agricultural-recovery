@@ -954,3 +954,118 @@ vif(m9)
 →　考えられる可能性：
 - 組織経営体が機械を取得することで、地域内の作業受委託が可能になり、個人農家が高価な機械を自前で再取得しなくても営農継続できる。
 - 組織経営体への支援が、個人経営体を吸収するのではなく、むしろ個人経営体の「補完的インフラ」として機能する。
+
+
+# (2015年の個人経営体数 / 2010年の個人経営体数)の規定要因
+
+個人経営体の残存率（どれだけ残ったか）に関する代理変数を分析する
+（集計データであり同一経営体を追跡できてないから、残存率そのものではなくあくまで代理変数）
+
+2015年個人経営体割合の分析だと、他の分類の経営体が減ったのか、個人経営体が増えたのかわからない。かといって個人経営体の絶対数だと、地域ごとでスケールがぜんぜんちがうので比較がしにくいだろう。
+
+だから、(2015年の個人経営体数 / 2010年の個人経営体数)を残存率の代理変数とみなして、分析をしてみる。
+
+
+## 残存率変数作成
+```{r}
+machinery_change <- machinery_change |>
+  mutate(
+    individual_2015_2010_ratio = if_else(
+      individual_entities_2010 > 0,
+      individual_entities_2015 / individual_entities_2010,
+      NA_real_
+    )
+  )
+```
+
+## 残存率の概要
+
+```{r}
+summary(machinery_change$individual_2015_2010_ratio)
+```
+
+```{r}
+machinery_change |> 
+  ggplot(aes(x = individual_2015_2010_ratio)) +
+  geom_boxplot() +
+  geom_jitter(
+    aes(y = 0),
+    height = 0.06,
+    width = 0
+  )
+```
+かなりばらつきが大きい。
+
+## 津波被災割合 × 残存率
+
+```{r}
+machinery_change |>
+  ggplot(
+    aes(
+      x = tsunami_farmland_share_2010,
+      y = individual_2015_2010_ratio
+    )
+  ) +
+  geom_point() +
+  geom_smooth(
+  method = "lm",
+  se = FALSE
+  ) 
+
+cor(
+  machinery_change$tsunami_farmland_share_2010,
+  machinery_change$individual_2015_2010_ratio,
+  use = "complete.obs"
+)
+
+m <- lm(
+  individual_2015_2010_ratio ~
+    tsunami_farmland_share_2010,
+  data = machinery_change
+)
+
+m |> summary()
+```
+
+それなりに大きな負の相関がある。津波被災割合が大きいほど残存率は小さくなる。
+
+```{r}
+machinery_change |>
+  ggplot(
+    aes(
+      x = tsunami_farmland_share_2010,
+      y = individual_2015_2010_ratio
+    )
+  ) +
+  geom_point() +
+  geom_smooth(
+    method = "lm",
+    se = FALSE
+  ) +
+  facet_wrap(~ production_support)
+
+machinery_change |>
+  group_by(production_support) |>
+  summarise(
+    n = sum(
+      complete.cases(
+        tsunami_farmland_share_2010,
+        individual_2015_2010_ratio
+      )
+    ),
+    cor = cor(
+      tsunami_farmland_share_2010,
+      individual_2015_2010_ratio,
+      use = "complete.obs"
+    )
+  )
+
+m <- lm(
+  individual_2015_2010_ratio ~
+    tsunami_farmland_share_2010 * production_support,
+  data = machinery_change
+)
+
+m |> summary()
+```
+

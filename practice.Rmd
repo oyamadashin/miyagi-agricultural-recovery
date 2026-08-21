@@ -9,6 +9,13 @@ df2 |> filter(census_year == "2010") |>
   filter(area_name == "山下村")
 ```
 
+```{r}
+names(machinery_change)[
+  grepl("individual_entities", names(machinery_change))
+]
+```
+
+
 
 ```{r}
 machinery_change <- machinery_change |>
