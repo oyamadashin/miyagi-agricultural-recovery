@@ -1,0 +1,51 @@
+---
+title: "eda_production_support"
+output: html_document
+date: "2026-08-21"
+# 生産対策交付金関連のEDA
+---
+
+# source
+
+```{r}
+source("preparation.R")
+df
+```
+
+基本的に被災のあった旧市区町村のデータだけを分析に使う。以降、df2を分析に使おう。
+
+```{r}
+df2 <- df |> filter(old_municipality == "1" & !is.na(tsunami_farmland_share))
+df2
+```
+
+# c4事業と生産対策交付金の関連
+
+## クロス集計
+
+```{r}
+table(df2$c_four, df2$production_support) 
+
+table(df2$c_four, df2$production_support) |> 
+  prop.table() |> round(2)
+
+
+
+# どちらの事業も実施していない地域を取り除いて再分析
+df3 <- df2 |> filter(c_four == "1" | production_support == "1")
+table(df3$c_four, df3$production_support) 
+
+table(df3$c_four, df3$production_support) |> 
+  prop.table() |> round(2)
+```
+
+## 相関係数
+
+```{r}
+cor(
+  df$c_four,
+  df$production_support,
+  use = "complete.obs"
+)
+```
+あまり相関は高くない→別物の変数として扱ってOK

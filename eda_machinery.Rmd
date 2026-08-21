@@ -66,7 +66,8 @@ machinery_share_change <- df2 |>
     tractor_share,
     combine_share,
     c_one,
-    c_four
+    c_four,
+    production_support
   ) |>
   pivot_wider(
     names_from = census_year,
@@ -112,11 +113,19 @@ ggplot(
 
 ```{r}
 m1 <- lm(change_share_tractor ~ 
-           tsunami_farmland_share_2010 * c_four, 
+           tsunami_farmland_share_2010 * c_four + production_support, 
          data = machinery_share_change)
 
 m1 |> summary()
 vif(m1)
+
+
+m1_0 <- lm(change_share_tractor ~ 
+           tsunami_farmland_share_2010 * c_four, 
+         data = machinery_share_change)
+
+m1_0 |> summary()
+vif(m1_0)
 ```
 
 C-4実施地域では、トラクター所有経営体割合の低下がより大きい。これは、C-4が個別経営体への機械所有の維持ではなく、担い手への機械・施設の集約を通じて復興を支援する制度であったことと整合的である。
@@ -146,11 +155,18 @@ ggplot(
 
 ```{r}
 m2 <- lm(change_share_rice_transplanter ~ 
-           tsunami_farmland_share_2010 * c_four, 
+           tsunami_farmland_share_2010 * c_four + production_support, 
          data = machinery_share_change)
 
 m2 |> summary()
-vif(m1)
+vif(m2)
+
+m2_0 <- lm(change_share_rice_transplanter ~ 
+           tsunami_farmland_share_2010 * c_four, 
+         data = machinery_share_change)
+
+m2_0 |> summary()
+vif(m2_0)
 ```
 
 田植機だと有意な係数が消える（おしいけど）。
@@ -183,15 +199,26 @@ ggplot(
 
 ```{r}
 m3 <- lm(change_share_combine ~ 
-           tsunami_farmland_share_2010 * c_four, 
+           tsunami_farmland_share_2010 * c_four + production_support, 
          data = machinery_share_change)
 
 m3 |> summary()
-vif(m1)
+vif(m3)
+
+# production_supportを入れないモデルも見てみる
+m3_0 <- lm(change_share_combine ~ 
+           tsunami_farmland_share_2010 * c_four, 
+         data = machinery_share_change)
+m3_0 |> summary()
+vif(m3_0)
 ```
-コンバインだとc4単体の効果が完全に消える。一方、交差項が有意で負になっている。
+コンバインだとc4単体の効果が完全に消える。一方、交差項が10%有意で負になっている。
 
 C-4事業実施地域では、機械・施設の貸与を受けた営農組織を通じて営農を継続するという選択肢が存在するため、個々の経営体が必ずしも農業機械を自ら所有する必要はない。この点は、とくにコンバインで強く現れる可能性がある。トラクターや田植機に比べ、コンバインは購入価格が高く、年間の利用期間も限られるため、津波によって機械を失った経営体にとって個別に再取得する負担が大きい。そのため、被災程度が高いC-4実施地域ほど、個別経営体によるコンバインの再取得を行わず、営農組織等が保有する機械を利用する方向へ移行した可能性がある。
+
+→　生産対策交付金変数を入れると10%有意がなくなる
+
+C-4と津波被災程度の交互作用は負であり、生産対策交付金を統制しないモデルでは比較的強い関係が観察される。しかし、生産対策交付金の実施状況を統制すると交互作用係数は約13%縮小し、統計的な明瞭さも低下する。したがって、C-4地域で観察される機械保有構造の変化には、他の生産支援政策も部分的に関与している可能性がある。
 
 
 # 津波被災による機械所有経営体数の変化
@@ -211,7 +238,8 @@ machinery_change <- df2 |>
     tractor_entities,
     combine_entities,
     c_one,
-    c_four
+    c_four,
+    production_support
   ) |>
   pivot_wider(
     names_from = census_year,
@@ -258,7 +286,8 @@ ggplot(
 
 ```{r}
 m4 <- lm(tractor_entities_2015 ~ 
-           tsunami_farmland_share_2010 * c_four + tractor_entities_2010, 
+           tsunami_farmland_share_2010 * c_four + tractor_entities_2010 +
+           production_support, 
          data = machinery_change)
 
 m4 |> summary()
@@ -379,7 +408,7 @@ ggplot(
 
 ```{r}
 m5 <- lm(rice_transplanter_entities_2015 ~ 
-           tsunami_farmland_share_2010 * c_four + rice_transplanter_entities_2010, 
+           tsunami_farmland_share_2010 * c_four + rice_transplanter_entities_2010 + production_support, 
          data = machinery_change)
 
 m5 |> summary()
@@ -497,18 +526,18 @@ ggplot(
 ```{r}
 m6 <- lm(combine_entities_2015 ~ 
            tsunami_farmland_share_2010 * c_four　+
-    combine_entities_2010, 
+    combine_entities_2010 + production_support, 
          data = machinery_change)
 
 m6 |> summary()
 vif(m6)
 ```
 
-m4-6はいずれも同じ傾向。津波被災割合とc4の交差項が負で、コンバインモデルだけが5％水準有意（田植機モデルだと10％水準有意）。決定係数はいずれも非常に大きい。これは、combine_entities_2010等の変数が説明変数に入っているから（もともとコンバインがたくさんあれば、コンバインが減る余地が大きいということ）。
+m4-6はいずれも同じ傾向。津波被災割合とc4の交差項が負で、コンバインモデルだけが10％水準有意。決定係数はいずれも非常に大きい。これは、combine_entities_2010等の変数が説明変数に入っているから（もともとコンバインがたくさんあれば、コンバインが減る余地が大きいということ）。
 
 m1-m3の場合、分子だけでなく分母も一緒に動いてしまうので、効果が見えにくかったのだろう。
 
-コンバインモデルで交差項が5％水準有意なのは、m3の考察をそのまま使える。
+コンバインモデルで交差項が10％水準有意なのは、m3の考察をそのまま使える。
 
 ### m6とm6_0との比較
 
@@ -706,6 +735,7 @@ machinery_change <- df2 |>
     combine_entities,
     c_one,
     c_four,
+    production_support,
     individual_entities,
     farm_entities_total
   ) |>
@@ -853,7 +883,7 @@ m7 <- lm(
   individual_share_2015 ~
     individual_share_2010 +
     tsunami_farmland_share_2010 +
-    c_four +
+    c_four + production_support +
     individual_combine_owner_share_min_2010,
   data = machinery_change
 )
@@ -861,9 +891,9 @@ m7 <- lm(
 m7 |> summary()
 vif(m7)
 ```
-震災前の個人経営体割合には強い持続性がある。さらに、それだけではなく、震災前に個人がコンバインを所有できる構造だった地域ほど、震災後にも個人経営体が残りやすい。また、c4事業の実施は個人経営体割合に影響が見られない。
+震災前の個人経営体割合には強い持続性がある。さらに、それだけではなく、震災前に個人がコンバインを所有できる構造だった地域ほど、震災後にも個人経営体が残りやすい。また、c4事業・生産対策交付金の実施は個人経営体割合に影響が見られない。
 
-→　つまり、組織側にC-4で機械を整備しても、個人で営農できるだけの機械資本を持つ農業者まで組織へ引き込めるとは限らない、ということ。これはフォールバック仮説と整合的である。
+→　つまり、組織側にC-4・生産対策交付金で機械を整備しても、個人で営農できるだけの機械資本を持つ農業者まで組織へ引き込めるとは限らない、ということ。これはフォールバック仮説と整合的である。
 
 (これは以下の様に、コンバインだけでなく他の機械でも同様)
 
@@ -874,7 +904,7 @@ m8 <- lm(
   individual_share_2015 ~
     individual_share_2010 +
     tsunami_farmland_share_2010 +
-    c_four +
+    c_four + production_support +
     individual_tractor_owner_share_min_2010,
   data = machinery_change
 )
@@ -882,6 +912,8 @@ m8 <- lm(
 m8 |> summary()
 vif(m8)
 ```
+トラクター所有割合を使ったモデルだと、生産対策交付金実施地域ほど個人経営体割合が大きい、という結果（ただし有意ではない）
+
 ### m9(田植機)
 
 ```{r}
@@ -889,7 +921,7 @@ m9 <- lm(
   individual_share_2015 ~
     individual_share_2010 +
     tsunami_farmland_share_2010 +
-    c_four +
+    c_four + production_support +
     individual_rice_transplanter_owner_share_min_2010,
   data = machinery_change
 )
@@ -897,3 +929,28 @@ m9 <- lm(
 m9 |> summary()
 vif(m9)
 ```
+
+田植機所有割合を使ったモデルだと、生産対策交付金実施地域ほど個人経営体割合が大きい、という結果（ただし有意ではない）（5%有意）
+
+どういうことなのかな。交付金の対象経営体はどれも組織経営体だ。
+
+
+### m10(機械変数を外してみる)
+```{r}
+m9 <- lm(
+  individual_share_2015 ~
+    individual_share_2010 +
+    tsunami_farmland_share_2010 +
+    c_four + production_support,
+  data = machinery_change
+)
+
+m9 |> summary()
+vif(m9)
+```
+
+生産対策交付金は主として組織経営体を対象とする政策であるにもかかわらず、その実施地域では2015年の個人経営体割合が高い傾向がみられた。この結果は、政策の直接的な受益主体と、地域全体の農業構造への帰結が必ずしも一致しない可能性を示唆する。
+
+→　考えられる可能性：
+- 組織経営体が機械を取得することで、地域内の作業受委託が可能になり、個人農家が高価な機械を自前で再取得しなくても営農継続できる。
+- 組織経営体への支援が、個人経営体を吸収するのではなく、むしろ個人経営体の「補完的インフラ」として機能する。

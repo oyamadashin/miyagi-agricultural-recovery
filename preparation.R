@@ -360,14 +360,15 @@ df <- df |>
 
 # c-1、c-4事業実施地域データの結合----
 
-c_one_four <- read_csv("02_processed_data/c1_c4_check.csv")
+c_one_four <- read_csv("02_processed_data/c1_c4_production_support_check.csv")
 
 df <- df |>
   left_join(
     c_one_four |>
       select(area_code, 
              c_one,
-             c_four),
+             c_four,
+             production_support),
     by = "area_code"
   )
 

@@ -6,7 +6,7 @@ date: "2026-08-03"
 
 ```{r}
 df2 |> filter(census_year == "2010") |> 
-  filter(area_name == "（西多賀）")
+  filter(area_name == "山下村")
 ```
 
 
