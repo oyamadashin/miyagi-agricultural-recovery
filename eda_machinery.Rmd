@@ -883,7 +883,7 @@ m7 <- lm(
   individual_share_2015 ~
     individual_share_2010 +
     tsunami_farmland_share_2010 +
-    c_four + production_support +
+    c_one + c_four + production_support +
     individual_combine_owner_share_min_2010,
   data = machinery_change
 )
@@ -904,7 +904,7 @@ m8 <- lm(
   individual_share_2015 ~
     individual_share_2010 +
     tsunami_farmland_share_2010 +
-    c_four + production_support +
+    c_one + c_four + production_support +
     individual_tractor_owner_share_min_2010,
   data = machinery_change
 )
@@ -921,7 +921,7 @@ m9 <- lm(
   individual_share_2015 ~
     individual_share_2010 +
     tsunami_farmland_share_2010 +
-    c_four + production_support +
+    c_one + c_four + production_support +
     individual_rice_transplanter_owner_share_min_2010,
   data = machinery_change
 )
@@ -956,7 +956,7 @@ vif(m9)
 - 組織経営体への支援が、個人経営体を吸収するのではなく、むしろ個人経営体の「補完的インフラ」として機能する。
 
 
-# (2015年の個人経営体数 / 2010年の個人経営体数)の規定要因
+## (2015年の個人経営体数 / 2010年の個人経営体数)の規定要因
 
 個人経営体の残存率（どれだけ残ったか）に関する代理変数を分析する
 （集計データであり同一経営体を追跡できてないから、残存率そのものではなくあくまで代理変数）
@@ -966,7 +966,9 @@ vif(m9)
 だから、(2015年の個人経営体数 / 2010年の個人経営体数)を残存率の代理変数とみなして、分析をしてみる。
 
 
-## 残存率変数作成
+
+
+### 残存率変数作成
 ```{r}
 machinery_change <- machinery_change |>
   mutate(
@@ -978,7 +980,7 @@ machinery_change <- machinery_change |>
   )
 ```
 
-## 残存率の概要
+### 残存率の概要
 
 ```{r}
 summary(machinery_change$individual_2015_2010_ratio)
@@ -996,7 +998,7 @@ machinery_change |>
 ```
 かなりばらつきが大きい。
 
-## 津波被災割合 × 残存率
+### 津波被災割合 × 残存率
 
 ```{r}
 machinery_change |>
@@ -1068,4 +1070,703 @@ m <- lm(
 
 m |> summary()
 ```
+生産対策交付金実施地域の方が、津波被災による個人経営体割合減少が大きいようにみえる（交差項は有意でないが）。
 
+
+### m11(コンバイン)
+
+```{r}
+m11 <- lm(
+  individual_2015_2010_ratio ~
+    individual_share_2010 +
+    tsunami_farmland_share_2010 +
+    c_one + c_four + production_support +
+    individual_combine_owner_share_min_2010,
+  data = machinery_change
+)
+
+m11 |> summary()
+vif(m11)
+```
+m7と比べると、c4が負で有意になっているのが特徴的。
+
+### m12(トラクター)
+
+```{r}
+m12 <- lm(
+  individual_2015_2010_ratio ~
+    individual_share_2010 +
+    tsunami_farmland_share_2010 +
+    c_one + c_four + production_support +
+    individual_tractor_owner_share_min_2010,
+  data = machinery_change
+)
+
+m12 |> summary()
+vif(m12)
+```
+これもm8と比べるとc4が有意になっているのが特徴
+
+
+### m13(田植機)
+
+```{r}
+m13 <- lm(
+  individual_2015_2010_ratio ~
+    individual_share_2010 +
+    tsunami_farmland_share_2010 +
+    c_one + c_four + production_support +
+    individual_rice_transplanter_owner_share_min_2010,
+  data = machinery_change
+)
+
+m13 |> summary()
+vif(m13)
+```
+
+やはりc4が有意で負。生産対策交付金が10%有意で正になっている。
+
+
+### m14(機械変数を外してみる)
+```{r}
+m14 <- lm(
+  individual_2015_2010_ratio ~
+    individual_share_2010 +
+    tsunami_farmland_share_2010 +
+    c_one + c_four + production_support,
+  data = machinery_change
+)
+
+m14 |> summary()
+vif(m14)
+```
+やっぱりc4が有意で負。一方、生産対策交付金は10%有意で正。
+
+伊藤(2013)によると、生産対策交付金は個別農家が機械再取得のために利用するということもあったそう。
+
+
+### 頑健性チェック1_重み付け
+
+#### m15_コンバイン_2010年個人経営体数で重み付け
+
+
+```{r}
+m15 <- lm(
+  individual_2015_2010_ratio ~
+    individual_share_2010 +
+    tsunami_farmland_share_2010 +
+    c_one + c_four +
+    production_support +
+    individual_combine_owner_share_min_2010,
+  data = machinery_change,
+  weights = individual_entities_2010
+)
+
+m15 |> summary()
+vif(m15)
+```
+コンバインに関するm15だけが有意。おそらくこういうことではないか：
+ミクロ分析：3種の機械をすべて保有している農家は個別営農継続の条件を持つ。
+地域集計分析：3種保有を直接観察できないが、その上位条件を近似するコンバイン所有割合が個人経営体残存率と正に関連する。
+
+つまり、トラクターや田植え機を持っていてコンバインを持っていない農家は普通にいるが、コンバインを持っていてトラクターや田植機を持っていない農家はあまりいない。コンバイン所有は3種の機械すべてを保有しているかどうかの代理指標になっているわけだ（もっとも、これをちゃんと検証するには個票データが必要だけど）
+
+
+##### コンバイン=代理指標仮説の傍証
+
+```{r}
+machinery_change |>
+  count(
+    min_machine = case_when(
+      individual_combine_owner_share_min_2010 <=
+        individual_tractor_owner_share_min_2010 &
+      individual_combine_owner_share_min_2010 <=
+        individual_rice_transplanter_owner_share_min_2010 ~ "combine",
+
+      individual_tractor_owner_share_min_2010 <=
+        individual_rice_transplanter_owner_share_min_2010 ~ "tractor",
+
+      TRUE ~ "rice_transplanter"
+    )
+  )
+```
+所有割合のもっとも小さい機械をチェックしている。57地域中57地域で「コンバインがもっとも所有割合の小さい機械」となっている。個票ではないのでこれでコンバイン＝3種所有の代理指標とは言えないけれど、傍証にはなる。
+
+
+#### m16_トラクター_2010年個人経営体数で重み付け
+
+
+```{r}
+m16 <- lm(
+  individual_2015_2010_ratio ~
+    individual_share_2010 +
+    tsunami_farmland_share_2010 +
+    c_one + c_four +
+    production_support +
+    individual_tractor_owner_share_min_2010,
+  data = machinery_change,
+  weights = individual_entities_2010
+)
+
+m16 |> summary()
+vif(m16)
+```
+#### m17_田植機_2010年個人経営体数で重み付け
+
+
+```{r}
+m17 <- lm(
+  individual_2015_2010_ratio ~
+    individual_share_2010 +
+    tsunami_farmland_share_2010 +
+    c_one + c_four +
+    production_support +
+    individual_rice_transplanter_owner_share_min_2010,
+  data = machinery_change,
+  weights = individual_entities_2010
+)
+
+m17 |> summary()
+vif(m17)
+```
+
+
+#### m18 機械変数は全部入れて、復興事業変数も全部入れてみる
+
+```{r}
+m18 <- lm(
+  individual_2015_2010_ratio ~
+    individual_share_2010 +
+    tsunami_farmland_share_2010 +
+    c_one +
+    c_four +
+    production_support +
+    individual_combine_owner_share_min_2010 +
+    individual_tractor_owner_share_min_2010 +
+    individual_rice_transplanter_owner_share_min_2010,
+  data = machinery_change,
+  weights = individual_entities_2010
+)
+
+m18 |> summary()
+vif(m18)
+```
+復興事業関連変数ではc4だけが有意（10％）で、負。
+コンバイン所有は頑健だ。1%有意で正。
+気になるのが田植機所有。5%有意で負。これはどう解釈すればいい？　→　田植機に関してはモデル間で係数や有意判定があまり安定しないので深い解釈はしないで個票分析を待つしかないかも。
+
+
+### 頑健性チェック2_個人経営体数が極端に少ない地域を除外
+
+注：重み付けは外す
+
+#### 2010年個人経営体数分布の確認
+
+```{r}
+summary(machinery_change$individual_entities_2010)
+
+quantile(
+  machinery_change$individual_entities_2010,
+  probs = c(0, .1, .25, .5, .75, .9, 1),
+  na.rm = TRUE
+)
+```
+
+#### 分析用データフレーム
+（個人経営体数何人を閾値としてケース除外するか）
+```{r}
+# 個人経営体数10人未満のケース除外
+machinery_change_10 <- machinery_change |>
+  filter(individual_entities_2010 >= 10)
+
+# 個人経営体数20人未満のケース除外
+machinery_change_20 <- machinery_change |>
+  filter(individual_entities_2010 >= 20)
+
+# 個人経営体数50人未満のケース除外
+machinery_change_50 <- machinery_change |>
+  filter(individual_entities_2010 >= 50)
+
+# 個人経営体数75人未満のケース除外(だいたい下位25％のケースを除外)
+machinery_change_75 <- machinery_change |>
+  filter(individual_entities_2010 >= 75)
+```
+
+##### 閾値=10人での分析
+
+###### m19(コンバイン)
+
+```{r}
+m19 <- lm(
+  individual_2015_2010_ratio ~
+    individual_share_2010 +
+    tsunami_farmland_share_2010 +
+    c_one + c_four + production_support +
+    individual_combine_owner_share_min_2010,
+  data = machinery_change_10
+)
+
+m19 |> summary()
+vif(m19)
+```
+m10と傾向変わらず
+
+
+###### m20(トラクター)
+
+```{r}
+m20 <- lm(
+  individual_2015_2010_ratio ~
+    individual_share_2010 +
+    tsunami_farmland_share_2010 +
+    c_one + c_four + production_support +
+    individual_tractor_owner_share_min_2010,
+  data = machinery_change_10
+)
+
+m20 |> summary()
+vif(m20)
+```
+これもm12と傾向変わらず
+
+###### m21(田植機)
+
+```{r}
+m21 <- lm(
+  individual_2015_2010_ratio ~
+    individual_share_2010 +
+    tsunami_farmland_share_2010 +
+    c_one + c_four + production_support +
+    individual_rice_transplanter_owner_share_min_2010,
+  data = machinery_change_10
+)
+
+m21 |> summary()
+vif(m21)
+```
+
+m13と傾向変わらず
+
+###### m22(機械変数全部)
+
+```{r}
+m22 <- lm(
+  individual_2015_2010_ratio ~
+    individual_share_2010 +
+    tsunami_farmland_share_2010 +
+    c_one + c_four + production_support +
+    individual_combine_owner_share_min_2010 +
+    individual_tractor_owner_share_min_2010 +
+    individual_rice_transplanter_owner_share_min_2010,
+  data = machinery_change_10
+)
+
+m22 |> summary()
+vif(m22)
+```
+
+閾値=10人では分析結果傾向にちがいなし
+
+
+##### 閾値=20人での分析
+
+###### m23(コンバイン)
+
+```{r}
+m23 <- lm(
+  individual_2015_2010_ratio ~
+    individual_share_2010 +
+    tsunami_farmland_share_2010 +
+    c_one + c_four + production_support +
+    individual_combine_owner_share_min_2010,
+  data = machinery_change_20
+)
+
+m23 |> summary()
+vif(m23)
+```
+
+###### m24(トラクター)
+
+```{r}
+m24 <- lm(
+  individual_2015_2010_ratio ~
+    individual_share_2010 +
+    tsunami_farmland_share_2010 +
+    c_one + c_four + production_support +
+    individual_tractor_owner_share_min_2010,
+  data = machinery_change_20
+)
+
+m24 |> summary()
+vif(m24)
+```
+
+###### m25(田植機)
+
+```{r}
+m25 <- lm(
+  individual_2015_2010_ratio ~
+    individual_share_2010 +
+    tsunami_farmland_share_2010 +
+    c_one + c_four + production_support +
+    individual_rice_transplanter_owner_share_min_2010,
+  data = machinery_change_20
+)
+
+m25 |> summary()
+vif(m25)
+```
+
+
+###### m26(機械変数全部)
+
+```{r}
+m26 <- lm(
+  individual_2015_2010_ratio ~
+    individual_share_2010 +
+    tsunami_farmland_share_2010 +
+    c_one + c_four + production_support +
+    individual_combine_owner_share_min_2010 +
+    individual_tractor_owner_share_min_2010 +
+    individual_rice_transplanter_owner_share_min_2010,
+  data = machinery_change_20
+)
+
+m26 |> summary()
+vif(m26)
+```
+
+c4の有意傾向がやや弱まるけれど、大きな変化なし
+
+
+##### 閾値=50人での分析
+
+###### m27(コンバイン)
+
+```{r}
+m27 <- lm(
+  individual_2015_2010_ratio ~
+    individual_share_2010 +
+    tsunami_farmland_share_2010 +
+    c_one + c_four + production_support +
+    individual_combine_owner_share_min_2010,
+  data = machinery_change_50
+)
+
+m27 |> summary()
+vif(m27)
+```
+
+###### m28(トラクター)
+
+```{r}
+m28 <- lm(
+  individual_2015_2010_ratio ~
+    individual_share_2010 +
+    tsunami_farmland_share_2010 +
+    c_one + c_four + production_support +
+    individual_tractor_owner_share_min_2010,
+  data = machinery_change_50
+)
+
+m28 |> summary()
+vif(m28)
+```
+
+###### m29(田植機)
+
+```{r}
+m29 <- lm(
+  individual_2015_2010_ratio ~
+    individual_share_2010 +
+    tsunami_farmland_share_2010 +
+    c_one + c_four + production_support +
+    individual_rice_transplanter_owner_share_min_2010,
+  data = machinery_change_50
+)
+
+m29 |> summary()
+vif(m29)
+```
+
+###### m30(機械変数全部)
+
+```{r}
+m30 <- lm(
+  individual_2015_2010_ratio ~
+    individual_share_2010 +
+    tsunami_farmland_share_2010 +
+    c_one + c_four + production_support +
+    individual_combine_owner_share_min_2010 +
+    individual_tractor_owner_share_min_2010 +
+    individual_rice_transplanter_owner_share_min_2010,
+  data = machinery_change_50
+)
+
+m30 |> summary()
+vif(m30)
+```
+
+さすがに有意判定が弱まるにしても、傾向変わらず。頑健だ。
+
+
+##### 閾値=75人での分析
+
+###### m31(コンバイン)
+
+```{r}
+m31 <- lm(
+  individual_2015_2010_ratio ~
+    individual_share_2010 +
+    tsunami_farmland_share_2010 +
+    c_one + c_four + production_support +
+    individual_combine_owner_share_min_2010,
+  data = machinery_change_75
+)
+
+m31 |> summary()
+vif(m31)
+```
+
+###### m32(トラクター)
+
+```{r}
+m32 <- lm(
+  individual_2015_2010_ratio ~
+    individual_share_2010 +
+    tsunami_farmland_share_2010 +
+    c_one + c_four + production_support +
+    individual_tractor_owner_share_min_2010,
+  data = machinery_change_75
+)
+
+m32 |> summary()
+vif(m32)
+```
+
+###### m33(田植機)
+
+```{r}
+m33 <- lm(
+  individual_2015_2010_ratio ~
+    individual_share_2010 +
+    tsunami_farmland_share_2010 +
+    c_one + c_four + production_support +
+    individual_rice_transplanter_owner_share_min_2010,
+  data = machinery_change_75
+)
+
+m33 |> summary()
+vif(m33)
+```
+
+###### m34(機械変数全部)
+
+```{r}
+m34 <- lm(
+  individual_2015_2010_ratio ~
+    individual_share_2010 +
+    tsunami_farmland_share_2010 +
+    c_one + c_four + production_support +
+    individual_combine_owner_share_min_2010 +
+    individual_tractor_owner_share_min_2010 +
+    individual_rice_transplanter_owner_share_min_2010,
+  data = machinery_change_75
+)
+
+m34 |> summary()
+vif(m34)
+```
+
+なんと、閾値=75人にしても分析傾向は変わらなかった。かなり頑健な結果だな。
+
+
+### 頑健性チェック3_目的変数を対数変換
+
+
+#### 準備
+
+まず、individual_2015_2010_ratioが0のケースがないことをチェック（0だと対数変換できない）
+
+```{r}
+summary(machinery_change$individual_2015_2010_ratio)
+
+sum(machinery_change$individual_2015_2010_ratio == 0, na.rm = TRUE)
+```
+
+問題なし
+
+目的変数を対数変換した変数をつくる
+
+```{r}
+machinery_change <- machinery_change |>
+  mutate(
+    log_individual_2015_2010_ratio =
+      log(individual_2015_2010_ratio)
+  )
+
+```
+
+##### m35(コンバイン)
+
+```{r}
+m35 <- lm(
+  log_individual_2015_2010_ratio ~
+    individual_share_2010 +
+    tsunami_farmland_share_2010 +
+    c_one + c_four + production_support +
+    individual_combine_owner_share_min_2010,
+  data = machinery_change
+)
+
+m35 |> summary()
+vif(m35)
+```
+
+##### m36(トラクター)
+
+```{r}
+m36 <- lm(
+  log_individual_2015_2010_ratio ~
+    individual_share_2010 +
+    tsunami_farmland_share_2010 +
+    c_one + c_four + production_support +
+    individual_tractor_owner_share_min_2010,
+  data = machinery_change
+)
+
+m36 |> summary()
+vif(m36)
+```
+
+##### m37(田植機)
+
+```{r}
+m37 <- lm(
+  log_individual_2015_2010_ratio ~
+    individual_share_2010 +
+    tsunami_farmland_share_2010 +
+    c_one + c_four + production_support +
+    individual_rice_transplanter_owner_share_min_2010,
+  data = machinery_change
+)
+
+m37 |> summary()
+vif(m37)
+```
+
+##### m38(機械変数全部)
+
+```{r}
+m38 <- lm(
+  log_individual_2015_2010_ratio ~
+    individual_share_2010 +
+    tsunami_farmland_share_2010 +
+    c_one + c_four + production_support +
+    individual_combine_owner_share_min_2010 +
+    individual_tractor_owner_share_min_2010 +
+    individual_rice_transplanter_owner_share_min_2010,
+  data = machinery_change
+)
+
+m38 |> summary()
+vif(m38)
+```
+
+対数変換したモデルでも傾向に変化無し。頑健。
+
+##### m39(機械変数全部+重み付き)
+
+```{r}
+m39 <- lm(
+  log_individual_2015_2010_ratio ~
+    individual_share_2010 +
+    tsunami_farmland_share_2010 +
+    c_one + c_four + production_support +
+    individual_combine_owner_share_min_2010 +
+    individual_tractor_owner_share_min_2010 +
+    individual_rice_transplanter_owner_share_min_2010,
+    weights = individual_entities_2010,
+  data = machinery_change
+)
+
+m39 |> summary()
+vif(m39)
+```
+
+重み付きでも傾向変わらず
+
+
+### 頑健性チェック4_ポアソンなど
+
+#### m40(普通にポワソン)
+
+```{r}
+m40 <- glm(
+  individual_entities_2015 ~
+    individual_share_2010 +
+    tsunami_farmland_share_2010 +
+    c_one +
+    c_four +
+    production_support +
+    individual_combine_owner_share_min_2010 +
+    individual_tractor_owner_share_min_2010 +
+    individual_rice_transplanter_owner_share_min_2010 +
+    offset(log(individual_entities_2010)),
+  family = poisson(link = "log"),
+  data = machinery_change
+)
+
+summary(m40)
+
+deviance(m40) / df.residual(m40)
+```
+
+deviance(poisson_model) / df.residual(poisson_model)が2を大きく超えている。過分散だ。
+
+#### m41(quasi-Poisson)
+
+```{r}
+quasi_poisson_model <- glm(
+  individual_entities_2015 ~
+    individual_share_2010 +
+    tsunami_farmland_share_2010 +
+    c_one +
+    c_four +
+    production_support +
+    individual_combine_owner_share_min_2010 +
+    individual_tractor_owner_share_min_2010 +
+    individual_rice_transplanter_owner_share_min_2010 +
+    offset(log(individual_entities_2010)),
+  family = quasipoisson(link = "log"),
+  data = machinery_change
+)
+
+summary(quasi_poisson_model)
+```
+
+過分散を考慮してquasi-Poisson。m38, m39と同様の傾向。
+
+#### m42(negative binomial)
+
+```{r}
+library(MASS)
+
+m42 <- glm.nb(
+  individual_entities_2015 ~
+    individual_share_2010 +
+    tsunami_farmland_share_2010 +
+    c_one +
+    c_four +
+    production_support +
+    individual_combine_owner_share_min_2010 +
+    individual_tractor_owner_share_min_2010 +
+    individual_rice_transplanter_owner_share_min_2010 +
+    offset(log(individual_entities_2010)),
+  data = machinery_change
+)
+
+summary(m42)
+```
+m40と同じ傾向。やはり頑健な結果。
