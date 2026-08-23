@@ -316,6 +316,7 @@ anova(m4_0, m4)
 newdata_tractor <- expand.grid(
   tsunami_farmland_share_2010 = seq(0, 1, length.out = 100),
   c_four = c(0, 1),
+   production_support = 0,
   tractor_entities_2010 = median(
     machinery_change$tractor_entities_2010,
     na.rm = TRUE

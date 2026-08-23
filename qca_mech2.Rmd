@@ -16,7 +16,7 @@ library(QCA)
 # source
 
 ```{r}
-df_qca <- read_csv("02_processed_data/shichigahama_qca.csv")
+df_qca <- read_csv("02_processed_data/shichigahama_qca_mech2.csv")
 df_qca
 ```
 
@@ -25,7 +25,7 @@ df_qca
 まず後継者欠損のデータ控除したデータフレームを作成。
 
 ```{r}
-vars <- c("name", "indint", "successor", "mechcap", "agecap")
+vars <- c("name", "indint", "successor", "mechcap2", "agecap")
 
 # 各変数の欠損数
 colSums(is.na(df_qca[vars]))
@@ -45,7 +45,7 @@ df_qca_complete
 tt <- truthTable(
   df_qca_complete,
   outcome = "indint",
-  conditions = c("successor", "mechcap", "agecap"),
+  conditions = c("successor", "mechcap2", "agecap"),
   incl.cut = 0.80,
   n.cut = 1,
   show.cases = TRUE,
@@ -69,30 +69,30 @@ sol_complex <- minimize(
 sol_complex
 ```
 
-該当3ケースでは例外なく個別営農継続意向が確認され、結果の75%をカバーした
+該当4ケースでは例外なく個別営農継続意向が確認され、結果の100%をカバーした
+
+-> 機械充足の基準を「主要3機種すべて」から「3機種中2機種以上」へ緩和した場合にも、mechcap2*agecap → indint が得られ、整合度・PRI・被覆度はいずれも1.00であった。
 
 ### 必要条件分析
 
 ```{r}
 df_qca_nec <- as.data.frame(
   df_qca_complete[, c(
-    "indint", "successor", "mechcap", "agecap"
+    "indint", "successor", "mechcap2", "agecap"
   )]
 )
 
 nec <- pofind(
   data = df_qca_nec,
   outcome = "indint",
-  conditions = c("successor", "mechcap", "agecap"),
+  conditions = c("successor", "mechcap2", "agecap"),
   relation = "necessity"
 )
 
 nec
 ```
 
-個人営農継続意向を示した全ケースで年齢的継続余力が確認され、必要条件整合度は1.00であった。ただしRoNは0.375であり、必要条件としての実質的重要性には留保が必要である。一方、主要機械の充足の必要条件整合度は0.75にとどまり、単独では必要条件とは評価できなかった
-
-(mechcapとagecapは単独では必要条件にならないが、組み合わされると必要条件になるということ)
+個人営農継続意向を示した全ケースで、年齢的継続余力および主要機械2種以上の充足が確認され、いずれも必要条件整合度は1.00であった。ただし、年齢的継続余力のRoNは0.375と低く、必要条件としての実質的重要性には留保が必要である。一方、主要機械2種以上の充足はRoN=0.875であり、より実質的な必要条件として評価できる。
 
 
 ## 否定アウトカムの分析
@@ -103,7 +103,7 @@ nec
 tt_not <- truthTable(
   df_qca_complete,
   outcome = "~indint",
-  conditions = c("successor", "mechcap", "agecap"),
+  conditions = c("successor", "mechcap2", "agecap"),
   incl.cut = 0.80,
   n.cut = 1,
   show.cases = TRUE,
@@ -113,8 +113,7 @@ tt_not <- truthTable(
 tt_not
 ```
 
-やはり、機械と年齢に問題なしで個人営農意向なしとなっているパターンはみられない。
-3行目のように、機械だけあっても高齢だと営農意向はなしになる。やはり機械と年齢の組み合わせが大事だということだ。
+
 
 ### 複雑解を求める
 
@@ -128,10 +127,10 @@ sol_complex <- minimize(
 sol_complex
 ```
 
-・「後継者なし×主要機械不足」は個人営農意向なしと強く関連する（inclS=.875、raw coverage=.875）。
-・「年齢的継続余力あり×主要機械不足」も個人営農意向なしに至る経路となる（inclS=.833、raw coverage=.625）。
-・2経路はいずれも主要機械不足を含んでおり、機械保有が個人営農を選択可能にする条件として重要である可能性が示唆される。
-・解全体の整合度は.889、被覆度は1.000であり、すべての個人営農意向なしケースをカバーする一方、若干の反例を含む。
+
+「後継者なし×年齢的継続余力なし」と「主要機械不足×年齢的継続余力あり」の2経路で、個人営農継続意向なしを説明できる。いずれも整合度は1.00である。前者は否定アウトカムの37.5%、後者は62.5%をそれぞれ独自にカバーしており、両経路にケースの重複はない（covSとcovUが一致している）。したがって、個人営農を断念する経路として、①高齢化と後継者不在による継承困難、②年齢的には継続可能だが機械資本が不足することによる個別営農困難、という異なる2経路が確認される。
+
+
 
 
 # 震災前の経営面積の大きさ（largescale）も条件に加える
@@ -141,7 +140,7 @@ sol_complex
 まず欠損のデータ控除したデータフレームを作成。
 
 ```{r}
-vars <- c("name", "indint", "mechcap", "agecap", "largescale")
+vars <- c("name", "indint", "mechcap2", "agecap", "largescale")
 
 # 各変数の欠損数
 colSums(is.na(df_qca[vars]))
@@ -160,7 +159,7 @@ df_qca_complete
 tt <- truthTable(
   df_qca_complete,
   outcome = "indint",
-  conditions = c( "mechcap", "agecap", "largescale"),
+  conditions = c( "mechcap2", "agecap", "largescale"),
   incl.cut = 0.80,
   n.cut = 1,
   show.cases = TRUE,
@@ -187,14 +186,14 @@ sol_complex
 ```{r}
 df_qca_nec <- as.data.frame(
   df_qca_complete[, c(
-    "indint", "mechcap", "agecap", "largescale"
+    "indint", "mechcap2", "agecap", "largescale"
   )]
 )
 
 nec <- pofind(
   data = df_qca_nec,
   outcome = "indint",
-  conditions = c("mechcap", "agecap", "largescale"),
+  conditions = c("mechcap2", "agecap", "largescale"),
   relation = "necessity"
 )
 
@@ -202,7 +201,7 @@ nec
 ```
 
 
-やはり重要なのは機械だった。
+やはり重要なのは機械と年齢だった（とくに機械）。
 
 ## 否定アウトカムの分析
 
@@ -212,7 +211,7 @@ nec
 tt_not <- truthTable(
   df_qca_complete,
   outcome = "~indint",
-  conditions = c("mechcap", "agecap", "largescale"),
+  conditions = c("mechcap2", "agecap", "largescale"),
   incl.cut = 0.80,
   n.cut = 1,
   show.cases = TRUE,
@@ -236,5 +235,5 @@ sol_complex
 
 個人営農を選ばないのは、
 
-1. 小規模で、機械的基盤がない場合
+1. 年齢的余力はあるが機械的基盤がない場合
 2. 年齢面で難しく、かつ小規模な場合

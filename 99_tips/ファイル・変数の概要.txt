@@ -64,6 +64,10 @@
 ### QCAデータ
 
 - shichigahama_qca.csv
+- shichigahama_qca_mech2.csv
+  - mechcap2を使った頑健性チェック用ファイル
+- shichigahama_qca_age2.csv
+  - agecap2を使った頑健性チェック用ファイル
 - 報告論文作成までひとつのプロジェクトで済ませたいので、組合員のQCA関連のデータを入れておく。
 
 
