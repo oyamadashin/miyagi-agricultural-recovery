@@ -1146,6 +1146,29 @@ vif(m14)
 伊藤(2013)によると、生産対策交付金は個別農家が機械再取得のために利用するということもあったそう。
 
 
+
+### m14_5 機械変数は全部入れて、復興事業変数も全部入れてみる
+
+```{r}
+m14_5 <- lm(
+  individual_2015_2010_ratio ~
+    individual_share_2010 +
+    tsunami_farmland_share_2010 +
+    c_one +
+    c_four +
+    production_support +
+    individual_combine_owner_share_min_2010 +
+    individual_tractor_owner_share_min_2010 +
+    individual_rice_transplanter_owner_share_min_2010,
+  data = machinery_change
+)
+
+m14_5 |> summary()
+vif(m14_5)
+```
+
+
+
 ### 頑健性チェック1_重み付け
 
 #### m15_コンバイン_2010年個人経営体数で重み付け
