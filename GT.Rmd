@@ -112,3 +112,285 @@ large_farm_summary
 ```
 
 
+# モデル用変数記述統計量
+
+## 準備
+
+### 分析用データフレーム作成
+
+```{r}
+machinery_change <- df2 |>
+  filter(census_year %in% c("2010", "2015")) |>
+  select(
+    area_code,
+    census_year,
+    tsunami_farmland_share,
+    rice_transplanter_entities,
+    tractor_entities,
+    combine_entities,
+    c_one,
+    c_four,
+    production_support,
+    individual_entities,
+    farm_entities_total
+  ) |>
+  pivot_wider(
+    names_from = census_year,
+    values_from = c(
+      tsunami_farmland_share,
+      rice_transplanter_entities,
+      tractor_entities,
+      combine_entities,
+      individual_entities,
+      farm_entities_total
+    )
+  ) |>
+  mutate(
+    change_rice_transplanter =
+      rice_transplanter_entities_2015 - rice_transplanter_entities_2010,
+    change_tractor =
+      tractor_entities_2015 - tractor_entities_2010,
+    change_combine =
+      combine_entities_2015 - combine_entities_2010,
+    individual_share_2010 =
+      individual_entities_2010 / farm_entities_total_2010,
+    individual_share_2015 =
+      individual_entities_2015 / farm_entities_total_2015,
+    change_individual_share =
+      individual_share_2015 - individual_share_2010
+  )
+```
+
+### 残存率変数作成
+```{r}
+machinery_change <- machinery_change |>
+  mutate(
+    individual_2015_2010_ratio = if_else(
+      individual_entities_2010 > 0,
+      individual_entities_2015 / individual_entities_2010,
+      NA_real_
+    )
+  )
+```
+
+### コンバイン所有個人経営体数の下限（2010年）
+
+
+```{r}
+
+machinery_change <- machinery_change |>
+  mutate(
+    nonindividual_entities_2010 =
+      farm_entities_total_2010 - individual_entities_2010,
+
+    individual_combine_owner_min_2010 =
+      pmax(
+        combine_entities_2010 - nonindividual_entities_2010,
+        0
+      ),
+
+    individual_combine_owner_max_2010 =
+      pmin(
+        combine_entities_2010,
+        individual_entities_2010
+      ),
+
+    individual_combine_owner_share_min_2010 =
+      individual_combine_owner_min_2010 /
+      individual_entities_2010,
+
+    individual_combine_owner_share_max_2010 =
+      individual_combine_owner_max_2010 /
+      individual_entities_2010
+  )
+```
+
+### トラクター所有個人経営体数の下限（2010年）
+
+
+```{r}
+
+machinery_change <- machinery_change |>
+  mutate(
+    nonindividual_entities_2010 =
+      farm_entities_total_2010 - individual_entities_2010,
+
+    individual_tractor_owner_min_2010 =
+      pmax(
+        tractor_entities_2010 - nonindividual_entities_2010,
+        0
+      ),
+
+    individual_tractor_owner_max_2010 =
+      pmin(
+        tractor_entities_2010,
+        individual_entities_2010
+      ),
+
+    individual_tractor_owner_share_min_2010 =
+      individual_tractor_owner_min_2010 /
+      individual_entities_2010,
+
+    individual_tractor_owner_share_max_2010 =
+      individual_tractor_owner_max_2010 /
+      individual_entities_2010
+  )
+```
+
+### 田植機所有個人経営体数の下限（2010年）
+
+
+```{r}
+
+machinery_change <- machinery_change |>
+  mutate(
+    nonindividual_entities_2010 =
+      farm_entities_total_2010 - individual_entities_2010,
+
+    individual_rice_transplanter_owner_min_2010 =
+      pmax(
+        rice_transplanter_entities_2010 - nonindividual_entities_2010,
+        0
+      ),
+
+    individual_rice_transplanter_owner_max_2010 =
+      pmin(
+        rice_transplanter_entities_2010,
+        individual_entities_2010
+      ),
+
+    individual_rice_transplanter_owner_share_min_2010 =
+      individual_rice_transplanter_owner_min_2010 /
+      individual_entities_2010,
+
+    individual_rice_transplanter_owner_share_max_2010 =
+      individual_rice_transplanter_owner_max_2010 /
+      individual_entities_2010
+  )
+```
+
+
+## 個人経営体数2015 / 個人経営体数2010
+
+
+
+```{r}
+machinery_change |>
+  summarise(
+    n = sum(!is.na(individual_2015_2010_ratio)),
+    mean = mean(individual_2015_2010_ratio, na.rm = TRUE) |> round(2),
+    sd = sd(individual_2015_2010_ratio, na.rm = TRUE) |> round(2),
+    min = min(individual_2015_2010_ratio, na.rm = TRUE) |> round(2),
+    max = max(individual_2015_2010_ratio, na.rm = TRUE) |> round(2)
+  )
+```
+
+## C-1実施
+
+```{r}
+machinery_change |>
+  summarise(
+    n = sum(!is.na(c_one)),
+    mean = mean(c_one, na.rm = TRUE) |> round(2),
+    sd = sd(c_one, na.rm = TRUE) |> round(2),
+    min = min(c_one, na.rm = TRUE) |> round(2),
+    max = max(c_one, na.rm = TRUE) |> round(2)
+  )
+```
+
+## C-4実施
+
+```{r}
+machinery_change |>
+  summarise(
+    n = sum(!is.na(c_four)),
+    mean = mean(c_four, na.rm = TRUE) |> round(2),
+    sd = sd(c_four, na.rm = TRUE) |> round(2),
+    min = min(c_four, na.rm = TRUE) |> round(2),
+    max = max(c_four, na.rm = TRUE) |> round(2)
+  )
+```
+
+## 生産対策交付金実施
+
+```{r}
+machinery_change |>
+  summarise(
+    n = sum(!is.na(production_support)),
+    mean = mean(production_support, na.rm = TRUE) |> round(2),
+    sd = sd(production_support, na.rm = TRUE) |> round(2),
+    min = min(production_support, na.rm = TRUE) |> round(2),
+    max = max(production_support, na.rm = TRUE) |> round(2)
+  )
+```
+
+
+## コンバイン所有個人経営体割合_2010 
+
+
+```{r}
+machinery_change |>
+  summarise(
+    n = sum(!is.na(individual_combine_owner_share_min_2010)),
+    mean = mean(individual_combine_owner_share_min_2010, na.rm = TRUE) |> round(2),
+    sd = sd(individual_combine_owner_share_min_2010, na.rm = TRUE) |> round(2),
+    min = min(individual_combine_owner_share_min_2010, na.rm = TRUE) |> round(2),
+    max = max(individual_combine_owner_share_min_2010, na.rm = TRUE) |> round(2)
+  )
+```
+
+## トラクター所有個人経営体割合 _2010
+
+
+```{r}
+machinery_change |>
+  summarise(
+    n = sum(!is.na(individual_tractor_owner_share_min_2010)),
+    mean = mean(individual_tractor_owner_share_min_2010, na.rm = TRUE) |> round(2),
+    sd = sd(individual_tractor_owner_share_min_2010, na.rm = TRUE) |> round(2),
+    min = min(individual_tractor_owner_share_min_2010, na.rm = TRUE) |> round(2),
+    max = max(individual_tractor_owner_share_min_2010, na.rm = TRUE) |> round(2)
+  )
+```
+
+## 田植機所有個人経営体割合 _2010
+
+
+```{r}
+machinery_change |>
+  summarise(
+    n = sum(!is.na(individual_rice_transplanter_owner_share_min_2010)),
+    mean = mean(individual_rice_transplanter_owner_share_min_2010, na.rm = TRUE) |> round(2),
+    sd = sd(individual_rice_transplanter_owner_share_min_2010, na.rm = TRUE) |> round(2),
+    min = min(individual_rice_transplanter_owner_share_min_2010, na.rm = TRUE) |> round(2),
+    max = max(individual_rice_transplanter_owner_share_min_2010, na.rm = TRUE) |> round(2)
+  )
+```
+
+## 個人経営体割合 _2010
+
+
+```{r}
+machinery_change |>
+  summarise(
+    n = sum(!is.na(individual_share_2010)),
+    mean = mean(individual_share_2010, na.rm = TRUE) |> round(2),
+    sd = sd(individual_share_2010, na.rm = TRUE) |> round(2),
+    min = min(individual_share_2010, na.rm = TRUE) |> round(2),
+    max = max(individual_share_2010, na.rm = TRUE) |> round(2)
+  )
+```
+
+## 津波被災圃場割合
+
+
+```{r}
+machinery_change |>
+  summarise(
+    n = sum(!is.na(tsunami_farmland_share_2010)),
+    mean = mean(tsunami_farmland_share_2010, na.rm = TRUE) |> round(2),
+    sd = sd(tsunami_farmland_share_2010, na.rm = TRUE) |> round(2),
+    min = min(tsunami_farmland_share_2010, na.rm = TRUE),
+    max = max(tsunami_farmland_share_2010, na.rm = TRUE) |> round(2)
+  )
+```

@@ -5,6 +5,11 @@ date: "2026-08-03"
 ---
 
 ```{r}
+machinery_change$individual_2015_2010_ratio
+```
+
+
+```{r}
 machinery_change |>
   count(
     min_machine = case_when(

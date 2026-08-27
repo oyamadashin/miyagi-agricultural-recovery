@@ -316,7 +316,7 @@ tsunami_farmland_by_kcity <-
   ) |>
   mutate(
     tsunami_farmland_share =
-      round(tunami_farmland_total_by_kcity / farmland_total_by_kcity, 2),
+      round(tunami_farmland_total_by_kcity / farmland_total_by_kcity, 3),
     farmland_total_by_kcity = round(farmland_total_by_kcity, 3), 
     tunami_farmland_total_by_kcity =  round(tunami_farmland_total_by_kcity, 3)
   )
