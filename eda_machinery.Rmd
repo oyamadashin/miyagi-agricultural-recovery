@@ -726,7 +726,7 @@ ggplot(
 
 ```{r}
 machinery_change <- df2 |>
-  filter(census_year %in% c("2010", "2015")) |>
+  filter(census_year %in% c("2010", "2015", "2020")) |>
   select(
     area_code,
     census_year,
@@ -977,14 +977,19 @@ machinery_change <- machinery_change |>
       individual_entities_2010 > 0,
       individual_entities_2015 / individual_entities_2010,
       NA_real_
-    )
-  )
+    ),
+    individual_2020_2010_ratio = if_else(
+    individual_entities_2010 > 0,
+    individual_entities_2020 / individual_entities_2010,
+    NA_real_))
+
 ```
 
 ### 残存率の概要
 
 ```{r}
 summary(machinery_change$individual_2015_2010_ratio)
+summary(machinery_change$individual_2020_2010_ratio)
 ```
 
 ```{r}
@@ -1165,9 +1170,30 @@ m14_5 <- lm(
 
 m14_5 |> summary()
 vif(m14_5)
+nobs(m14_5)
 ```
 
 
+### m14_6 残存率を2020_2010に差し替え
+
+```{r}
+m14_6 <- lm(
+  individual_2020_2010_ratio ~
+    individual_share_2010 +
+    tsunami_farmland_share_2010 +
+    c_one +
+    c_four +
+    production_support +
+    individual_combine_owner_share_min_2010 +
+    individual_tractor_owner_share_min_2010 +
+    individual_rice_transplanter_owner_share_min_2010,
+  data = machinery_change
+)
+
+m14_6 |> summary()
+vif(m14_6)
+nobs(m14_6)
+```
 
 ### 頑健性チェック1_重み付け
 
@@ -1274,11 +1300,34 @@ m18 <- lm(
 
 m18 |> summary()
 vif(m18)
+nobs(m18)
 ```
 復興事業関連変数ではc4だけが有意（10％）で、負。
 コンバイン所有は頑健だ。1%有意で正。
 気になるのが田植機所有。5%有意で負。これはどう解釈すればいい？　→　田植機に関してはモデル間で係数や有意判定があまり安定しないので深い解釈はしないで個票分析を待つしかないかも。
 
+
+#### m18_1 2020_2010_ratioに差し替え
+
+```{r}
+m18_1 <- lm(
+  individual_2020_2010_ratio ~
+    individual_share_2010 +
+    tsunami_farmland_share_2010 +
+    c_one +
+    c_four +
+    production_support +
+    individual_combine_owner_share_min_2010 +
+    individual_tractor_owner_share_min_2010 +
+    individual_rice_transplanter_owner_share_min_2010,
+  data = machinery_change,
+  weights = individual_entities_2010
+)
+
+m18_1 |> summary()
+vif(m18_1)
+nobs(m18_1)
+```
 
 ### 頑健性チェック2_個人経営体数が極端に少ない地域を除外
 
@@ -1601,25 +1650,50 @@ m34 <- lm(
 
 m34 |> summary()
 vif(m34)
+nobs(m34)
 ```
 
 なんと、閾値=75人にしても分析傾向は変わらなかった。かなり頑健な結果だな。
 
+
+###### m34_1(2020_2010_ratioに差し替え)
+
+```{r}
+m34_1 <- lm(
+  individual_2020_2010_ratio ~
+    individual_share_2010 +
+    tsunami_farmland_share_2010 +
+    c_one + c_four + production_support +
+    individual_combine_owner_share_min_2010 +
+    individual_tractor_owner_share_min_2010 +
+    individual_rice_transplanter_owner_share_min_2010,
+  data = machinery_change_75
+)
+
+m34_1 |> summary()
+vif(m34_1)
+nobs(m34_1)
+```
 
 ### 頑健性チェック3_目的変数を対数変換
 
 
 #### 準備
 
-まず、individual_2015_2010_ratioが0のケースがないことをチェック（0だと対数変換できない）
+まず、individual_2015_2010_ratioまたはindividual_2020_2010_ratioが0のケースがないことをチェック（0だと対数変換できない）
 
 ```{r}
 summary(machinery_change$individual_2015_2010_ratio)
 
 sum(machinery_change$individual_2015_2010_ratio == 0, na.rm = TRUE)
+
+
+summary(machinery_change$individual_2020_2010_ratio)
+
+sum(machinery_change$individual_2020_2010_ratio == 0, na.rm = TRUE)
 ```
 
-問題なし
+2020_2010については0のケースが1つある→分析時に取り除こう
 
 目的変数を対数変換した変数をつくる
 
@@ -1696,9 +1770,36 @@ m38 <- lm(
 
 m38 |> summary()
 vif(m38)
+nobs(m38)
 ```
 
 対数変換したモデルでも傾向に変化無し。頑健。
+
+
+##### m38_1(2020_2010_ratioに差し替え)
+
+```{r}
+machinery_change2 <- machinery_change |> filter(individual_2020_2010_ratio != 0) |>
+  mutate(
+    log_individual_2020_2010_ratio =
+      log(individual_2020_2010_ratio)
+  )
+
+m38_1 <- lm(
+  log_individual_2020_2010_ratio ~
+    individual_share_2010 +
+    tsunami_farmland_share_2010 +
+    c_one + c_four + production_support +
+    individual_combine_owner_share_min_2010 +
+    individual_tractor_owner_share_min_2010 +
+    individual_rice_transplanter_owner_share_min_2010,
+  data = machinery_change2
+)
+
+m38_1 |> summary()
+vif(m38_1)
+nobs(m38_1)
+```
 
 ##### m39(機械変数全部+重み付き)
 

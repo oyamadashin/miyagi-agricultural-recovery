@@ -23,6 +23,11 @@ by_farm_size_2020 <- read_excel(
   col_types = "text"
 )
 
+by_farm_size_2025 <- read_excel(
+  "02_processed_data/entities_by_farm_size_2025_miyagi_processed.xlsx",
+  col_types = "text"
+)
+
 by_organization_type_2010 <- read_excel(
   "02_processed_data/entities_by_organization_type_2010_miyagi_processed.xlsx",
   col_types = "text"
@@ -42,7 +47,7 @@ by_organization_type_2020 <- read_excel(
 
 ## # 2020年データのarea_codeを作成する----
 
-# 2020年データはarea_codeの構成要素がばらばらの列に入っているので、結合する。
+# 2020年、2025年データはarea_codeの構成要素がばらばらの列に入っているので、結合する。
 
 by_farm_size_2020 <- by_farm_size_2020 |> 
   mutate(
@@ -54,6 +59,27 @@ by_farm_size_2020 <- by_farm_size_2020 |>
     ),
     former_municipality_code = str_pad(
       former_municipality_code,
+      width = 2,
+      side = "left",
+      pad = "0"
+    ),
+    area_code = str_c(
+      municipality_code,
+      former_municipality_code,
+      sep = "-"
+    )
+  )
+
+by_farm_size_2025 <- by_farm_size_2025 |> 
+  mutate(
+    municipality_code = str_pad(
+      city,
+      width = 3,
+      side = "left",
+      pad = "0"
+    ),
+    former_municipality_code = str_pad(
+      kcity,
       width = 2,
       side = "left",
       pad = "0"
@@ -111,7 +137,13 @@ convert_entity_columns <- function(df) {
           "area_code",
           "municipality_code",
           "former_municipality_code",
-          "census_year"
+          "census_year",
+          "prefecture_code",
+          "regional_bureau_code",
+          "city",
+          "kcity",
+          "city_name",
+          "kcity_name"
         )),
         ~ {
           x <- str_trim(as.character(.x))
@@ -137,6 +169,7 @@ convert_entity_columns <- function(df) {
 by_farm_size_2010 <- convert_entity_columns(by_farm_size_2010)
 by_farm_size_2015 <- convert_entity_columns(by_farm_size_2015)
 by_farm_size_2020 <- convert_entity_columns(by_farm_size_2020)
+by_farm_size_2025 <- convert_entity_columns(by_farm_size_2025)
 
 by_organization_type_2010 <- convert_entity_columns(by_organization_type_2010)
 by_organization_type_2015 <- convert_entity_columns(by_organization_type_2015)
@@ -157,6 +190,9 @@ by_farm_size_2015 <- by_farm_size_2015 |>
 by_farm_size_2020 <- by_farm_size_2020 |>
   filter(!is.na(area_code))
 
+by_farm_size_2025 <- by_farm_size_2025 |>
+  filter(!is.na(area_code))
+
 by_organization_type_2010 <- by_organization_type_2010 |>
   filter(!is.na(area_code))
 
@@ -170,6 +206,7 @@ by_organization_type_2020 <- by_organization_type_2020 |>
 by_farm_size_2010 |> count(area_code) |> filter(n > 1)
 by_farm_size_2015 |> count(area_code) |> filter(n > 1)
 by_farm_size_2020 |> count(area_code) |> filter(n > 1)
+by_farm_size_2025 |> count(area_code) |> filter(n > 1)
 
 by_organization_type_2010 |> count(area_code) |> filter(n > 1)
 by_organization_type_2015 |> count(area_code) |> filter(n > 1)
@@ -205,10 +242,14 @@ census_2020 <- join_census_tables(
   by_organization_type_2020
 )
 
+census_2025 <-  by_farm_size_2025
+
+
 df <- bind_rows(
   census_2010,
   census_2015,
-  census_2020
+  census_2020,
+  census_2025
 ) |>
   arrange(area_code, census_year)
 
@@ -250,7 +291,7 @@ df <- df |>
 df <- df |> 
   mutate(
     entities_over_100_0ha = if_else(
-      census_year == "2020",
+      census_year %in%  c("2020", "2025"),
       entities_100_0_150_0ha + entities_over_150_0ha,
       entities_over_100_0ha
     )
@@ -386,7 +427,7 @@ entities_by_agricultural_machinery_2015 <- read_excel(
   col_types = "text"
 )
 
-# 2010年と2015年を縦に結合
+# 2010年と2015年を縦に結合して、秘匿データ等の処理をしておく
 entities_by_agricultural_machinery <- bind_rows(
   entities_by_agricultural_machinery_2010,
   entities_by_agricultural_machinery_2015
@@ -400,6 +441,17 @@ entities_by_agricultural_machinery <- bind_rows(
     tractor_units,
     combine_entities,
     combine_units
+  ) |>
+  mutate(
+    across(
+      -c(census_year, area_code),
+      ~ {
+        x <- str_trim(as.character(.x))
+        x[x %in% c("-", "－")] <- "0"
+        x[x %in% c("", "...", "…", "X", "x")] <- NA_character_
+        parse_number(x, locale = locale(grouping_mark = ","))
+      }
+    )
   )
 
 # dfに結合
@@ -409,8 +461,7 @@ df <- df |>
     by = c("census_year", "area_code")
   )
 
-# 秘匿データなどの処理をしておく
-df <- convert_entity_columns(df)
+
 
 
 # 分析に使えないデータを取り除く----

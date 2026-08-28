@@ -4,6 +4,35 @@ output: html_document
 date: "2026-08-03"
 ---
 
+
+
+
+```{r}
+names(by_farm_size_2010)[
+  sapply(
+    df,
+    function(x) any(as.character(x) == "FALSE", na.rm = TRUE)
+  )
+]
+```
+
+```{r}
+df |> count(census_year)
+```
+
+
+```{r}
+df2 |> filter(census_year=="2020") 
+
+```
+
+
+```{r}
+df2 |> filter(area_name == "七ヶ浜町") |> 
+  select(c(entities_over_30_0ha))
+```
+
+
 ```{r}
 machinery_change$individual_2015_2010_ratio
 ```
