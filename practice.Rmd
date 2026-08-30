@@ -4,7 +4,66 @@ output: html_document
 date: "2026-08-03"
 ---
 
+```{r}
+ggplot(
+  df2,
+  aes(
+    x = tsunami_farmland_share,
+    y = share_over_20ha
+  )
+) +
+  geom_point(size = 0.8) +
+  geom_smooth(
+    method = "lm",
+    se = FALSE,
+    linewidth = 0.8
+  ) +
+  facet_wrap(
+    ~ census_year,
+    ncol = 4
+  ) +
+  labs(
+    x = "津波被災農地割合",
+    y = "20ha以上経営体割合"
+  ) +
+  theme_minimal()
 
+ggsave(
+  "tsunami_20ha.png",
+  width = 18,
+  height = 4,
+  units = "cm",
+  dpi = 300
+)
+```
+
+
+
+```{r}
+df2 <- df2 |>
+  mutate(
+    share_over_20ha = entities_over_20_0ha / entities_total
+  )
+
+ggplot(
+  df2 ,
+  aes(
+    x = tsunami_farmland_share,
+    y = share_over_20ha
+  )
+) +
+  geom_point() +
+  geom_smooth(
+    method = "lm",
+    se = FALSE
+  ) +
+  facet_wrap(~ census_year, ncol = 4) +
+  labs(
+    x = "津波被災農地割合",
+    y = "20ha以上経営体割合"
+  ) +
+  theme_minimal()
+```
 
 
 ```{r}

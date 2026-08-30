@@ -80,6 +80,11 @@ ggplot(
 ## 閾値 = 20.0ha
 
 ```{r}
+df2 <- df2 |>
+  mutate(
+    share_over_20ha = entities_over_20_0ha / entities_total
+  )
+
 ggplot(
   df2,
   aes(
@@ -97,14 +102,7 @@ ggplot(
     x = "津波被災農地割合",
     y = "20ha以上経営体割合"
   ) +
-  theme_minimal() +
-  theme(
-    strip.text = element_text(
-      size = 16,
-      face = "bold"
-    ),
-    axis.title = element_text(size = 16)
-  )
+  theme_minimal()
 ```
 ## 閾値 = 30.0ha
 
