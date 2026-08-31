@@ -5,6 +5,65 @@ date: "2026-08-03"
 ---
 
 ```{r}
+m <- glm(
+  production_support ~ tsunami_farmland_share,
+  data = df2 |> filter(census_year == 2010),
+  family = binomial
+) 
+
+m |> summary()
+
+m$coefficients |> exp()
+
+
+```
+
+```{r}
+
+```
+
+
+```{r}
+glm(
+  c_one ~ tsunami_farmland_share,
+  data = df2 |> filter(census_year == 2010),
+  family = binomial
+) |>
+  summary()
+```
+
+```{r}
+glm(
+  production_support ~ tsunami_farmland_share,
+  data = df2 |> filter(census_year == 2010),
+  family = binomial
+) |>
+  summary()
+```
+
+```{r}
+df2 |>
+  filter(census_year == 2010) |>
+  select(c_one, c_four, production_support) |>
+  cor(use = "pairwise.complete.obs") |> round(2)
+
+df_2010 <- df2 |>
+  filter(census_year == 2010)
+
+cor.test(df_2010$c_one, df_2010$c_four)
+cor.test(df_2010$c_one, df_2010$production_support)
+cor.test(df_2010$c_four, df_2010$production_support)
+```
+
+
+
+
+```{r}
+df2 <- df2 |>
+  mutate(
+    share_over_20ha = entities_over_20_0ha / entities_total
+  )
+
 ggplot(
   df2,
   aes(
@@ -12,7 +71,10 @@ ggplot(
     y = share_over_20ha
   )
 ) +
-  geom_point(size = 0.8) +
+    geom_point(
+    aes(color = factor(c_four)),
+    size = 0.8
+  ) +
   geom_smooth(
     method = "lm",
     se = FALSE,
