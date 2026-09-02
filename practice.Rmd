@@ -5,6 +5,68 @@ date: "2026-08-03"
 ---
 
 ```{r}
+# 母親が妊娠中にタバコを吸わなかった場合、予測される出生体重
+119.77 - 0.514 * 0
+
+
+# 母親が1日1箱（20本）吸っていた場合、予測される出生体重
+119.77 - 0.514 * 20
+```
+毎日タバコを20本吸うと、全く吸わないときに比べ、予測される出生体重は約10オンス低くなる。
+
+
+```{r}
+library(tidyverse)
+
+df <- tibble(
+  student = 1:8,
+  gpa = c(2.8, 3.4, 3.0, 3.5, 3.6, 3.0, 2.7, 3.7),
+  act = c(21, 24, 26, 27, 29, 25, 25, 30)
+)
+```
+
+```{r}
+beta_1 = sum((df$act - mean(df$act)) * (df$gpa - mean(df$gpa))) / 
+  sum((df$act - mean(df$act))^2)
+
+beta_1
+
+beta_0 = mean(df$gpa) - beta_1 * mean(df$act)
+
+beta_0
+
+lm(gpa ~ act, data = df)
+```
+
+```{r}
+m <- lm(gpa ~ act, data = df)
+
+fitted_values <- m$coefficients[1] + m$coefficients[2] * df$act
+residuals <- df$gpa - fitted_values
+
+sum(residuals)
+```
+
+```{r}
+# ACT = 20のときの予測値
+m$coefficients[1] + m$coefficients[2] * 20
+```
+
+```{r}
+m <- lm(gpa ~ act, data = df)
+fitted_values <- m$coefficients[1] + m$coefficients[2] * df$act
+
+sst <- sum((df$gpa - mean(df$gpa))^2)
+sse <-  sum((fitted_values - mean(df$gpa))^2)
+r_2 <- sse / sst
+r_2
+
+m_summary <- m |> summary()
+m_summary$r.squared
+```
+GPAの変動の57.7%がACTで説明できる。
+
+```{r}
 m <- glm(
   production_support ~ tsunami_farmland_share,
   data = df2 |> filter(census_year == 2010),
