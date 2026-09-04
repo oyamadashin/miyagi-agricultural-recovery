@@ -59,7 +59,9 @@ df2 <-  df2 |>
 df2 <- df2 |>
   mutate(
     share_over_20_0ha =
-      entities_over_20_0ha / entities_total
+      entities_over_20_0ha / entities_total,
+    share_over_5_0ha =
+      entities_over_20_0ha / entities_total,
   )
 
 machinery_share_change <- df2 |>
@@ -74,7 +76,8 @@ machinery_share_change <- df2 |>
     c_one,
     c_four,
     production_support,
-    share_over_20_0ha
+    share_over_20_0ha,
+    share_over_5_0ha
   ) |>
   pivot_wider(
     names_from = census_year,
@@ -83,7 +86,8 @@ machinery_share_change <- df2 |>
       rice_transplanter_share,
       tractor_share,
       combine_share,
-      share_over_20_0ha
+      share_over_20_0ha,
+      share_over_5_0ha
     )
   ) |>
   mutate(
@@ -248,7 +252,8 @@ machinery_change <- df2 |>
     c_one,
     c_four,
     production_support,
-    share_over_20_0ha
+    share_over_20_0ha,
+    share_over_5_0ha
   ) |>
   pivot_wider(
     names_from = census_year,
@@ -257,7 +262,8 @@ machinery_change <- df2 |>
       rice_transplanter_entities,
       tractor_entities,
       combine_entities,
-      share_over_20_0ha
+      share_over_20_0ha,
+      share_over_5_0ha
     )
   ) |>
   mutate(
@@ -749,7 +755,8 @@ machinery_change <- df2 |>
     production_support,
     individual_entities,
     farm_entities_total,
-    share_over_20_0ha
+    share_over_20_0ha,
+    share_over_5_0ha
   ) |>
   pivot_wider(
     names_from = census_year,
@@ -760,7 +767,8 @@ machinery_change <- df2 |>
       combine_entities,
       individual_entities,
       farm_entities_total,
-      share_over_20_0ha
+      share_over_20_0ha,
+      share_over_5_0ha
     )
   ) |>
   mutate(
@@ -1177,7 +1185,7 @@ m14_5 <- lm(
     individual_combine_owner_share_min_2010 +
     individual_tractor_owner_share_min_2010 +
     individual_rice_transplanter_owner_share_min_2010 +
-    share_over_20_0ha_2010,
+    share_over_5_0ha_2010,
   data = machinery_change
 )
 
@@ -1201,7 +1209,7 @@ m14_6 <- lm(
     individual_combine_owner_share_min_2010 +
     individual_tractor_owner_share_min_2010 +
     individual_rice_transplanter_owner_share_min_2010 +
-    share_over_20_0ha_2010,
+    share_over_5_0ha_2010,
   data = machinery_change
 )
 
