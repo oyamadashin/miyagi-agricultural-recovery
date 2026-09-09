@@ -6,6 +6,119 @@ date: "2026-08-03"
 
 
 ```{r}
+library(wooldridge)
+library(tidyverse)
+```
+
+# C8
+
+```{r}
+# (i)
+x <- runif(500, min = 0, max = 10)
+mean(x)
+sd(x)
+
+# (ii)
+u <- rnorm(500, 0, 36)
+mean(u) 
+# 正規分布自体は平均値が0であっても、標本はそこからランダムに選ばれたものなので、平均値が0になる保証はない
+sd(u)
+
+# (iii)
+y <- 1 + 2 * x + u
+
+m <- lm(y ~ x)
+
+m$coefficients
+# uは正規分布そのものではないので、回帰で求められる切片と係数は真の母集団の値と一致しない
+
+# (iv)
+
+u_hat <- m$coefficients[1] + m$coefficients[2] * x - y
+sum(u_hat)
+sum(x * u_hat)
+
+# 残差の和もxと残差の積の和もほぼゼロになる
+
+
+# (v)
+sum(u)
+sum(x * u)
+# 式 (2.60) は、真の誤差については成り立たない
+
+
+# (vi)
+
+x <- runif(500, min = 0, max = 10)
+u <- rnorm(500, 0, 36)
+y <- 1 + 2 * x + u
+m <- lm(y ~ x)
+m$coefficients
+# 乱数を発生させるごとに異なるデータセットが生成されるので、切片も係数も変わってしまう
+```
+
+
+# C9
+```{r}
+data("countymurders")
+
+df <- countymurders |> filter(year == 1996)
+
+# (i)
+df |> filter(murders == 0) |> nrow()
+
+df |> filter(execs > 0) |> nrow()
+
+df$execs |> max()
+
+# (ii)
+m <- lm(murders ~ execs, data = df)
+result <- m |> summary()
+result
+m |> nobs()
+
+# (iii)
+# execsが大きくなるほど、murdersは大きくなる。つまり、死刑の数が多ければ殺人が増えるということだ。
+# しかし、これは死刑を増やせば殺人が増えるということではない。countyの規模が死刑の数と殺人の数の共通要因になっていて疑似相関が生じている可能性がある。また、殺人が多いから、それに見合った刑罰として死刑が多くなるという逆方向の因果関係も考えられる。つまり、死刑に殺人の抑止効果があるかないかはこの結果からはなんともいえない。
+
+# (iv)
+m$coefficients[1] + m$coefficients[2] * min(df$execs)
+
+r <- 0 - m$coefficients[1] - m$coefficients[2] *0
+
+#(v)
+#(iii)で示したように、countyの規模のような欠落変数の問題が生じるので、単回帰で死刑の抑止効果を明らかにすることはできない
+```
+
+
+
+
+
+
+```{r}
+library(tidyverse)
+data("meap93")
+
+m <- lm(math10 ~ log(expend), data = meap93)
+m$coefficients[2] / 10
+
+
+expend_sim <- seq(min(meap93$expend), max(meap93$expend), by = 100)
+
+math10_sim <- m$coefficients[1] + m$coefficients[2] * log(expend_sim)
+
+df <- data.frame(expend_sim, math10_sim)
+
+
+df |> ggplot(aes(x = expend_sim, y = math10_sim)) +
+  geom_point()
+
+
+```
+
+
+
+```{r}
 machinery_change$share_over_20_0ha_2010
 ```
 
