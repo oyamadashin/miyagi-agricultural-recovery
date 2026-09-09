@@ -4,6 +4,89 @@ output: html_document
 date: "2026-08-03"
 ---
 
+
+```{r}
+machinery_change$share_over_20_0ha_2010
+```
+
+```{r}
+df2 |>
+  group_by(census_year) |>
+  summarise(
+    n = n(),
+    n_individual_nonmissing = sum(!is.na(individual_entities)),
+    n_individual_missing = sum(is.na(individual_entities)),
+    min = min(individual_entities, na.rm = TRUE),
+    max = max(individual_entities, na.rm = TRUE)
+  )
+```
+
+```{r}
+df2 |>
+  filter(census_year %in% c("2010", "2015")) |>
+  select(
+    area_code,
+    census_year,
+    individual_entities,
+    farm_entities_total
+  ) |>
+  arrange(area_code, census_year)
+```
+
+
+```{r}
+
+library(tidyverse)
+-124.84 + 0.853 * 30000
+
+
+inc <- seq(0, 50000, by = 100)
+cons_hat <- -124.84 + 0.853 * inc
+apc <- -124.84 / inc + 0.853
+
+df <- data.frame(inc = inc,
+       cons_hat = cons_hat,
+       apc = apc)
+
+df |> ggplot(aes(x = inc)) +
+  geom_line(aes(y = cons_hat, color = "cons_hat")) +
+  geom_line(aes(y = apc, color = "apc"))
+
+
+```
+```{r}
+inc <- seq(100, 50000, by = 100)
+
+mpc <- rep(0.853, length(inc))
+apc <- -124.84 / inc + 0.853
+
+df <- data.frame(
+  inc = inc,
+  mpc = mpc,
+  apc = apc
+)
+
+df |>
+  ggplot(aes(x = inc)) +
+  geom_line(aes(y = mpc, color = "MPC")) +
+  geom_line(aes(y = apc, color = "APC"))
+```
+
+
+```{r}
+124.84 / 0.853
+```
+
+```{r}
+# (iii) 出生体重を 125オンス と予測するためには、\(cigs\) はいくつでなければならないでしょうか。結果についてコメントしなさい。
+(119.77 - 125) / 0.514
+```
+
+cigsは負になる。モデルが線形であるため、データの傾向から外挿するとこのような非現実的な値が出ることがある。
+
+また、妊娠中に喫煙しなかった女性の割合が0.85であるということは、cigs = 0のサンプルが全体の0.85であり、非常に多いということ。モデル全体がこのサンプルの傾向に引きずられていると思われる。
+
+
 ```{r}
 # 母親が妊娠中にタバコを吸わなかった場合、予測される出生体重
 119.77 - 0.514 * 0

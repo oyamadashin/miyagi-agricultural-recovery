@@ -56,6 +56,14 @@ df2 <-  df2 |>
 ```{r}
 # 機械所有割合の変化変数を含むデータフレーム
 
+df2 <- df2 |>
+  mutate(
+    share_over_20_0ha =
+      entities_over_20_0ha / entities_total,
+    share_over_5_0ha =
+      entities_over_20_0ha / entities_total,
+  )
+
 machinery_share_change <- df2 |>
   filter(census_year %in% c("2010", "2015")) |>
   select(
@@ -67,7 +75,9 @@ machinery_share_change <- df2 |>
     combine_share,
     c_one,
     c_four,
-    production_support
+    production_support,
+    share_over_20_0ha,
+    share_over_5_0ha
   ) |>
   pivot_wider(
     names_from = census_year,
@@ -75,7 +85,9 @@ machinery_share_change <- df2 |>
       tsunami_farmland_share,
       rice_transplanter_share,
       tractor_share,
-      combine_share
+      combine_share,
+      share_over_20_0ha,
+      share_over_5_0ha
     )
   ) |>
   mutate(
@@ -239,7 +251,9 @@ machinery_change <- df2 |>
     combine_entities,
     c_one,
     c_four,
-    production_support
+    production_support,
+    share_over_20_0ha,
+    share_over_5_0ha
   ) |>
   pivot_wider(
     names_from = census_year,
@@ -247,7 +261,9 @@ machinery_change <- df2 |>
       tsunami_farmland_share,
       rice_transplanter_entities,
       tractor_entities,
-      combine_entities
+      combine_entities,
+      share_over_20_0ha,
+      share_over_5_0ha
     )
   ) |>
   mutate(
@@ -738,7 +754,9 @@ machinery_change <- df2 |>
     c_four,
     production_support,
     individual_entities,
-    farm_entities_total
+    farm_entities_total,
+    share_over_20_0ha,
+    share_over_5_0ha
   ) |>
   pivot_wider(
     names_from = census_year,
@@ -748,7 +766,9 @@ machinery_change <- df2 |>
       tractor_entities,
       combine_entities,
       individual_entities,
-      farm_entities_total
+      farm_entities_total,
+      share_over_20_0ha,
+      share_over_5_0ha
     )
   ) |>
   mutate(
@@ -1164,9 +1184,11 @@ m14_5 <- lm(
     production_support +
     individual_combine_owner_share_min_2010 +
     individual_tractor_owner_share_min_2010 +
-    individual_rice_transplanter_owner_share_min_2010,
+    individual_rice_transplanter_owner_share_min_2010 +
+    share_over_5_0ha_2010,
   data = machinery_change
 )
+
 
 m14_5 |> summary()
 vif(m14_5)
@@ -1186,7 +1208,8 @@ m14_6 <- lm(
     production_support +
     individual_combine_owner_share_min_2010 +
     individual_tractor_owner_share_min_2010 +
-    individual_rice_transplanter_owner_share_min_2010,
+    individual_rice_transplanter_owner_share_min_2010 +
+    share_over_5_0ha_2010,
   data = machinery_change
 )
 
@@ -1293,7 +1316,8 @@ m18 <- lm(
     production_support +
     individual_combine_owner_share_min_2010 +
     individual_tractor_owner_share_min_2010 +
-    individual_rice_transplanter_owner_share_min_2010,
+    individual_rice_transplanter_owner_share_min_2010 +
+    share_over_20_0ha_2010,
   data = machinery_change,
   weights = individual_entities_2010
 )
@@ -1319,7 +1343,8 @@ m18_1 <- lm(
     production_support +
     individual_combine_owner_share_min_2010 +
     individual_tractor_owner_share_min_2010 +
-    individual_rice_transplanter_owner_share_min_2010,
+    individual_rice_transplanter_owner_share_min_2010 +
+    share_over_20_0ha_2010,
   data = machinery_change,
   weights = individual_entities_2010
 )
@@ -1430,7 +1455,8 @@ m22 <- lm(
     c_one + c_four + production_support +
     individual_combine_owner_share_min_2010 +
     individual_tractor_owner_share_min_2010 +
-    individual_rice_transplanter_owner_share_min_2010,
+    individual_rice_transplanter_owner_share_min_2010 +
+    share_over_20_0ha_2010,
   data = machinery_change_10
 )
 
@@ -1502,7 +1528,8 @@ m26 <- lm(
     c_one + c_four + production_support +
     individual_combine_owner_share_min_2010 +
     individual_tractor_owner_share_min_2010 +
-    individual_rice_transplanter_owner_share_min_2010,
+    individual_rice_transplanter_owner_share_min_2010 +
+    share_over_20_0ha_2010,
   data = machinery_change_20
 )
 
@@ -1523,7 +1550,8 @@ m27 <- lm(
     individual_share_2010 +
     tsunami_farmland_share_2010 +
     c_one + c_four + production_support +
-    individual_combine_owner_share_min_2010,
+    individual_combine_owner_share_min_2010 +
+    share_over_20_0ha_2010,
   data = machinery_change_50
 )
 
@@ -1573,7 +1601,8 @@ m30 <- lm(
     c_one + c_four + production_support +
     individual_combine_owner_share_min_2010 +
     individual_tractor_owner_share_min_2010 +
-    individual_rice_transplanter_owner_share_min_2010,
+    individual_rice_transplanter_owner_share_min_2010 +
+    share_over_20_0ha_2010,
   data = machinery_change_50
 )
 
@@ -1644,7 +1673,8 @@ m34 <- lm(
     c_one + c_four + production_support +
     individual_combine_owner_share_min_2010 +
     individual_tractor_owner_share_min_2010 +
-    individual_rice_transplanter_owner_share_min_2010,
+    individual_rice_transplanter_owner_share_min_2010 +
+    share_over_20_0ha_2010,
   data = machinery_change_75
 )
 
@@ -1792,7 +1822,8 @@ m38_1 <- lm(
     c_one + c_four + production_support +
     individual_combine_owner_share_min_2010 +
     individual_tractor_owner_share_min_2010 +
-    individual_rice_transplanter_owner_share_min_2010,
+    individual_rice_transplanter_owner_share_min_2010 +
+    share_over_20_0ha_2010,
   data = machinery_change2
 )
 
@@ -1811,7 +1842,8 @@ m39 <- lm(
     c_one + c_four + production_support +
     individual_combine_owner_share_min_2010 +
     individual_tractor_owner_share_min_2010 +
-    individual_rice_transplanter_owner_share_min_2010,
+    individual_rice_transplanter_owner_share_min_2010 +
+    share_over_20_0ha_2010,
     weights = individual_entities_2010,
   data = machinery_change
 )
