@@ -161,6 +161,9 @@
 | farmland_total_by_kcity        | 旧市区町村単位の農地面積(ha)                     |
 | tunami_farmland_total_by_kcity | 旧市区町村単位の津波被災農地面積(ha)             |
 | tsunami_farmland_share         | 旧市区町村単位で、津波被災した農地の割合（％）。 |
+| paddy_area_ha                  | 旧市区町村単位の田面積(ha)                       |
+| tsunami_paddy_ha               | 旧市区町村単位の津波被災田面積(ha)               |
+| tsunami_paddy_share            | 旧市区町村単位で、津波被災した田の割合（％）。   |
 
 ## 復興交付金事業関連変数
 

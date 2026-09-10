@@ -400,6 +400,83 @@ df <- df |>
   filter(!(kcity_code == "00" & has_subarea))
 
 
+# 津波被災田データの結合----
+library(readxl)
+
+# 旧市区町村ごとの田面積
+paddy_total <- read_excel("02_processed_data/paddy_area.xlsx",
+                          sheet = "paddy_total_by_kcity"
+)
+
+paddy_total <- paddy_total |>
+  mutate(
+    area_code = paste0(CITY, "-", KCITY)
+  ) |>
+  rename(
+    area_name = KCITY_NAME
+  )
+
+
+# 旧市区町村ごとの津波被災田面積
+tsunami_paddy <- read_excel(
+  "02_processed_data/paddy_area.xlsx",
+  sheet = "tsunami_paddy_total_by_kcity"
+)
+
+tsunami_paddy <- tsunami_paddy |>
+  mutate(
+    area_code = paste0(CITY, "-", KCITY)
+  ) |>
+  rename(
+    area_name = KCITY_NAME
+  )
+
+# area_codeに重複がないことをチェック
+paddy_total |> count(area_code) |> filter(n > 1)
+tsunami_paddy |> count(area_code) |> filter(n > 1)
+
+# 結合前に、必要な列だけ抽出
+paddy_total <- paddy_total |> select(
+  c(area_code, paddy_area_ha)
+)
+
+tsunami_paddy <- tsunami_paddy |> select(
+  c(area_code, tsunami_paddy_ha)
+)
+
+# 両データフレームを結合し、津波被災農地割合を求める
+tsunami_paddy <-
+  paddy_total |>
+  left_join(
+    tsunami_paddy,
+    by = "area_code"
+  ) |>
+  mutate(
+    tsunami_paddy_share =
+      round(tsunami_paddy_ha / paddy_area_ha, 3),
+    paddy_area_ha = round(paddy_area_ha, 3),
+    tsunami_paddy_ha = round(tsunami_paddy_ha, 3)
+  )
+
+tsunami_paddy |>
+  summarise(
+    min_share = min(tsunami_paddy_share, na.rm = TRUE),
+    max_share = max(tsunami_paddy_share, na.rm = TRUE)
+  )
+
+
+# dfに結合
+df <- df |>
+  left_join(
+    tsunami_paddy |>
+      select(area_code, 
+             paddy_area_ha, 
+             tsunami_paddy_ha,
+             tsunami_paddy_share),
+    by = "area_code"
+  )
+
+
 # c-1、c-4事業実施地域データの結合----
 
 c_one_four <- read_csv("02_processed_data/c1_c4_production_support_check.csv")

@@ -13,6 +13,7 @@ df
 
 # 津波被災関連
 
+## 津波被災圃場面積のチェック
 
 QGISで求めた農地面積・被災農地面積と、農水省が公表したそれらの値との乖離程度をチェックする
 （農水省は旧市区町村単位ではなく市町村単位で公開しているので、まず、QGISで求めた値を市町村単位に直す必要がある）
@@ -223,6 +224,8 @@ ggplot(
 多くの市町村は45度線に近い位置にあるが、気仙沼、塩竃、山元町が大きく外れている。塩竃はGISで被災農地面積割合が過大評価され、山元町、気仙沼では逆に過小評価されている。
 
 
+### 相関係数
+
 ```{r}
 comparison |>
   summarise(
@@ -330,3 +333,190 @@ comparison |>
 GIS推計による津波被災農地割合の誤差と農地に占める畑割合との間には、中程度の正の相関がみられた（Pearson r=0.49、Spearman ρ=0.52）。ただし、この関係は推計誤差の大きい塩竈市、気仙沼市、山元町の影響を強く受けており、これら3地域を除くと相関はほぼ消失した。したがって、畑割合は大きな推計誤差が生じる一因である可能性はあるものの、誤差を一般的に説明する単独要因とは考えにくい。
 
 （とはいっても、とりあえず、GIS推計に問題があったというよりも、センサスと圃場データとで「畑」「その他の農業地」のそれぞれの示す範囲が違うことにより引き起こされた誤差であるといえる部分はある。だから、あくまで2009年圃場データに基づく津波浸水農地割合として扱うのなら大きな問題はないだろう。）
+
+
+## 津波被災田面積のチェック
+
+```{r}
+# まず、旧市区町村×1行のデータにする（2010～2020年の3時点のデータがあると扱いが面倒なので）
+gis_paddy_by_city <- df |>
+  mutate(
+    city_code = substr(area_code, 1, 3)
+  ) |>
+  distinct(
+    city_code,
+    area_code,
+    paddy_area_ha,
+    tsunami_paddy_ha
+  )
+
+# 市町村別に農地面積と被災農地面積を整理したデータフレームをつくる
+gis_paddy_by_city <- gis_paddy_by_city |>
+  group_by(city_code) |>
+  summarise(
+    gis_paddy_total =
+      sum(paddy_area_ha, na.rm = TRUE),
+
+    gis_tsunami_paddy_total =
+      sum(tsunami_paddy_ha, na.rm = TRUE)
+  ) |>
+  ungroup()
+
+gis_paddy_by_city <- gis_paddy_by_city |>
+  mutate(
+    city_code2 = case_when(
+      city_code %in% c("101", "102", "103", "104", "105") ~ "100",
+      TRUE ~ city_code
+    )
+  ) |>
+  group_by(city_code2) |>
+  summarise(
+    gis_paddy_total = sum(gis_paddy_total, na.rm = TRUE),
+    gis_tsunami_paddy_total = sum(gis_tsunami_paddy_total, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  rename(city_code = city_code2)
+
+# 被災市町村についてだけ市町村名列を追加
+gis_paddy_by_city <- gis_paddy_by_city |>
+  mutate(
+    city_name = case_when(
+      city_code == "100" ~ "仙台市",
+      city_code == "202" ~ "石巻市",
+      city_code == "203" ~ "塩竈市",
+      city_code == "205" ~ "気仙沼市",
+      city_code == "207" ~ "名取市",
+      city_code == "209" ~ "多賀城市",
+      city_code == "211" ~ "岩沼市",
+      city_code == "214" ~ "東松島市",
+      city_code == "361" ~ "亘理町",
+      city_code == "362" ~ "山元町",
+      city_code == "401" ~ "松島町",
+      city_code == "404" ~ "七ヶ浜町",
+      city_code == "406" ~ "利府町",
+      city_code == "581" ~ "女川町",
+      city_code == "606" ~ "南三陸町",
+      # 以下続ける
+      TRUE ~ NA_character_
+    )
+  )
+
+# 農水省公表の津波被災田面積
+maff_data <- tibble(
+  city_name = c(
+    "気仙沼市",
+    "南三陸町",
+    "石巻市",
+    "女川町",
+    "東松島市",
+    "松島町",
+    "利府町",
+    "塩竈市",
+    "多賀城市",
+    "七ヶ浜町",
+    "仙台市",
+    "名取市",
+    "岩沼市",
+    "亘理町",
+    "山元町"
+  ),
+
+  # 農水省公式資料記載の各市町村の津波被災田面積
+  official_tsunami_paddy = c(
+    583,
+    163,
+    2010,
+    4,
+    1314,
+    89,
+    0,
+    8,
+    53,
+    102,
+    2539,
+    1367,
+    1049,
+    2281,
+    1123
+  ),
+
+  # 農水省公式資料記載の津波被災畑面積
+  official_upland_field_total = c(
+    449,
+    99,
+    97,
+    6,
+    181,
+    2,
+    0,
+    19,
+    0,
+    69,
+    142,
+    194,
+    157,
+    430,
+    472
+  )
+)
+
+# 合計が12,685 haになるかチェック
+sum(maff_data$official_tsunami_paddy)
+
+comparison <- gis_paddy_by_city |>
+  filter(!is.na(city_name)) |>
+  left_join(maff_data, by = "city_name") |>
+  mutate(
+    tsunami_paddy_diff =
+      gis_tsunami_paddy_total - official_tsunami_paddy,
+
+    tsunami_paddy_ratio =
+      gis_tsunami_paddy_total / official_tsunami_paddy
+  )
+
+comparison |>
+  select(
+    city_name,
+    gis_tsunami_paddy_total,
+    official_tsunami_paddy,
+    tsunami_paddy_diff,
+    tsunami_paddy_ratio
+  )
+
+ggplot(
+  comparison,
+  aes(
+    x = official_tsunami_paddy,
+    y = gis_tsunami_paddy_total
+  )
+) +
+  geom_point() +
+  geom_abline(
+    slope = 1,
+    intercept = 0,
+    linetype = "dashed"
+  ) +
+  labs(
+    x = "農水省：津波被災田面積（ha）",
+    y = "GIS：津波被災田面積（ha）"
+  ) +
+  theme_minimal()
+```
+
+### 相関係数
+
+```{r}
+comparison |>
+  summarise(
+    correlation = cor(
+      gis_tsunami_paddy_total,
+      official_tsunami_paddy,
+      use = "complete.obs"
+    ),
+    mae = mean(
+      abs(gis_tsunami_paddy_total - official_tsunami_paddy),
+      na.rm = TRUE
+    )
+  )
+```
+GISから算出した市町村別の津波被災田面積を農林水産省の公表推定値と比較したところ、両者には強い正の相関が認められた（r = 0.976）。小規模な被災地域では相対的な乖離がみられるものの、被災規模の地域差は概ね再現されており、本研究で作成した津波被災指標には一定の妥当性があると判断した。
