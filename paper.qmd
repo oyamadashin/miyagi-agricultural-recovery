@@ -1,6 +1,6 @@
 ---
-title: "津波被災地における復興政策への経営体の反応の多様性"
-subtitle: "個別経営拡大と組織的担い手形成に着目して"
+title: "津波被災後の個人営農選択と地域農業構造"
+subtitle: "―経営資源の異質性に着目したミクロ・マクロ分析―"
 format:
   html:
     number-sections: true
@@ -20,126 +20,181 @@ knitr:
 # source
 :::
 
-```{r}
+```{r preparation}
 #| echo: false
 #| output: false
 # 被災のあった旧市区町村のデータだけを分析に使う
 source("preparation.R")
 df2 <- df |> filter(old_municipality == "1" & !is.na(tsunami_farmland_share))
+
+# 分析用データフレーム作成
+machinery_change <- df2 |>
+  filter(census_year %in% c("2010", "2015", "2020")) |>
+  select(
+    area_code,
+    census_year,
+    tsunami_farmland_share,
+    rice_transplanter_entities,
+    tractor_entities,
+    combine_entities,
+    c_one,
+    c_four,
+    production_support,
+    individual_entities,
+    farm_entities_total
+  ) |>
+  pivot_wider(
+    names_from = census_year,
+    values_from = c(
+      tsunami_farmland_share,
+      rice_transplanter_entities,
+      tractor_entities,
+      combine_entities,
+      individual_entities,
+      farm_entities_total
+    )
+  ) |>
+  mutate(
+    change_rice_transplanter =
+      rice_transplanter_entities_2015 - rice_transplanter_entities_2010,
+    change_tractor =
+      tractor_entities_2015 - tractor_entities_2010,
+    change_combine =
+      combine_entities_2015 - combine_entities_2010,
+    individual_share_2010 =
+      individual_entities_2010 / farm_entities_total_2010,
+    individual_share_2015 =
+      individual_entities_2015 / farm_entities_total_2015,
+    change_individual_share =
+      individual_share_2015 - individual_share_2010
+  )
+
+
+# 残存率変数作成
+machinery_change <- machinery_change |>
+  mutate(
+    individual_2015_2010_ratio = if_else(
+      individual_entities_2010 > 0,
+      individual_entities_2015 / individual_entities_2010,
+      NA_real_
+    ),
+    individual_2020_2010_ratio = if_else(
+    individual_entities_2010 > 0,
+    individual_entities_2020 / individual_entities_2010,
+    NA_real_))
+
+# コンバイン所有個人経営体数の下限（2010年）
+machinery_change <- machinery_change |>
+  mutate(
+    nonindividual_entities_2010 =
+      farm_entities_total_2010 - individual_entities_2010,
+
+    individual_combine_owner_min_2010 =
+      pmax(
+        combine_entities_2010 - nonindividual_entities_2010,
+        0
+      ),
+
+    individual_combine_owner_max_2010 =
+      pmin(
+        combine_entities_2010,
+        individual_entities_2010
+      ),
+
+    individual_combine_owner_share_min_2010 =
+      individual_combine_owner_min_2010 /
+      individual_entities_2010,
+
+    individual_combine_owner_share_max_2010 =
+      individual_combine_owner_max_2010 /
+      individual_entities_2010
+  )
+
+
+# トラクター所有個人経営体数の下限（2010年）
+machinery_change <- machinery_change |>
+  mutate(
+    nonindividual_entities_2010 =
+      farm_entities_total_2010 - individual_entities_2010,
+
+    individual_tractor_owner_min_2010 =
+      pmax(
+        tractor_entities_2010 - nonindividual_entities_2010,
+        0
+      ),
+
+    individual_tractor_owner_max_2010 =
+      pmin(
+        tractor_entities_2010,
+        individual_entities_2010
+      ),
+
+    individual_tractor_owner_share_min_2010 =
+      individual_tractor_owner_min_2010 /
+      individual_entities_2010,
+
+    individual_tractor_owner_share_max_2010 =
+      individual_tractor_owner_max_2010 /
+      individual_entities_2010
+  )
+
+
+# 田植機所有個人経営体数の下限（2010年）
+machinery_change <- machinery_change |>
+  mutate(
+    nonindividual_entities_2010 =
+      farm_entities_total_2010 - individual_entities_2010,
+
+    individual_rice_transplanter_owner_min_2010 =
+      pmax(
+        rice_transplanter_entities_2010 - nonindividual_entities_2010,
+        0
+      ),
+
+    individual_rice_transplanter_owner_max_2010 =
+      pmin(
+        rice_transplanter_entities_2010,
+        individual_entities_2010
+      ),
+
+    individual_rice_transplanter_owner_share_min_2010 =
+      individual_rice_transplanter_owner_min_2010 /
+      individual_entities_2010,
+
+    individual_rice_transplanter_owner_share_max_2010 =
+      individual_rice_transplanter_owner_max_2010 /
+      individual_entities_2010
+  )
+
 ```
 
 # はじめに
 
-## 津波被災を起点とする農業構造の経路分岐の可能性
+東日本大震災の津波被災地では、農地・機械・施設の復旧と並行して、農地の大区画化や組織経営体への集積が進められた。その結果を捉えるには、被災程度や事業実施の平均的な関連だけでなく、異なる資源と将来条件をもつ経営体が同じ政策にどう反応したかを検討する必要がある。経営体ごとの反応が累積すれば、個別経営の拡大、組織的担い手への一元化、あるいは両者の並存といった地域農業構造の経路分岐が生じうるからである。
 
-- 津波被災は、その後の地域農業の構造変化を方向づけた可能性
-- 津波被災地では、このような経路分岐がさまざまな形で生じているのではないか？
+既往研究では、センサスによる津波被災地域の構造変化が整理されているが（小野，2019）、個別経営体の意思決定過程との接続は限定的である。農業政策の効果が農家タイプによって異なることは示されてきたものの（DeBoe，2020；日田ら，2024；Saint-Cyr，2022）、観察された異質性を地域構造の変化まで追う研究は多くない。エージェント・ベース・モデルはミクロとマクロの連関を扱えるが、行動ルールの実証的基礎が課題とされている（Huber et al.，2026）。
 
-```{r}
-df2 <- df2 |>
-  mutate(
-    share_over_20ha = entities_over_20_0ha / entities_total
-  )
+そこで本稿は、経営体が保有する資源と将来条件の違いが、津波被災後の個人営農選択と地域農業構造にどのように関係するかを検討する。具体的には、まず宮城県S町の生産組合を対象に、構成員が個人営農を志向した条件をQCAによって明らかにする。次いで、宮城県の旧市区町村別データを用い、S町で確認された経営資源と個人営農選択の関係に整合する地域構造上の傾向が広域的にも観察されるかを検討する。
 
-ggplot(
-  df2,
-  aes(
-    x = tsunami_farmland_share,
-    y = share_over_20ha
-  )
-) +
-  geom_point() +
-  geom_smooth(
-    method = "lm",
-    se = FALSE
-  ) +
-  facet_wrap(~ census_year) +
-  labs(
-    x = "津波被災農地割合",
-    y = "20ha以上経営体割合"
-  ) +
-  theme_minimal()
-```
 
-宮城県沿岸部旧市区町村における津波被災農地割合と20ha以上経営体割合の関係（報告者作成）
+# 対象地域と農業復興政策
 
-## 経営体の異質性と地域農業構造
+## 宮城県における被災と政策
 
-- 各経営体の異質性により、津波被災や政策に対する反応に多様性が生じる可能性 ミクロレベルの反応のちがい　→　累積　→　マクロレベルの地域農業構造の差異？
+宮城県沿岸部の耕地は津波により大きな被害を受けた。平坦部沿岸市区町村では耕地の42.1％、中山間部では28.3％が被災し、岩手県4.6％、福島県18.5％を上回った（小野，2019）。県の復興計画は原形復旧にとどまらず、効率的な土地利用と経営体の競争力向上を掲げた（宮城県，2011）。農林水産省基幹事業関係の復興交付金配分額も宮城県3,392億円、岩手県1,329億円、福島県701億円で、宮城県が最大であった（東北農政局，2021）。
 
-- こうしたミクロ-マクロ連関を正面から扱う研究は少ない
+農業関連の主な復興事業には、復興交付金のC-1・C-4事業と生産対策交付金が挙げられる。C-1事業（農山漁村地域復興基盤総合整備事業）は農地・農業用施設等の生産基盤を整備し、農地復旧と大区画化を進める。C-4事業（被災地域農業復興総合支援事業）は、市町村が整備した農業用機械・施設を被災農業者等に貸与する。貸与先は農事組合法人や農協等が中心で、個人は認定農業者または新規就農者に限られる（岡山，2018）。生産対策交付金は推進事業と、生産関連施設の整備のための整備事業に分かれており、推進事業では機械リース、資材の共同調達、GAPの導入などが挙げられる。仙台東部地域の農業復興の状況を報告する伊藤・小賀坂（2013）では、生産対策交付金だけではすべての農業機械・施設をそろえることが難しく、C-4事業の併用が必要であったことが指摘されている。
 
-  - 震災復興研究では、小野（2019）がセンサスデータを用いて被災農業の構造変化を明らかにしているが、経営体の具体的な意思決定プロセスと関連づけてはいない
 
-  - 経営体の異質性による政策効果のちがいを明らかにする研究は、海外では一定の研究蓄積があり（DeBoe2020）、国内でも一定数みられるが（日田ら2024など） 、地域農業構造の変化にまでつなげる議論は限定的
 
-  - Saint-Cyr(2022)は、経営規模変化と補助金との関係が農家タイプによって異なることを示すとともに、その影響を経営規模階層別の農家構成変化として集計しているが、異質性は統計モデル上の潜在タイプとして推定されている　→　異質性を直接観察していない
+## S町における営農再編
 
-  - ABMを用いた研究ではミクロ-マクロ連関を扱うものがみられるが、実証データをベースに行動ルールを設定した研究は少ない（Huber et al. 2026）
+S町は三方を海に囲まれた面積13.27km²、人口約2万人の半農半漁の町である。震災前の耕地は田109ha、畑74haで、2010年の基幹的農業従事者の平均年齢は71.3歳と県平均65.3歳を上回っていた。水田の99.1％が津波被害を受けたため、町、JA、普及機関は生産組合を復興後の担い手として位置づけた。
 
-## 本研究の目的
+しかし構成員の反応は一様ではなかった。2015年時点で4名は個人営農を優先し、農地集積によって規模を拡大した。一方、生産組合に全面的に参加したのは主として高齢者であり、組合側も個人志向の構成員を無理に組合営農へ取り込まなかった。このためS町では、生産組合への一元的集約ではなく、組合と複数の大規模個別経営が並存する構造が形成された。表1に示すように、20ha以上の経営体は2010年には存在しなかったが、2020年以降は2経営体となった。
 
-- 宮城県S町を事例に、復興政策に対して各農業経営体が異なる反応を示した要因を明らかにするとともに、こうしたメカニズムと整合的な農業構造の変化が他地域にもみられることをセンサス等のデータを用いて明らかにする
 
-# 宮城県S町営農組織における個人志向と組織志向の混在
-
-## 宮城県における津波被災と農業復興政策
-
-- 宮城県の耕地は津波被災の影響がもっとも大きい（小野2019）
-
-  - 沿岸市区町村に限定すると、宮城県平坦部は42.1%の耕地が津波被災（宮城県中山間は28.3%）
-
-  - 岩手県は4.6%、福島県は18.5%
-
-- 宮城県における農業復興政策では、単なる原形復旧に留まらず、効率的な土地利用や経営体の競争力向上が目指されていた（宮城県（2011 ）
-
-- 農業関連の復興交付金は、宮城県への配分額が大きい 農林水産省基幹事業関連の配分額合計は、宮城県3,392億円、岩手県1329億円、福島県701億円（東北農政局（2021））
-
-## 農業復興関連の交付金
-
-- 生産対策交付金
-
-  - 推進事業と、生産関連施設の整備のための整備事業に分かれており、推進事業では機械リース、資材の共同調達、GAPの導入などが挙げられる
-
-- 復興交付金事業
-
-  - C-1事業
-
-    - 農地復旧と大区画化をねらいとする
-
-  - C-4事業
-
-    - 農業用機械・施設のリースをねらいとする
-
-    - リース先は農事組合法人や農協など。個人でリースを受けられるのは認定農業者か新規就農者のいずれか
-
-## 宮城県S町
-
-- 面積13.27km2、人口約2万
-
-- 三方が海に囲まれた半農半漁の町
-
-- 田109ha、畑74ha
-
-  - 畑作物は大豆が主
-
-- 2010年度の基幹的農業従事者の平均年齢71.3歳（県平均は65.3歳）
-
-- 農地の大部分が津波で浸水 水田被害は面積の99.1%
-
-## 個人志向の構成員の存在
-
-- 個人営農を優先する構成員が存在
-
-  - 2015年時点で4名が該当
-
-  - 農地を集積し、個人で規模拡大
-
-- 組合に全面的に参加する構成員は高齢者が中心
-
-  - 個人志向構成員の存在を認識しつつも、無理に組合営農へ参加させない姿勢
-
-- 結果：生産組合への一元的集約ではなく、複数の大規模経営体が並存する構造へ
+表1　S町における大規模経営体数の推移
 
 | 年   | 5ha以上 | 10ha以上 | 20ha以上 | 30ha以上 |
 |------|---------|----------|----------|----------|
@@ -148,271 +203,550 @@ ggplot(
 | 2020 | 4       | 3        | 2        | 1        |
 | 2025 | 4       | 2        | 2        | 1        |
 
-: S町の大規模経営体数の推移（農林業センサスより）
+資料：農林業センサス
 
-# QCAを用いた構成員の反応経路分析
 
-## QCAによる反応経路分析
+# QCAによる構成員の反応経路分析
 
-- QCAにより構成員の反応経路分析を行う
+## データと方法
 
-- QCA（Qualitative Comparative Analysis、質的比較分析）
+分析対象はS生産組合の構成員である。2013年10～11月に13名、2014年11月に11名へのヒアリング調査を行い、2015年8月には12名への質問紙調査を実施した。組合長、理事および個人志向の構成員には少なくとも1回の聞き取りを行った。調査項目は年齢、機械保有、営農状況、営農意向、組合への関与意向である。
 
-  - 集合論に基づき、帰結に関連する条件の組み合わせを、事例間の比較から探索する手法
+QCAは集合論に基づき、帰結に結びつく条件の組み合わせを事例間比較から探索する。本稿では二値データを用いるcrisp-set QCAを採用した。帰結である「個人での営農意向」は、「個人でやる」「組合と個人の両方でやる」「規模拡大する」等の発言があれば1、「組合でやる」「個人ではやらない」であれば0とした。条件は、後継者ありを1、トラクター・コンバイン・田植機のすべてが使用可能な状態で揃う場合を「主要機械の充足」1、70歳未満を「年齢的継続余力」1とした。寿命が近いと明記された機械は保有に数えなかった。
 
-  - 回帰分析が各変数の平均的な効果を推定するのに対し、QCAは同じ結果に至る複数の条件の組み合わせを探索する
+真理値表では条件構成ごとのケース数と帰結の整合度を求め、整合度0.80以上、ケース数1以上を帰結1と判定した。十分条件の整合度は当該条件に属するケースのうち帰結も生じた割合、被覆度は帰結ケースのうち当該条件が説明する割合である。小規模な事例集合であるため、解は機械的に一般化せず、各ケースの調査記録と照合して解釈した。
 
-## QCAによる分析の流れ
+各ケースのコーディング結果は表1.5の通りである。欠損のある8, 9, 11については分析から外す。分析対象は計12分のデータである。
 
-### ①キャリブレーション
+表1.5 各ケースのコーディング結果
 
-条件と帰結について、当てはまれば1、当てはまらなければ0とする
+```{r qca_coding_result}
+df_qca <- read_csv("02_processed_data/shichigahama_qca.csv")
 
-### ②真理値表の作成
 
-条件の組み合わせごとに、ケース数と帰結との整合度を整理する
+df_qca <- df_qca |> select(c(-no, -name, -largescale))
+df_qca_farmer <- data.frame(farmer = 1:(df_qca |> nrow()))
+df_qca <- bind_cols(df_qca_farmer, df_qca)
+df_qca
+```
 
-### ③ブール最小化
+  
+## 分析結果
 
-帰結が生じる条件構成を比較し、帰結との関係に影響しない条件を消去する
+表2　個人営農意向に関する真理値表
 
-## QCAにおける分析指標
+```{r QCA_base}
+library(QCA)
 
-### 整合度
 
-- 整合度：条件Aに該当するケースのうち、帰結Zも生じているケースの割合
+# まず後継者欠損のデータ控除したデータフレームを作成。
+vars <- c("farmer", "indint", "successor", "mechcap", "agecap")
 
-  - 図は十分条件におけるベン図の例。必要条件でも考え方は同じである。
+# 各変数の欠損数
+colSums(is.na(df_qca[vars]))
 
-    - 上図ではAは厳密な意味でZの十分条件になっている→　整合度= 10 / 10 = 1.00
+# 分析に使用できるケース
+df_qca_complete <- df_qca[complete.cases(df_qca[vars]), vars]
 
-    - 下図ではAは厳密な意味ではZの十分条件とはいえないが、完全に十分条件でないわけでもない→ 整合度= 7 / (7 + 3)=0.70
+tt <- truthTable(
+  df_qca_complete,
+  outcome = "indint",
+  conditions = c("successor", "mechcap", "agecap"),
+  incl.cut = 0.80,
+  n.cut = 1,
+  show.cases = TRUE,
+  complete = TRUE
+)
 
-![](images/clipboard-1199978086.png){width="334"}
+tt
+```
 
-### 被覆度
+注：―は該当ケースがないため整合度を算出できないことを示す。
 
-- 被覆度：帰結Zが生じたケースのうち、条件Aによってカバーされる割合
 
-  - 次の図の場合、Aに該当するケースでは必ずZが生じているため、整合度は1である。しかし、Aに該当するのはZが生じた100ケース中1ケースだけであり、この条件がカバーする帰結ケースはごく少ない。→被覆度 = 1 / (99 + 1) = 0.01
 
-![](images/clipboard-2989610790.png){width="358"}
 
-## QCAによるS生産組合構成員の反応経路分析
+表2では、主要機械が充足し、かつ年齢的継続余力がある2つの条件構成で、後継者の有無にかかわらず帰結が生じた。ブール最小化により後継者条件が消去され、「機械×年齢」が個人営農意向の十分条件となった。該当する3ケースすべてに帰結が生じ、整合度は1.00、帰結4ケース中3ケースを覆うため被覆度は0.75である。
 
-### 分析データ
+必要条件分析では、年齢条件の整合度が1.00、被覆度が0.44であった。個人営農を希望した4名は全員70歳未満である一方、70歳未満9名のうち帰結が生じたのは4名にすぎず、年齢だけでは帰結を絞り込めない。機械条件は整合度0.75、被覆度1.00であり、元の基準では必要条件とはいえなかった。
 
-- 調査対象
+閾値への依存を確かめるため、主要3機種中2種類以上を保有する場合を1とする機械Ⅱと、75歳未満を1とする年齢Ⅱを用いた。表3のとおり、機械と年齢の組み合わせが十分条件となる主要結果は維持された。機械Ⅱでは被覆度が1.00となり、単独でも必要条件となった。この結果は、年齢面の継続可能性を前提として、利用可能な機械という経営資源が個人営農の選択可能性を広げることを示唆する。
 
-  - S生産組合の構成員（調査可能であった対象者は全員）
+表3-1 キャリブレーション変更による頑健性確認（年齢Ⅱ使用）
 
-  - 組合長、理事、個人志向構成員には1回以上調査している
+```{r QCA_agecap2}
+df_qca <- read_csv("02_processed_data/shichigahama_qca_age2.csv")
 
-- 調査期間
+df_qca <- df_qca |> select(c(-no, -name, -largescale))
+df_qca_farmer <- data.frame(farmer = 1:(df_qca |> nrow()))
+df_qca <- bind_cols(df_qca_farmer, df_qca)
 
-  - 2013年10～11月　ヒアリング調査（13名）
+vars <- c("farmer", "indint", "successor", "mechcap", "agecap2")
 
-  - 2014年11月　ヒアリング調査（11名）
+# 各変数の欠損数
+colSums(is.na(df_qca[vars]))
 
-  - 2015年8月　質問紙調査（12名）
+# 分析に使用できるケース
+df_qca_complete <- df_qca[complete.cases(df_qca[vars]), vars]
 
-- 調査内容（分析に関係するもののみ） 年齢、機械保有状況、営農状況、営農意向、組合への関与意向
+df_qca_nec <- as.data.frame(
+  df_qca_complete[, c(
+    "indint", "successor", "mechcap", "agecap2"
+  )]
+)
 
-### キャリブレーション
+tt <- truthTable(
+  df_qca_complete,
+  outcome = "indint",
+  conditions = c("successor", "mechcap", "agecap2"),
+  incl.cut = 0.80,
+  n.cut = 1,
+  show.cases = TRUE,
+  complete = TRUE
+)
 
-- キャリブレーションの基準を以下の様に設定する
+sol_complex <- minimize(
+  tt,
+  details = TRUE,
+  show.cases = TRUE
+)
 
-- 帰結
+sol_complex
 
-  - 個人での営農意向：「個人でやる」「組合と個人の両方でやる」「規模拡大する」等の発言があれば1、「組合でやる」あるいは「個人ではやらない」という発言があれば0
+nec <- pofind(
+  data = df_qca_nec,
+  outcome = "indint",
+  conditions = c("successor", "mechcap", "agecap2"),
+  relation = "necessity"
+)
 
-- 条件
+nec
+```
 
-  - 後継者の存在：「いる」であれば1、 「いない」であれば0
+表3-2 キャリブレーション変更による頑健性確認（機械Ⅱ使用）
 
-  - 主要機械の充足：トラクター、コンバイン、田植機がすべて揃っていれば1、揃っていなければ0。「寿命が近い」とコメントされている機械はカウントしない
+```{r QCA_machcap2}
+df_qca <- read_csv("02_processed_data/shichigahama_qca_mech2.csv")
+df_qca <- df_qca |> select(c(-no, -name, -largescale))
+df_qca_farmer <- data.frame(farmer = 1:(df_qca |> nrow()))
+df_qca <- bind_cols(df_qca_farmer, df_qca)
 
-  - 年齢的継続余力：70歳未満が1、70歳以上が0
+vars <- c("farmer", "indint", "successor", "mechcap2", "agecap")
 
-### 真理値表の作成とブール最小化
+# 各変数の欠損数
+colSums(is.na(df_qca[vars]))
 
-![](images/clipboard-1785904978.png){width="536"}
+# 分析に使用できるケース
+df_qca_complete <- df_qca[complete.cases(df_qca[vars]), vars]
 
-- 真理値表はこのようになった。整合度は該当する条件組み合わせのケースの中で帰結が生じているケースの割合であり、0.8以上だと帰結判定を1とする
+df_qca_nec <- as.data.frame(
+  df_qca_complete[, c(
+    "indint", "successor", "mechcap2", "agecap"
+  )]
+)
 
-- 機械＝1かつ年齢＝1の場合、後継者の有無にかかわらず帰結が生じる→ 後継者を消去（ブール最小化）
+tt <- truthTable(
+  df_qca_complete,
+  outcome = "indint",
+  conditions = c("successor", "mechcap2", "agecap"),
+  incl.cut = 0.80,
+  n.cut = 1,
+  show.cases = TRUE,
+  complete = TRUE
+)
 
-- \[機械×年齢\]が十分条件となる
+sol_complex <- minimize(
+  tt,
+  details = TRUE,
+  show.cases = TRUE
+)
 
-### 十分条件分析
+sol_complex
 
-- \[機械×年齢 → 個人での営農意向\]の十分条件分析
+nec <- pofind(
+  data = df_qca_nec,
+  outcome = "indint",
+  conditions = c("successor", "mechcap2", "agecap"),
+  relation = "necessity"
+)
 
-- 該当する3ケースすべてで個人営農を希望→　整合度 = 3 / 3 = 1.00
+nec
+```
+注：機械Ⅱは主要3機種中2種類以上を保有、年齢Ⅱは75歳未満。
 
-- 個人営農を希望する4ケース中3ケースをカバー →　被覆度 = 3 / (1 + 3) = 0.75
 
-### 必要条件分析
 
-- \[年齢 ← 個人での営農意向\]の必要条件分析
+以上のS生産組合の構成員を対象としたQCAからは、機械充足と年齢的継続余力の二条件が組み合わさるとで個人営農継続が可能となるという仮説が示唆される。既往研究では、機械喪失が離農や営農再開に影響したことが指摘されてきた（渋谷，2012；小野，2019）。これに対して本稿は、個人営農か組織営農かという営農形態の選択に着目し、機械保有が年齢的継続余力と組み合わさって個人営農意向に結びつく可能性を示した。
 
-  - 整合度 = 4 / 4 = 1.00
+S生産組合はもともと大豆転作組合にすぎず、S町の担い手として位置づけようとする動きは震災後から始まったものである。組合員へのヒアリングでは、現状の組織経営の非効率や今後の方向性の不確実性に関する懸念が聞かれた。組織へのコミットを明言している組合員からは組合での営農に参加せず個人で営農拡大する組合員の存在を指摘する発言はあったものの、組合長等らは彼らを無理に組合にコミットさせるつもりはないという考えであった。一方で、機械面でも年齢面でも余裕のある組合員の中には、年を取ったら組合で営農するという主旨の発言をする者もいた。つまり、機械面・年齢面で余裕があることにより選択肢の範囲が比較的広く、現時点では将来性で未知数である組織にコミットするよりも、確実性の高い個人営農を選択したものと思われる。この選択は、新設された組織の将来性が不透明な状況において、既存の経営資源を利用して不確実性を抑えようとする対応として理解できる。
 
-  - 被覆度 = 4 / (5 + 4) = 0.44
 
-  - →整合度は1.00だが、年齢条件を満たす9名のうち個人営農意向を示すのは4名
 
-  - → 年齢条件だけでは帰結を絞り込めない
+# 旧市区町村データによる広域的検討
 
-- \[機械 ← 個人での営農意向\]の必要条件分析
 
-  - 整合度 = 3 / 4 = 0.75
+## データと分析モデル
 
-  - 被覆度 = 3 / 3 = 1.00
+S町で見られたような、営農余力の有無による個人営農継続への影響は、他地域でもみられる可能性がある。組織経営体に優先的に機械リースが行われたとはいえ、個人での営農継続が可能であるならば、個人での営農を継続する方が合理的な面があると考えられる。小野ら(2020)によれば、震災後、組織経営体の集積率は全体として上昇しているが、幸田ら（2019）によれば、急激に経営規模を拡大するなかでは農地分散などの問題が発生することもあるという。とくに震災後新設した組織の場合は不確実性がいっそう強くなる。そうしたリスクを考慮するなら、個人での営農を継続できるうちは継続した方が不確実性を減らすことができるのである。
 
-  - →個人営農意向4名のうち、機械条件を満たすのは3名
 
-  - → 整合度は0.75であり、必要条件とはいえない
+このような営農余力と個人営農継続の関係が、宮城県内の津波被災地域でも観察されるかを旧市区町村単位で検討する。ただし、QCAで重要であった機械充足と年齢との組み合わせは集計データから復元できず、広域分析は機械保有という一側面との整合性確認に限定される。したがって、以降の分析は旧市区町村分析はQCAで得られた条件構成を直接検証するものではない。個人営農の選択可能性を構成する一要素として示された機械保有が、地域単位の個人経営体数の変化とも整合的な関係を示すかを探索的に検討するものである。以下では次のような仮説を検証する。
 
-### 結果の頑健性チェック
+仮説：機械所有個人経営体割合の大きい地域ほど個人経営体数の残存率が大きい
 
-- 機械条件Ⅱ：3種類主要機械すべて保有していれば1　→　2種類以上保有していれば1
 
-- 年齢条件Ⅱ：70歳未満は1　→　75歳未満は1
+目的変数は2015年の個人経営体数を2010年の個人経営体数で除した「個人経営体残存率」である。個人経営体数を直接目的変数とするとその地域の規模を強く反映した変数となり、分析の主旨とずれるため、残存率を目的変数とする。ただし同一経営体の存続を追跡した値ではないため、これはあくまで地域全体の個人経営体数の残存比である。
 
-- 十分条件分析
+説明変数には、C-1、C-4、生産対策交付金の実施ダミー、2010年のコンバイン・トラクター・田植機所有個人経営体割合を用いた。事業ダミーは実施地区と旧市区町村境界の位置関係をGISで照合して作成した。生産対策交付金は機械導入に関する事業のみを数えた。各機械の所有個人経営体割合は、センサスで非個人経営体の機械所有数が得られないため、「機械所有経営体数－非個人経営体数」を個人経営体数で除した代理変数を用いる。非個人経営体のすべてが当該機械を持つと仮定するため、推定される個人所有数は下限値となる。統制変数は2010年の個人経営体割合と津波被災圃場割合である。後者は2009年国土数値情報の土地利用メッシュから「田」と「その他の農用地」を抽出し、国土地理院の津波浸水範囲および2010年農業集落境界データに収録された旧市区町村境界と重ね合わせ、旧市区町村別の被災圃場面積を推計した。被災圃場が確認された地域のみを分析対象とした。
 
-  - 元の分析： \[機械×年齢 → 個人での営農意向\]　 整合度=1.00、被覆度=0.75
 
-  - 機械条件Ⅱ使用： \[機械Ⅱ ×年齢 → 個人での営農意向\]　 整合度=1.00、被覆度=1.00
 
-  - 年齢条件Ⅱ使用： \[機械×年齢Ⅱ → 個人での営農意向\]　 整合度=1.00、被覆度=0.75
 
-- 必要条件分析
+表4-1 記述統計量（個人経営体残存率（2015/2010））
 
-  - 元の分析： \[年齢←個人での営農意向\] 整合度=1.00、被覆度=0.44 \[機械←個人での営農意向\] 整合度=0.75、被覆度=1.00
+```{r descriptives_individual_2015_2010_ratio}
+machinery_change |>
+  summarise(
+    n = sum(!is.na(individual_2015_2010_ratio)),
+    mean = mean(individual_2015_2010_ratio, na.rm = TRUE) |> round(2),
+    sd = sd(individual_2015_2010_ratio, na.rm = TRUE) |> round(2),
+    min = min(individual_2015_2010_ratio, na.rm = TRUE) |> round(2),
+    max = max(individual_2015_2010_ratio, na.rm = TRUE) |> round(2)
+  )
+```
 
-  - 機械条件Ⅱ使用： \[機械Ⅱ←個人での営農意向\] 整合度=1.00、被覆度=0.80
 
-  - 年齢条件Ⅱ使用： \[年齢Ⅱ←個人での営農意向\] 整合度=1.00、被覆度=0.36
 
-- 結果の傾向はおおむね変わらない
+表4-2 記述統計量（C-1実施）
 
-  - （ただし、機械Ⅱが単独で必要条件になっている）
+```{r descriptives_C1}
+machinery_change |>
+  summarise(
+    n = sum(!is.na(c_one)),
+    mean = mean(c_one, na.rm = TRUE) |> round(2),
+    sd = sd(c_one, na.rm = TRUE) |> round(2),
+    min = min(c_one, na.rm = TRUE) |> round(2),
+    max = max(c_one, na.rm = TRUE) |> round(2)
+  )
+```
 
-## QCAによる分析のまとめ
+表4-3 記述統計量（C-4実施）
 
-- 本分析の範囲では、個人営農意向には年齢面で継続可能であることが前提となる
+```{r descriptives_C4}
+machinery_change |>
+  summarise(
+    n = sum(!is.na(c_four)),
+    mean = mean(c_four, na.rm = TRUE) |> round(2),
+    sd = sd(c_four, na.rm = TRUE) |> round(2),
+    min = min(c_four, na.rm = TRUE) |> round(2),
+    max = max(c_four, na.rm = TRUE) |> round(2)
+  )
+```
 
-- ただし、年齢条件だけでは帰結を絞り込めず、機械を利用できる条件が組み合わさると個人営農意向に強く結びつく
 
-- 条件のキャリブレーション基準を変更しても、「年齢条件は必要条件」「機械と年齢の組み合わせは十分条件」という主要結果は維持された
 
-  - なお、機械保有状況に関する基準を緩めた機械Ⅱ条件にすると、機械が単独で必要条件となる
 
-# 地域の初期条件が震災後の農業構造に与える影響
+```{r descriptives_production_support}
+machinery_change |>
+  summarise(
+    n = sum(!is.na(production_support)),
+    mean = mean(production_support, na.rm = TRUE) |> round(2),
+    sd = sd(production_support, na.rm = TRUE) |> round(2),
+    min = min(production_support, na.rm = TRUE) |> round(2),
+    max = max(production_support, na.rm = TRUE) |> round(2)
+  )
+```
 
-## センサスデータを用いた分析モデル
 
-- QCAで見出した機械保有と個人営農継続との関係が、より広域的にも確認できるかを検証する
 
-- 対象地域は宮城県、分析単位は旧市区町村とする
+表4-5 記述統計量（コンバイン所有割合（2010））
 
-- 個人経営体残存率（2015/2010） =\
-  𝛽_0 + 𝛽_1 C-1実施 + 𝛽_2 C-4実施 + 𝛽_3生産対策交付金実施\
+```{r descriptives_individual_combine_owner_share_min_2010}
+machinery_change |>
+  summarise(
+    n = sum(!is.na(individual_combine_owner_share_min_2010)),
+    mean = mean(individual_combine_owner_share_min_2010, na.rm = TRUE) |> round(2),
+    sd = sd(individual_combine_owner_share_min_2010, na.rm = TRUE) |> round(2),
+    min = min(individual_combine_owner_share_min_2010, na.rm = TRUE) |> round(2),
+    max = max(individual_combine_owner_share_min_2010, na.rm = TRUE) |> round(2)
+  )
+```
 
-  - 𝛽_4コンバイン所有個人経営体割合_2010 + 𝛽_5トラクター所有個人経営体割合_2010 + 𝛽_6田植機個人所有経営体割合_2010\
-  - 𝛽_7個人経営体割合_2010 + 𝛽_8津波被災圃場割合
+表4-6 記述統計量（トラクター所有割合（2010））
 
-- モデルの説明
+```{r descriptives_individual_tractor_owner_share_min_2010}
+machinery_change |>
+  summarise(
+    n = sum(!is.na(individual_tractor_owner_share_min_2010)),
+    mean = mean(individual_tractor_owner_share_min_2010, na.rm = TRUE) |> round(2),
+    sd = sd(individual_tractor_owner_share_min_2010, na.rm = TRUE) |> round(2),
+    min = min(individual_tractor_owner_share_min_2010, na.rm = TRUE) |> round(2),
+    max = max(individual_tractor_owner_share_min_2010, na.rm = TRUE) |> round(2)
+  )
+```
 
-  - 個人経営体残存率（2015/2010）は個人経営体数_2015 / 個人経営体数_2010で求めている。同一の経営体が残存しているかどうかは判別できないため、正確な意味での残存率ではない
+表4-7 記述統計量（田植機所有割合（2010））
 
-  - C-1実施 、C-4実施、生産対策交付金実施はダミー変数で、実施地区名と旧市区町村境界のGISデータの位置関係を確認してコーディングした（実施=1、未実施=0）
+```{r descriptives_individual_rice_transplanter_owner_share_min_2010}
+machinery_change |>
+  summarise(
+    n = sum(!is.na(individual_rice_transplanter_owner_share_min_2010)),
+    mean = mean(individual_rice_transplanter_owner_share_min_2010, na.rm = TRUE) |> round(2),
+    sd = sd(individual_rice_transplanter_owner_share_min_2010, na.rm = TRUE) |> round(2),
+    min = min(individual_rice_transplanter_owner_share_min_2010, na.rm = TRUE) |> round(2),
+    max = max(individual_rice_transplanter_owner_share_min_2010, na.rm = TRUE) |> round(2)
+  )
+```
 
-  - 個人経営体割合_2010、津波被災圃場割合はコントロール変数。旧市区町村単位の津波被災圃場割合は、農地位置および津波浸水に関するGISデータをQGISで結合して求めた。
 
-  - QCAの結果では年齢が重要な必要条件であるが、センサスの集計データでは経営体の年齢と機械保有状況の組み合わせがわからない →機械保有状況に関する変数のみを用いる（cf. 機械条件Ⅱでは機械が単独で必要条件となっている）。コンバイン所有個人経営体割合_2010 、トラクター所有個人経営体割合_2010 、田植機個人所有経営体割合_2010は、それぞれ該当する機械の2010年時点における所有個人経営体割合である
+表4-8 記述統計量（個人経営体割合（2010））
 
-    - 各機械の所有個人経営体割合を求めるには、所有個人経営体数のデータが必要。
+```{r descriptives_individual_share_2010}
+machinery_change |>
+  summarise(
+    n = sum(!is.na(individual_share_2010)),
+    mean = mean(individual_share_2010, na.rm = TRUE) |> round(2),
+    sd = sd(individual_share_2010, na.rm = TRUE) |> round(2),
+    min = min(individual_share_2010, na.rm = TRUE) |> round(2),
+    max = max(individual_share_2010, na.rm = TRUE) |> round(2)
+  )
+```
 
-    - 以下の式で求められるが、「非個人の機械所有経営体数」はセンサスでは入手不可能。
 
-      - 個人機械所有者数=機械所有経営体数−非個人の機械所有経営体数
 
-    - そこで、代理変数として「非個人経営体数」を使う。 「非個人経営体数 \>= 非個人の機械所有経営体数」なので、上記の式で求められる個人機械所有者数は下限値である
+表4-9 記述統計量（津波被災圃場割合）
 
-## 各変数の記述統計量
+```{r descriptives_tsunami_farmland_share_2010}
+machinery_change |>
+  summarise(
+    n = sum(!is.na(tsunami_farmland_share_2010)),
+    mean = mean(tsunami_farmland_share_2010, na.rm = TRUE) |> round(2),
+    sd = sd(tsunami_farmland_share_2010, na.rm = TRUE) |> round(2),
+    min = min(tsunami_farmland_share_2010, na.rm = TRUE),
+    max = max(tsunami_farmland_share_2010, na.rm = TRUE) |> round(2)
+  )
+```
 
-![](images/clipboard-3577012536.png)
 
-\*生産対策交付金は機械導入に関するものだけカウントしている（生産資材の導入等は除外）
+## 推定結果
 
-\*\*丸められているが正確な値は0.002。分析には津波被災地データのみ用いている
+復興事業の実施は被災程度と独立ではない。津波被災圃場割合を説明変数とするロジットモデルのオッズ比は、C-1が28.81、C-4が18.36、生産対策交付金が16.10で、いずれも1％水準で有意であった。事業間の相関係数はC-1とC-4が0.56、C-1と生産対策交付金が0.32、C-4と生産対策交付金が0.35である。そこでOLSでは3事業を同時に投入し、津波被災圃場割合を統制した。
 
-## 復興事業関連変数の特徴
+表5では、C-4実施、コンバイン所有割合、津波被災圃場割合が有意であった。他の条件を一定とすると、C-4実施地域は個人経営体残存率が15ポイント低い。コンバイン所有割合が10ポイント高い地域では残存率が5ポイント高く、津波被災圃場割合が10ポイント高い地域では3.4ポイント低い。
 
-![](images/clipboard-1577501707.png)
 
-津波被災が甚大になるほど復興事業が実施される傾向　→ 分析モデルでは津波被災圃場割合を統制する必要がある
+表5　個人経営体残存率のOLS推定結果（基本モデル）
 
-![](images/clipboard-2876549110.png)
+```{r m1}
 
-事業間に一定の相関はあるが、モデルへの同時投入による比較は可能
+m1 <- lm(
+  individual_2015_2010_ratio ~
+    individual_share_2010 +
+    tsunami_farmland_share_2010 +
+    c_one +
+    c_four +
+    production_support +
+    individual_combine_owner_share_min_2010 +
+    individual_tractor_owner_share_min_2010 +
+    individual_rice_transplanter_owner_share_min_2010 ,
+  data = machinery_change
+)
 
-OLSの結果（基本モデル）
+m1 |> summary()
+vif(m1)
+nobs(m1)
+```
 
-![](images/clipboard-2868686007.png)
+N=53、自由度修正済R²=0.46、F(8,44)=6.51（p<0.001）。VIFはすべて3未満。　* p<0.05、** p<0.01、*** p<0.001。
 
-- 有意な係数の解釈：
 
-  - C-4実施 → 残存率 -15pt
 
-  - コンバイン保有割合 +10pt → 残存率 +5pt
+表6-1　2015年残存率モデルの頑健性確認(M2：2010年個人経営体数で重み付け。)
 
-  - 津波被災圃場割合 +10pt → 残存率 -3.4pt
+```{r m2}
+m2 <- lm(
+  individual_2015_2010_ratio ~
+    individual_share_2010 +
+    tsunami_farmland_share_2010 +
+    c_one +
+    c_four +
+    production_support +
+    individual_combine_owner_share_min_2010 +
+    individual_tractor_owner_share_min_2010 +
+    individual_rice_transplanter_owner_share_min_2010,
+  data = machinery_change,
+  weights = individual_entities_2010
+)
+
+m2 |> summary()
+vif(m2)
+nobs(m2)
+```
 
-## 結果の頑健性チェック
+表6-2　2015年残存率モデルの頑健性確認(M3：2010年個人経営体数75以下を除外。)
 
-![](images/clipboard-2389063499.png)
 
-- コンバイン保有割合と津波被災圃場割合は、モデルを変更しても符号・有意性とも概ね安定している。C-4実施は全モデルで負だが、有意性は5〜10%水準で変動する。
+```{r m3}
+# 個人経営体数75人未満のケース除外(だいたい下位25％のケースを除外)
+machinery_change_75 <- machinery_change |>
+  filter(individual_entities_2010 >= 75)
 
-- 田植機保有割合はモデル2のみ有意であり、頑健な結果とは言いにくい。
+m3 <- lm(
+  individual_2015_2010_ratio ~
+    individual_share_2010 +
+    tsunami_farmland_share_2010 +
+    c_one + c_four + production_support +
+    individual_combine_owner_share_min_2010 +
+    individual_tractor_owner_share_min_2010 +
+    individual_rice_transplanter_owner_share_min_2010,
+  data = machinery_change_75
+)
+
+m3 |> summary()
+vif(m3)
+nobs(m3)
+```
 
-## 震災前の経営資源との関連は2020年には不安定に
+表6-3　2015年残存率モデルの頑健性確認(M4：目的変数を対数変換)
 
-![](images/clipboard-681553538.png)
+```{r m4}
+machinery_change <- machinery_change |>
+  mutate(
+    log_individual_2015_2010_ratio =
+      log(individual_2015_2010_ratio)
+  )
 
-- C-4実施およびコンバイン所有の影響はやや頑健性が弱まっている
+m4 <- lm(
+  log_individual_2015_2010_ratio ~
+    individual_share_2010 +
+    tsunami_farmland_share_2010 +
+    c_one + c_four + production_support +
+    individual_combine_owner_share_min_2010 +
+    individual_tractor_owner_share_min_2010 +
+    individual_rice_transplanter_owner_share_min_2010,
+  data = machinery_change
+)
+
+m4 |> summary()
+vif(m4)
+nobs(m4)
+```
+
+表6では、コンバイン所有割合と津波被災圃場割合の符号と有意性が概ね安定した。C-4は全モデルで負であるが、有意水準は5～10％の間で変動する。田植機所有割合はモデル2のみ10％水準であり、頑健な結果とはいえない。目的変数を2020年と2010年の比に変更すると、表7のとおりC-4とコンバインの関連は弱まる一方、津波被災圃場割合の負の関連は維持された。震災直後の経営資源は短期的な継続と結びつくが、10年間には追加投資、継承、再編等が介在するためと考えられる。
+
+表7-1　目的変数を2020年残存率に変更した結果(M5：基本モデル)
 
-- 津波被災の影響は変わらず頑健
+```{r m5}
+m5<- lm(
+  individual_2020_2010_ratio ~
+    individual_share_2010 +
+    tsunami_farmland_share_2010 +
+    c_one +
+    c_four +
+    production_support +
+    individual_combine_owner_share_min_2010 +
+    individual_tractor_owner_share_min_2010 +
+    individual_rice_transplanter_owner_share_min_2010,
+  data = machinery_change
+)
 
-## 考察
+m5 |> summary()
+vif(m5)
+nobs(m5)
+```
 
-- 津波被災圃場割合の係数が負であるのは、被災が深刻であるほど離農する個人農家が多くなるためであると考えられる。
+モデルの定義と有意水準は表6と同じ。
 
-- C-4実施地域で個人経営体残存率が低くなる背景には、一部地域で組織経営体への資源集中が進められたことが関係している可能性がある
+表7-2　目的変数を2020年残存率に変更した結果(M6：2010年個人経営体数で重み付け)
 
-- ただし、政策実施の内生性の問題があるため、これを「政策効果」とは解釈はできない
+```{r m6}
+m6 <- lm(
+  individual_2020_2010_ratio ~
+    individual_share_2010 +
+    tsunami_farmland_share_2010 +
+    c_one +
+    c_four +
+    production_support +
+    individual_combine_owner_share_min_2010 +
+    individual_tractor_owner_share_min_2010 +
+    individual_rice_transplanter_owner_share_min_2010,
+  data = machinery_change,
+  weights = individual_entities_2010
+)
 
-- コンバイン所有個人経営体保有割合の係数が正であるのは、QCAと整合的な結果
+m6 |> summary()
+vif(m6)
+nobs(m6)
 
-  - なぜコンバインのみなのか？　→　コンバインは3機種中もっとも保有割合が低く（平均31%）、経営資源の厚みを表す代理指標となっている可能性がある。
+```
 
-# おわりに
+表7-3　目的変数を2020年残存率に変更した結果(M7：2010年個人経営体数75以下を除外)
 
-## 結論と今後の課題
 
-- 地域農業構造の変化は、津波被災や復興政策から直接生じるだけでなく、経営体の異質性を介した意思決定の積み重ねとして形成される可能性
+```{r m7}
+# 個人経営体数75人未満のケース除外(だいたい下位25％のケースを除外)
+machinery_change_75 <- machinery_change |>
+  filter(individual_entities_2010 >= 75)
 
-  - S町では、機械保有×年齢が個人営農継続の重要な十分条件
+m7 <- lm(
+  individual_2020_2010_ratio ~
+    individual_share_2010 +
+    tsunami_farmland_share_2010 +
+    c_one + c_four + production_support +
+    individual_combine_owner_share_min_2010 +
+    individual_tractor_owner_share_min_2010 +
+    individual_rice_transplanter_owner_share_min_2010,
+  data = machinery_change_75
+)
 
-  - 宮城県センサス分析でも、震災前の機械保有状況がその後の個人経営体の残存と関連
+m7 |> summary()
+vif(m7)
+nobs(m7)
+```
 
-- 復興政策の評価では、「平均的な政策効果」だけでなく、ミクロレベルの経営体の異質性による反応の違いと、その累積がマクロレベルの地域農業構造にどうつながるかを把握することが重要
 
-- 今後の課題 集落単位データ・個票データ・追加聞き取りによってミクロ-マクロ連関を検証
+表7-4　目的変数を2020年残存率に変更した結果(M8：目的変数を対数変換)
+
+```{r m8}
+machinery_change2 <- 
+  machinery_change |> filter(individual_2020_2010_ratio != 0) |>
+  mutate(
+    log_individual_2020_2010_ratio =
+      log(individual_2020_2010_ratio)
+  )
+
+
+m8 <- lm(
+  log_individual_2020_2010_ratio ~
+    individual_share_2010 +
+    tsunami_farmland_share_2010 +
+    c_one + c_four + production_support +
+    individual_combine_owner_share_min_2010 +
+    individual_tractor_owner_share_min_2010 +
+    individual_rice_transplanter_owner_share_min_2010,
+  data = machinery_change2
+)
+
+m8 |> summary()
+vif(m8)
+nobs(m8)
+
+```
+
+# 考察
+
+第一に、S町では年齢と機械保有の組み合わせが個人営農意向を強く規定していた。若くても機械がなければ個人営農を選べず、機械があっても高齢であれば継続は難しい。両条件の結合は、単なる属性ではなく、復興後に個人営農を「選べる」実行可能性を表している。構成員間の実行可能性の差が、同じ生産組合の内部に個人志向と組織志向を生み、結果として複数の大規模経営体と組織経営体の並存へつながったと解釈できる。
+
+第二に、旧市区町村分析でも、震災前のコンバイン所有割合が2015年までの個人経営体数の残存と正に関連した。コンバインは3機種のうち所有割合が最も低く、平均31％であるため、個別経営が営農を再開・継続できる経営資源の厚みを識別した可能性がある。この結果は年齢との結合を直接検証したものではないが、S町で観察されたメカニズムと整合的である。
+
+第三に、C-4実施と個人経営体残存率の負の関連は、一部地域で機械・施設が組織経営体に集中的に配分され、個別経営の減少と組織化が同時に進んだ可能性を示す。しかし、事業は被災程度や地域の復興方針に応じて選択されており、実施ダミーは内生的である。津波被災圃場割合を統制しても、観察されない選択要因は残る。したがって、この係数をC-4の因果的な政策効果、まして個別経営を退出させた効果と解釈することはできない。ここで重要なのは、同じ支援でも既存資源や年齢構成により受け皿と反応が異なり、最終的な経営体構成も異なりうる点である。
+
+分析には三つの限界がある。第一に、QCAは単一組織の12ケースを対象としており、未観察の条件や調査時点間の変化を十分に捉えていない。第二に、旧市区町村データは集計値であり、個々の経営体の年齢と機械保有の組み合わせや同一経営体の存続を確認できない。第三に、政策配置の内生性を解消していない。今後は農業集落単位のパネルデータと経営体個票を用い、被災前の条件、政策実施、経営体の移行、地域構造の変化を多層的に接続する必要がある。
+
+
+# 結論
+
+津波被災後の地域農業構造は、被災や復興事業から直接かつ一様に生じるのではなく、異質な経営体の選択が累積して形成される。S町では、年齢的継続余力と主要機械の充足の組み合わせが個人営農意向の十分条件となり、宮城県の旧市区町村分析でも、震災前のコンバイン所有割合が短期的な個人経営体残存率と正に関連した。政策評価では平均的効果だけでなく、誰が支援を利用でき、個別継続と組織参加のどちらを選べたのか、その集積が地域の担い手構造をどう変えたのかを追跡する必要がある。
 
 # 引用文献
 
@@ -431,3 +765,13 @@ OLSの結果（基本モデル）
 - 宮城県（2011）『みやぎの農業・農村復興計画』
 
 - 東北農政局（2021）『農業・農村の復興・再生に向けた取組と動き』
+
+- 伊藤房雄, と小賀坂行也. 2013年. 「宮城県における被災地の農業復旧の現状と復興に向けた課題」. 農村と都市をむすぶ 736: 5–12.
+
+- 渋谷往男. 2012年. 「東日本大震災被災農家の営農継続意向とその要因についての考察」. 農業経営研究.
+
+- 小野智昭, 吉田行郷, 石原清史, ほか. 2020年. 「東日本大震災津波被災地域における水田農業復興の現状―農業構造変化と組織経営体の諸特徴―」. 農林水産政策研究, 号 33 (12月): 31–62. 
+
+
+- 幸田和也, 福与徳文, 重岡徹と八木洋憲. 2019年. 「津波被災地における急速な農地集積の進展と課題」. 農業経済研究 91 (2): 269–74. 
+
