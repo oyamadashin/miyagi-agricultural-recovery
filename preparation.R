@@ -2,6 +2,8 @@
 library(tidyverse)
 library(readxl) # Excelデータを読み込む
 library(car) # VIFを求めるのに使う
+library(sandwich) # ロバスト標準誤差で必要
+library(lmtest) # ロバスト標準誤差で必要
 
 # インポート----
 

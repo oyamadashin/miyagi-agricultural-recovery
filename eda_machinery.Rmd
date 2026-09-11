@@ -1927,3 +1927,63 @@ m42 <- glm.nb(
 summary(m42)
 ```
 m40と同じ傾向。やはり頑健な結果。
+
+
+
+### 頑健性チェック5 ロバスト標準誤差
+
+#### m14_5(HC3)
+
+```{r m14_5_HC3}
+m14_5 <- lm(
+  individual_2015_2010_ratio ~
+    individual_share_2010 +
+    tsunami_farmland_share_2010 +
+    c_one +
+    c_four +
+    production_support +
+    individual_combine_owner_share_min_2010 +
+    individual_tractor_owner_share_min_2010 +
+    individual_rice_transplanter_owner_share_min_2010 ,
+  data = machinery_change
+)
+
+m14_5 |> summary()
+vif(m14_5)
+nobs(m14_5)
+
+coeftest(
+  m14_5,
+  vcov. = vcovHC(m14_5, type = "HC3")
+)
+
+
+```
+
+#### m14_5(HC2)
+
+```{r m14_5_HC2}
+m14_5 <- lm(
+  individual_2015_2010_ratio ~
+    individual_share_2010 +
+    tsunami_farmland_share_2010 +
+    c_one +
+    c_four +
+    production_support +
+    individual_combine_owner_share_min_2010 +
+    individual_tractor_owner_share_min_2010 +
+    individual_rice_transplanter_owner_share_min_2010 ,
+  data = machinery_change
+)
+
+m14_5 |> summary()
+vif(m14_5)
+nobs(m14_5)
+
+coeftest(
+  m14_5,
+  vcov. = vcovHC(m14_5, type = "HC2")
+)
+
+
+```
