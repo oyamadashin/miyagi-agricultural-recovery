@@ -23,7 +23,27 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
-</style>
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+  margin-bottom: 0em;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
 
 
 <script src="paper_files/libs/clipboard/clipboard.min.js"></script>
@@ -70,7 +90,7 @@ ul.task-list li input[type="checkbox"] {
 <section id="はじめに" class="level1" data-number="1">
 <h1 data-number="1"><span class="header-section-number">1</span> はじめに</h1>
 <p>東日本大震災の津波は、沿岸部の農地、農業機械および施設を広範囲に毀損した。その後、農地・機械・施設の復旧と並行して、農地の大区画化や組織経営体への集積が進められた。このように、既存の生産基盤が大きく失われ、集中的な復興政策が実施された津波被災地は、外的ショックを契機として地域農業構造がどのように再編されるかを検討するうえで重要な対象である。</p>
-<p>もっとも、復興後の構造変化は一様ではない。宮城県沿岸部の旧市区町村別データをみると、津波被災農地割合の大きい地域ほど、その後に20ha以上経営体の割合が上昇する傾向がみられる。さらに、被災程度が同程度の地域間でも、20ha以上経営体割合の推移には大きな差がある（ <a href="#fig-tsunami-20ha-transition" class="quarto-xref">Figure&nbsp;1</a> ）。このことは、津波被災が地域農業の大規模化を促す契機となり、被災程度に応じて地域農業構造の経路が分岐したこと、さらに、その経路が被災程度だけでは一義的に定まらなかったことを示唆している。</p>
+<p>もっとも、復興後の構造変化は一様ではない。宮城県沿岸部の旧市区町村別データをみると、津波被災農地割合の大きい地域ほど、その後に20ha以上経営体の割合が上昇する傾向がみられる。さらに、被災程度が同程度の地域間でも、20ha以上経営体割合の推移には大きな差がある（ <a href="#fig-tsunami-20ha-transition" class="quarto-xref">Figure&nbsp;1</a> ）。このことは、津波被災が地域農業の大規模化を促す契機となった可能性と、同程度の被災を受けても、その後の構造変化が地域によって異なることを示している。本稿では、この差を経路分岐のひとつの現れとして捉える。</p>
 <div class="cell">
 <div class="cell-output-display">
 <div id="fig-tsunami-20ha-transition" class="quarto-float quarto-figure quarto-figure-center anchored">
@@ -87,27 +107,22 @@ Figure&nbsp;1: 宮城県沿岸部旧市区町村における津波被災農地�
 </div>
 <p>20ha以上経営体割合は農林業センサス。津波被災農地割合は著者作成（作成手順については後述）</p>
 <p>この差を捉えるには、被災程度や事業実施と構造変化との平均的な関連だけでなく、保有資源等の点で異なる条件をもつ経営体が同じ政策環境にどう反応したかを検討する必要がある。経営体ごとの異なるパターンの反応が累積すれば、その後の地域農業構造にも経路分岐が生じうるからである。</p>
-<p>既往研究では、センサスによる津波被災地域の構造変化が整理されているが（小野，2019）、個別経営体の意思決定過程との接続は限定的である。津波被災関連の研究に限定しなければ、農業政策の効果が農家の異質性によって異なることは広く示されてきたものの（DeBoe，2020；日田ら，2024）、観察された異質性を地域構造の変化まで追う研究は多くない。潜在クラス分析を用いてマクロデータから農家の異質性を推定する研究はあるが、農家の異質性を実際に観察しているわけではない（Saint-Cyr，2022）。また、エージェント・ベース・モデルを用いてミクロとマクロの連関を扱おうとする研究などはあるが、これも農家の異質性を実証データに基づかせるものが少ないと指摘されている（Huber et al.，2026）。</p>
+<p>既往研究では、センサスによる津波被災地域の構造変化が整理されているが（<span class="citation" data-cites="XiaoYeDongRiBenDaZhenZaiJinBoBeiZaiDiYuniokeruShuiTianNongYenoFuXingtoGouZaoBianHua2015NianNongLinYesensasuniyoruTongJiDeFenXi2019">（<a href="#ref-XiaoYeDongRiBenDaZhenZaiJinBoBeiZaiDiYuniokeruShuiTianNongYenoFuXingtoGouZaoBianHua2015NianNongLinYesensasuniyoruTongJiDeFenXi2019" role="doc-biblioref">小野，2019</a>）</span>）、個別経営体の意思決定過程との接続は限定的である。津波被災関連の研究に限定しなければ、農業政策の効果が農家の異質性によって異なることは広く示されてきたものの（<span class="citation" data-cites="deboeImpactsAgriculturalPolicies2020">（<a href="#ref-deboeImpactsAgriculturalPolicies2020" role="doc-biblioref">DeBoe，2020</a>）</span> <span class="citation" data-cites="RiTianNongYeZheHuBieSuoDeBuChangZhiDunoDaoRugaDaoZuoShengChanXingShuiZhunniJibositaYingXiang2024">（<a href="#ref-RiTianNongYeZheHuBieSuoDeBuChangZhiDunoDaoRugaDaoZuoShengChanXingShuiZhunniJibositaYingXiang2024" role="doc-biblioref">日田・澤内・近藤・シモーネ・・山本，2024</a>）</span>）、観察された異質性を地域構造の変化まで追う研究は多くない。潜在クラス分析を用いてマクロデータから農家の異質性を推定する研究はあるが、農家の異質性を実際に観察しているわけではない（<span class="citation" data-cites="PDFHeterogeneousImpacts2026">（<a href="#ref-PDFHeterogeneousImpacts2026" role="doc-biblioref">Saint-Cyr, Storm, Heckelei and Piet，2019</a>）</span>）。また、エージェント・ベース・モデルを用いてミクロとマクロの連関を扱おうとする研究などはあるが、これも農家の異質性を実証データに基づかせるものが少ないと指摘されている（<span class="citation" data-cites="huberBehaviouralSocialFactors2026a">（<a href="#ref-huberBehaviouralSocialFactors2026a" role="doc-biblioref">Huber, Barreiro-Hurlé and Finger，2026</a>）</span>）。</p>
 <p>そこで本稿は、経営体の持つ条件の違いが、津波被災後の個人営農選択と地域農業構造にどのように関係するかを検討する。具体的には、まず宮城県S町の生産組合を対象に、構成員が個人営農を志向した条件をQCAによって明らかにする。次いで、宮城県の旧市区町村別データを用い、S町で確認された経営資源と個人営農選択の関係に整合する地域構造上の傾向が、広域的にも観察されるかを主にセンサスデータを用いて検討する。以上の検討は、津波被災後の復興経路の分岐を理解するための知見となるだけでなく、地域農業構造のマクロな変化を個々の経営体によるミクロな営農選択と関連づけて捉える視座を提示する点でも意義をもつ。</p>
 </section>
 <section id="対象地域と農業復興政策" class="level1" data-number="2">
 <h1 data-number="2"><span class="header-section-number">2</span> 対象地域と農業復興政策</h1>
 <section id="宮城県における被災と政策" class="level2" data-number="2.1">
 <h2 data-number="2.1" class="anchored" data-anchor-id="宮城県における被災と政策"><span class="header-section-number">2.1</span> 宮城県における被災と政策</h2>
-<p>宮城県沿岸部の耕地は津波により大きな被害を受けた。平坦部沿岸市区町村では耕地の42.1％、中山間部では28.3％が被災し、岩手県4.6％、福島県18.5％を上回った（小野，2019）。県の復興計画は原形復旧にとどまらず、効率的な土地利用と経営体の競争力向上を掲げた（宮城県，2011）。農林水産省基幹事業関係の復興交付金配分額も宮城県3,392億円、岩手県1,329億円、福島県701億円で、宮城県が最大であった（東北農政局，2021）。</p>
-<p>農業関連の主な復興事業には、復興交付金のC-1・C-4事業と生産対策交付金が挙げられる。C-1事業（農山漁村地域復興基盤総合整備事業）は農地・農業用施設等の生産基盤を整備し、農地復旧と大区画化を進める。C-4事業（被災地域農業復興総合支援事業）は、市町村が整備した農業用機械・施設を被災農業者等に貸与する。貸与先は農事組合法人や農協等が中心で、個人は認定農業者または新規就農者に限られる。生産対策交付金は推進事業と、生産関連施設の整備のための整備事業に分かれており、推進事業では機械リース、資材の共同調達、GAPの導入などが挙げられる（以上、岡山，2018）。これらの事業は組み合わされて実施されることもあり、仙台東部地域の農業復興の状況を報告する伊藤・小賀坂（2013）では、生産対策交付金だけではすべての農業機械・施設をそろえることが難しく、C-4事業の併用が必要であったことが指摘されている。</p>
+<p>宮城県沿岸部の耕地は津波により大きな被害を受けた。平坦部沿岸市区町村では耕地の42.1％、中山間部では28.3％が被災し、岩手県4.6％、福島県18.5％を上回った（<span class="citation" data-cites="XiaoYeDongRiBenDaZhenZaiJinBoBeiZaiDiYuniokeruShuiTianNongYenoFuXingtoGouZaoBianHua2015NianNongLinYesensasuniyoruTongJiDeFenXi2019">（<a href="#ref-XiaoYeDongRiBenDaZhenZaiJinBoBeiZaiDiYuniokeruShuiTianNongYenoFuXingtoGouZaoBianHua2015NianNongLinYesensasuniyoruTongJiDeFenXi2019" role="doc-biblioref">小野，2019</a>）</span>）。県の復興計画は原形復旧にとどまらず、効率的な土地利用と経営体の競争力向上を掲げた（<span class="citation" data-cites="zotero-item-7397">（<a href="#ref-zotero-item-7397" role="doc-biblioref">宮城県，2011</a>）</span>）。農林水産省基幹事業関係の復興交付金配分額も宮城県3,392億円、岩手県1,329億円、福島県701億円で、宮城県が最大であった（<span class="citation" data-cites="zotero-item-7398">（<a href="#ref-zotero-item-7398" role="doc-biblioref">東北農政局，2021</a>）</span>）。</p>
+<p>農業関連の主な復興事業には、復興交付金のC-1・C-4事業と生産対策交付金が挙げられる。C-1事業（農山漁村地域復興基盤総合整備事業）は農地・農業用施設等の生産基盤を整備し、農地復旧と大区画化を進める。C-4事業（被災地域農業復興総合支援事業）は、市町村が整備した農業用機械・施設を被災農業者等に貸与する。貸与先は農事組合法人や農協等が中心で、個人は認定農業者または新規就農者に限られる。生産対策交付金は推進事業と、生産関連施設の整備のための整備事業に分かれており、推進事業では機械リース、資材の共同調達、GAPの導入などが挙げられる（以上、<span class="citation" data-cites="DongRiBenDaZhenZaikaranoNongYeFuXingwoZhieruZhiDuZhenZaiHou7NiannoQuZumiNongLinJinRongKanXingWu">（<a href="#ref-DongRiBenDaZhenZaikaranoNongYeFuXingwoZhieruZhiDuZhenZaiHou7NiannoQuZumiNongLinJinRongKanXingWu" role="doc-biblioref">岡山，2018</a>）</span>）。これらの事業は組み合わされて実施されることもあり、仙台東部地域の農業復興の状況を報告する<span class="citation" data-cites="zotero-item-7239">（<a href="#ref-zotero-item-7239" role="doc-biblioref">伊藤・小賀坂，2013</a>）</span>では、生産対策交付金だけではすべての農業機械・施設をそろえることが難しく、C-4事業の併用が必要であったことが指摘されている。</p>
 </section>
 <section id="s町における営農再編" class="level2" data-number="2.2">
 <h2 data-number="2.2" class="anchored" data-anchor-id="s町における営農再編"><span class="header-section-number">2.2</span> S町における営農再編</h2>
 <p>S町は三方を海に囲まれた面積13.27km²、人口約2万人の半農半漁の町である。震災前の耕地は田109ha、畑74haで、2010年の基幹的農業従事者の平均年齢は71.3歳と県平均65.3歳を上回っていた。水田の99.1％が津波被害を受けており、町、JA、普及機関は生産組合を復興後の担い手として位置づけていた。</p>
-<p>しかし構成員の反応は一様ではなかった。2014年時点で4名は個人営農を優先し、農地集積によって規模を拡大した。一方、生産組合に全面的に参加したのは主として高齢者であり、組合側も個人志向の構成員を無理に組合営農へ取り込まなかった。このためS町では、生産組合への一元的集約ではなく、組合と複数の大規模個別経営が並存する構造が形成された（ <a href="#tbl-large-farms" class="quarto-xref">Table&nbsp;1</a> ）。</p>
-<div id="tbl-large-farms" class="quarto-float quarto-figure quarto-figure-center anchored">
-<figure class="quarto-float quarto-float-tbl figure">
-<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-large-farms-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;1: S町における大規模経営体数の推移
-</figcaption>
-<div aria-describedby="tbl-large-farms-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<p>しかし構成員の反応は一様ではなかった。2014年時点で4名は個人営農を優先し、農地集積によって規模を拡大した。一方、生産組合に全面的に参加したのは主として高齢者であり、組合側も個人志向の構成員を無理に組合営農へ取り込まなかった。このためS町では、生産組合への一元的集約ではなく、組合と複数の大規模個別経営が並存する構造が形成された（ <strong>?@tbl-large-farms</strong> ）。</p>
 <table class="caption-top table">
+<caption>S町における大規模経営体数の推移</caption>
 <thead>
 <tr class="header">
 <th>年</th>
@@ -148,9 +163,6 @@ Table&nbsp;1: S町における大規模経営体数の推移
 </tr>
 </tbody>
 </table>
-</div>
-</figure>
-</div>
 <p>資料：農林業センサス</p>
 <p>S町では、生産組合を復興後の担い手とする共通の再編方針が示されたにもかかわらず、同一組合の構成員が異なる営農選択を行った。そのため、制度的・政策的環境を共有する経営体間の反応の違いを比較し、各経営体の置かれた条件の差異と営農選択との関係を検討するうえで適した事例である。本稿では、S町を経営体の異質性と地域農業構造の経路分岐との関係を検討する参照事例と位置づける。</p>
 </section>
@@ -159,16 +171,16 @@ Table&nbsp;1: S町における大規模経営体数の推移
 <h1 data-number="3"><span class="header-section-number">3</span> QCAによる構成員の反応経路分析</h1>
 <section id="データと方法" class="level2" data-number="3.1">
 <h2 data-number="3.1" class="anchored" data-anchor-id="データと方法"><span class="header-section-number">3.1</span> データと方法</h2>
-<p>以下では、QCA（質的比較分析）を用いて、S生産組合の構成員が個人営農を志向した条件の組み合わせを探索する。ここで得られた知見は、本稿後半のセンサスデータを用いた広域分析において、検証すべき仮説を導くための参照点とする。QCAは農業経済学分野では適用例が少ないため、以下では各分析操作の意味を説明しながら、実際の分析結果を順に示す。</p>
+<p>以下では、QCA（質的比較分析）を用いて、S生産組合の構成員が個人営農を志向した条件の組み合わせを探索する。ここで得られた知見は、本稿後半のセンサスデータを用いた広域分析において、検証すべき仮説を導くための参照点とする。QCAは農業経済学分野では適用例が少ないため、以下では各分析操作の意味を説明しながら、実際の分析結果を順に示す。QCAの詳細については<span class="citation" data-cites="patoritukuameroZhiDeBiJiaoFenXiQCARisatidezaintoShiJian">（<a href="#ref-patoritukuameroZhiDeBiJiaoFenXiQCARisatidezaintoShiJian" role="doc-biblioref">メロ，2023</a>）</span>を参照した。</p>
 <p>分析対象はS生産組合の構成員である。2013年10～11月に13名、2014年11月に11名へのヒアリング調査を行い、2015年8月には12名への質問紙調査を実施した。組合長、理事および個人営農を志向する構成員には、少なくとも1回の聞き取りを行った。調査項目は年齢、機械保有、営農状況、営農意向、後継者の有無、組合への関与意向等である。</p>
-<p>QCAは集合論に基づき、帰結に結びつく条件の組み合わせを事例間比較から探索する手法である。本稿では二値データを用いるクリスプQCAを採用した。分析手順の流れとしては、まずは帰結、条件のそれぞれをケース（今回の場合は各構成員）ごとに(0, 1)の二値データにコーディングするための基準を設定し、コーディングを行う。次に、各条件の組み合わせごとに帰結が生じているケースがどの程度あるかを整理した真理値表を作成する。そして、帰結に無関係であると考えられる条件を削除するブール最小化を行い、帰結に結びつく条件の組み合わせを抽出する。次に、主に整合度・被覆度といった指標を用いってこの条件の妥当性を検証する。</p>
-<p>本稿では、帰結を「個人での営農意向」として、分析において検討する条件として後継者の有無、主要機械の充足、年齢的継続余力の3つを設定した。個人で営農するか組織で営農するかの規定要因に関する既存研究はみられないが、離農の規定要因に関する計量研究では高齢、後継者の不在、小規模等が離農確率を高める要因として挙げられている（栗原ら2014）。本稿でも基本的にこれらの要因を条件として検討するが、規模については、震災後は各経営体の農地面積が一定せず、調査時点によって回答が変化しやすいという問題がある。そこで比較的回答に安定性の見られる年齢的継続余力と後継者の有無を条件として採用した。また、震災関連の既往研究では、機械喪失が離農や営農再開に影響したことが指摘されているため（渋谷，2012；小野，2019）、主要機械の充足も条件とした。</p>
+<p>QCAは集合論に基づき、帰結に結びつく条件の組み合わせを事例間比較から探索する手法である。本稿では二値データを用いるクリスプQCAを採用した。分析手順の流れとしては、まずは帰結、条件のそれぞれをケース（今回の場合は各構成員）ごとに(0, 1)の二値データにコーディングするための基準を設定し、コーディングを行う。次に、各条件の組み合わせごとに帰結が生じているケースがどの程度あるかを整理した真理値表を作成する。そして、帰結に無関係であると考えられる条件を削除するブール最小化を行い、帰結に結びつく条件の組み合わせを抽出する。次に、主に整合度・被覆度といった指標を用いてこの条件の妥当性を検証する。</p>
+<p>本稿では、帰結を「個人での営農意向」として、分析において検討する条件として後継者の有無、主要機械の充足、年齢的継続余力の3つを設定した。個人で営農するか組織で営農するかの規定要因に関する既存研究はみられないが、離農の規定要因に関する計量研究では高齢、後継者の不在、小規模等が離農確率を高める要因として挙げられている（<span class="citation" data-cites="LiYuanNongYesensasuGePiaowoYongitaLiNongYaoYinnoDiYuBieFenXi2014">（<a href="#ref-LiYuanNongYesensasuGePiaowoYongitaLiNongYaoYinnoDiYuBieFenXi2014" role="doc-biblioref">栗原・霜浦・丸山，2014</a>）</span>）。本稿でも基本的にこれらの要因を条件として検討するが、規模については、震災後は各経営体の農地面積が一定せず、調査時点によって回答が変化しやすいという問題がある。そこで比較的回答に安定性の見られる年齢的継続余力と後継者の有無を条件として採用した。また、震災関連の既往研究では、機械喪失が離農や営農再開に影響したことが指摘されているため（<span class="citation" data-cites="DongRiBenDaZhenZaiBeiZaiNongJianoYingNongJiSokYiXiangtosonoYaoYinnituitenoKaoCha">（<a href="#ref-DongRiBenDaZhenZaiBeiZaiNongJianoYingNongJiSokYiXiangtosonoYaoYinnituitenoKaoCha" role="doc-biblioref">渋谷，2012</a>）</span> <span class="citation" data-cites="XiaoYeDongRiBenDaZhenZaiJinBoBeiZaiDiYuniokeruShuiTianNongYenoFuXingtoGouZaoBianHua2015NianNongLinYesensasuniyoruTongJiDeFenXi2019">（<a href="#ref-XiaoYeDongRiBenDaZhenZaiJinBoBeiZaiDiYuniokeruShuiTianNongYenoFuXingtoGouZaoBianHua2015NianNongLinYesensasuniyoruTongJiDeFenXi2019" role="doc-biblioref">小野，2019</a>）</span>）、主要機械の充足も条件とした。</p>
 <p>まずはコーディングを行う。帰結である「個人での営農意向」は、「個人でやる」「組合と個人の両方でやる」「規模拡大する」等の発言があれば1、「組合でやる」「個人ではやらない」であれば0とした。条件は、後継者ありを1、トラクター・コンバイン・田植機のすべてが使用可能な状態で揃う場合を「主要機械の充足」1、70歳未満を「年齢的継続余力」1とした。寿命が近いと明記された機械は保有に数えなかった。これらのコーディングは2013年および2014年のヒアリング調査の結果に対して行い、2015年調査はコーディング内容の妥当性を補足的に確認するために用いた。複数時点で回答が得られた構成員については、営農意向が確認された時点の年齢、機械保有および後継者に関する情報を用いた。なお、頑健性チェックのため、主要分析について示したあと、上記の条件に関する判定基準を変えた分析結果も示す。</p>
-<p>各ケースのコーディング結果は <a href="#tbl-qca-coding-result" class="quarto-xref">Table&nbsp;2</a> の通りである。後継者の有無については調査時点により回答に一部相違がみられたため、営農意向について回答が得られた時点の後継者回答を用いた。欠損のある8, 9, 11については分析から外す。分析対象は計12名のデータである。</p>
+<p>各ケースのコーディング結果は <a href="#tbl-qca-coding-result" class="quarto-xref">Table&nbsp;1</a> の通りである。後継者の有無については調査時点により回答に一部相違がみられたため、営農意向について回答が得られた時点の後継者回答を用いた。欠損のある8, 9, 11については分析から外す。分析対象は計12名のデータである。</p>
 <div id="tbl-qca-coding-result" class="cell quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-qca-coding-result-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;2: 各ケースのコーディング結果
+Table&nbsp;1: 各ケースのコーディング結果
 </figcaption>
 <div aria-describedby="tbl-qca-coding-result-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="cell-output cell-output-stdout">
@@ -195,11 +207,11 @@ Table&nbsp;2: 各ケースのコーディング結果
 </section>
 <section id="分析結果" class="level2" data-number="3.2">
 <h2 data-number="3.2" class="anchored" data-anchor-id="分析結果"><span class="header-section-number">3.2</span> 分析結果</h2>
-<p><a href="#tbl-qca-base" class="quarto-xref">Table&nbsp;3</a> は真理値表である。条件構成ごとのケース数と帰結の整合度（該当するケースのうち、帰結が生じているケースの割合）を求め、整合度0.80以上、ケース数1以上を帰結1と判定した。帰結1と判定した条件構成は2つあり、両者で年齢的継続余力=1、主要機械の充足=1という点は共通しているが、後継者については共通していない。この場合、後継者は1でも0でも帰結が生じているため、条件厚生から削除することができる（ブール最小化）。結果として、[年齢的継続余力×主要機械の充足→個人での営農意向]という十分条件が導き出される。</p>
+<p><a href="#tbl-qca-base" class="quarto-xref">Table&nbsp;2</a> は真理値表である。条件構成ごとのケース数と帰結の整合度（該当するケースのうち、帰結が生じているケースの割合）を求め、整合度0.80以上、ケース数1以上を帰結1と判定した。ただし、帰結1に採用された構成の整合度はいずれも1.00であり、閾値近傍の判定に結果が依存するものではない。帰結1と判定した条件構成は2つあり、両者で年齢的継続余力=1、主要機械の充足=1という点は共通しているが、後継者については共通していない。この場合、後継者は1でも0でも帰結が生じているため、条件構成から削除することができる（ブール最小化）。結果として、[年齢的継続余力×主要機械の充足→個人での営農意向]という十分条件が導き出される。</p>
 <div id="tbl-qca-base" class="cell quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-qca-base-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;3: 個人営農意向に関する真理値表
+Table&nbsp;2: 個人営農意向に関する真理値表
 </figcaption>
 <div aria-describedby="tbl-qca-base-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="cell-output cell-output-stdout">
@@ -228,11 +240,11 @@ Table&nbsp;3: 個人営農意向に関する真理値表
 </div>
 <p>注：―は該当ケースがないため整合度を算出できないことを示す。</p>
 <p>次に整合度と被覆度を求める。十分条件の整合度は当該条件に属するケースのうち帰結も生じた割合、被覆度は帰結ケースのうち当該条件が説明する割合である。整合度が高いということはより厳密な意味で十分条件になっているということであり、被覆度が高いということはその十分条件でより広範なケースを説明できるということである。今求めた十分条件については、該当する3ケースすべてに帰結が生じ、整合度は1.00、帰結4ケース中3ケースを覆うため被覆度は0.75である。</p>
-<p>次に、十分条件を構成する2つの条件について、単独で必要条件となるかを評価する必要条件分析を行った（ <a href="#tbl-qca-nec" class="quarto-xref">Table&nbsp;4</a> ）。整合度、被覆度の考え方は十分条件の場合と同様である。年齢条件については、個人営農を希望した4名は全員70歳未満であるため、整合度は1.00である。一方、70歳未満9名のうち帰結が生じたのは4名にすぎないため、被覆度が4/9 = 0.44であった。年齢は必要条件ではあるが、年齢だけでは帰結を絞り込めないということである。機械条件は整合度0.75、被覆度1.00であり、必要条件とはいえなかった。</p>
+<p>次に、十分条件を構成する2つの条件について、単独で必要条件となるかを評価する必要条件分析を行った（ <a href="#tbl-qca-nec" class="quarto-xref">Table&nbsp;3</a> ）。整合度、被覆度の考え方は十分条件の場合と同様である。年齢条件については、個人営農を希望した4名は全員70歳未満であるため、整合度は1.00である。一方、70歳未満9名のうち帰結が生じたのは4名にすぎないため、被覆度が4/9 = 0.44であった。年齢は必要条件ではあるが、年齢だけでは帰結を絞り込めないということである。機械条件は整合度0.75、被覆度1.00であり、必要条件とはいえなかった。</p>
 <div id="tbl-qca-nec" class="cell quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-qca-nec-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;4: 必要条件分析
+Table&nbsp;3: 必要条件分析
 </figcaption>
 <div aria-describedby="tbl-qca-nec-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="cell-output cell-output-stdout">
@@ -250,11 +262,11 @@ Table&nbsp;4: 必要条件分析
 </div>
 </figure>
 </div>
-<p>閾値への依存を確かめるため、主要3機種中2種類以上を保有する場合を1とする機械Ⅱと、75歳未満を1とする年齢Ⅱを用いた。 <a href="#tbl-qca-agecap2" class="quarto-xref">Table&nbsp;5</a> のとおり、機械と年齢の組み合わせが十分条件となる主要結果は維持された。機械Ⅱでは被覆度が1.00となり、単独でも必要条件となった。この結果は、年齢面の継続可能性を前提として、利用可能な機械という経営資源が個人営農の選択可能性を広げることを示唆する。</p>
+<p>閾値への依存を確かめるため、主要3機種中2種類以上を保有する場合を1とする機械Ⅱと、75歳未満を1とする年齢Ⅱを用いた。 <a href="#tbl-qca-agecap2" class="quarto-xref">Table&nbsp;4</a> のとおり、機械と年齢の組み合わせが十分条件となる主要結果は維持された。機械Ⅱでは被覆度が1.00となり、単独でも必要条件となった。この結果は、年齢面の継続可能性を前提として、利用可能な機械という経営資源が個人営農の選択可能性を広げることを示唆する。</p>
 <div id="tbl-qca-agecap2" class="cell quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-qca-agecap2-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;5: キャリブレーション変更による頑健性確認（年齢Ⅱ使用）
+Table&nbsp;4: キャリブレーション変更による頑健性確認（年齢Ⅱ使用）
 </figcaption>
 <div aria-describedby="tbl-qca-agecap2-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="cell-output cell-output-stdout">
@@ -289,7 +301,7 @@ M1: mechcap*agecap2 -&gt; indint
 <div id="tbl-qca-mechcap2" class="cell quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-qca-mechcap2-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;6: キャリブレーション変更による頑健性確認（機械Ⅱ使用）
+Table&nbsp;5: キャリブレーション変更による頑健性確認（機械Ⅱ使用）
 </figcaption>
 <div aria-describedby="tbl-qca-mechcap2-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="cell-output cell-output-stdout">
@@ -322,24 +334,24 @@ M1: mechcap2*agecap &lt;-&gt; indint
 </figure>
 </div>
 <p>注：機械Ⅱは主要3機種中2種類以上を保有、年齢Ⅱは75歳未満。</p>
-<p>以上のS生産組合の構成員を対象としたQCAからは、機械充足と年齢的継続余力の二条件が組み合わさるとで個人営農継続が可能となるという仮説が示唆される。先述の通り、機械喪失が離農や営農再開に影響したことは既往研究でも指摘されてきたことだが、これに対して本稿は、個人営農か組織営農かという営農形態の選択に着目し、機械保有が年齢的継続余力と組み合わさって個人営農意向に結びつく可能性を示した。</p>
-<p>以上の結果について考察する。S生産組合はもともと大豆転作組合にすぎず、S町の担い手として位置づけようとする動きは震災後から始まったものである。組合員へのヒアリングでは、現状の組織経営の非効率や今後の方向性の不確実性に関する懸念が聞かれた。組織へのコミットを明言している組合員からは組合での営農に参加せず個人で営農拡大する組合員の存在を指摘する発言はあったものの、組合長等らは彼らを無理に組合にコミットさせるつもりはないという考えであった。一方で、機械面でも年齢面でも余裕のある組合員の中には、年を取ったら組合で営農するという主旨の発言をする者もいた。つまり、機械面・年齢面で余裕があることにより選択肢の範囲が比較的広いため、現時点では将来性で未知数である組織にコミットするよりも、確実性の高い個人営農を選択したものと思われる。この選択は、新設された組織の将来性が不透明な状況において、既存の経営資源を利用して不確実性を抑えようとする対応として理解できる。</p>
+<p>以上のS生産組合の構成員を対象としたQCAからは、機械充足と年齢的継続余力の二条件が組み合わさることで個人営農継続が可能となるという仮説が示唆される。先述の通り、機械喪失が離農や営農再開に影響したことは既往研究でも指摘されてきたことだが、これに対して本稿は、個人営農か組織営農かという営農形態の選択に着目し、機械保有が年齢的継続余力と組み合わさって個人営農意向に結びつく可能性を示した。</p>
+<p>以上の結果について考察する。S生産組合はもともと大豆転作組合にすぎず、S町の担い手として位置づけようとする動きは震災後から始まったものである。組合員へのヒアリングでは、現状の組織経営の非効率や今後の方向性の不確実性に関する懸念が聞かれた。組織へのコミットを明言している組合員からは組合での営農に参加せず個人で営農拡大する組合員の存在を指摘する発言はあったものの、組合長等らは彼らを無理に組合にコミットさせるつもりはないという考えであった。一方で、機械面でも年齢面でも余裕のある組合員の中には、年を取ったら組合で営農するという主旨の発言をする者もいた。つまり、機械面・年齢面で余裕があることにより選択肢の幅が比較的広いため、現時点では将来性で未知数である組織にコミットするよりも、確実性の高い個人営農を選択したものと思われる。この選択は、新設された組織の将来性が不透明な状況において、既存の経営資源を利用して不確実性を抑えようとする対応として理解できる。</p>
 </section>
 </section>
 <section id="旧市区町村データによる広域的検討" class="level1" data-number="4">
 <h1 data-number="4"><span class="header-section-number">4</span> 旧市区町村データによる広域的検討</h1>
 <section id="データと分析モデル" class="level2" data-number="4.1">
 <h2 data-number="4.1" class="anchored" data-anchor-id="データと分析モデル"><span class="header-section-number">4.1</span> データと分析モデル</h2>
-<p>S町で見られたような、営農余力の有無による個人営農継続への影響は、他地域でもみられる可能性がある。組織経営体に優先的に機械リースが行われたとはいえ、個人での営農継続が可能であるならば、個人での営農を継続する方が合理的な面があると考えられる。小野ら(2020)によれば、震災後、組織経営体の集積率は全体として上昇しているが、幸田ら（2019）によれば、急激に経営規模を拡大するなかでは農地分散などの問題が発生することもあるという。とくに震災後新設した組織の場合は不確実性がいっそう強くなる。そうしたリスクを考慮するなら、個人での営農を継続できるうちは継続した方が不確実性を減らすことができるのである。</p>
-<p>このような営農余力と個人営農継続の関係が、宮城県内の津波被災地域でも観察されるかを旧市区町村単位で検討する。ただし、QCAで重要であった機械充足と年齢との組み合わせは集計データから復元できず、広域分析は機械保有という一側面との整合性確認に限定される。したがって、以降の分析は旧市区町村分析はQCAで得られた条件構成を直接検証するものではない。個人営農の選択可能性を構成する一要素として示された機械保有が、地域単位の個人経営体数の変化とも整合的な関係を示すかを探索的に検討するものである。以下では次のような仮説を検証する。</p>
-<p>仮説：機械所有個人経営体割合の大きい地域ほど個人経営体数の残存率が大きい</p>
+<p>S町で見られたような、営農余力の有無による個人営農継続への影響は、他地域でもみられる可能性がある。組織経営体に優先的に機械リースが行われたとはいえ、個人での営農継続が可能であるならば、個人での営農を継続する方が合理的な面があると考えられる。<span class="citation" data-cites="XiaoYeDongRiBenDaZhenZaiJinBoBeiZaiDiYuniokeruShuiTianNongYeFuXingnoXianZhuangNongYeGouZaoBianHuatoZuZhiJingYingTinoZhuTeZheng2020">（<a href="#ref-XiaoYeDongRiBenDaZhenZaiJinBoBeiZaiDiYuniokeruShuiTianNongYeFuXingnoXianZhuangNongYeGouZaoBianHuatoZuZhiJingYingTinoZhuTeZheng2020" role="doc-biblioref">小野・吉田・石原・平林・福田・畠・吉井，2020</a>）</span>によれば、震災後、組織経営体の集積率は全体として上昇しているが、<span class="citation" data-cites="XingTianJinBoBeiZaiDiniokeruJiSunaNongDiJiJinoJinZhantoKeTi2019">（<a href="#ref-XingTianJinBoBeiZaiDiniokeruJiSunaNongDiJiJinoJinZhantoKeTi2019" role="doc-biblioref">幸田・福与・重岡・八木，2019</a>）</span>によれば、急激に経営規模を拡大するなかでは農地分散などの問題が発生することもあるという。とくに震災後新設した組織の場合は不確実性がいっそう強くなる。そうしたリスクを考慮するなら、個人での営農を継続できるうちは継続した方が不確実性を減らすことができるのである。</p>
+<p>このような営農余力と個人営農継続の関係が、宮城県内の津波被災地域でも観察されるかを旧市区町村単位で検討する。ただし、QCAで重要であった機械充足と年齢との組み合わせは集計データから復元できず、広域分析は機械保有という一側面との整合性確認に限定される。したがって、以降の分析は旧市区町村分析はQCAで得られた条件構成を直接検証するものではない。個人営農の選択可能性を構成する一要素として示された機械保有が、地域単位の個人経営体数の変化とも整合的な関係を示すかを探索的に検討するものである。検討するのは以下のような仮説である。</p>
+<p>仮説：震災前に個人経営体による農業機械所有の厚い地域ほど、津波被災程度および復興事業の実施状況を統制しても、その後の個人経営体残存率が高い。</p>
 <p>目的変数は2015年の個人経営体数を2010年の個人経営体数で除した「個人経営体残存率」である。個人経営体数を直接目的変数とするとその地域の規模を強く反映した変数となり、分析の主旨とずれるため、残存率を目的変数とする。ただし同一経営体の存続を追跡した値ではないため、これはあくまで地域全体の個人経営体数の残存比である。なお、分析の後半では2015年ではなく2020年の個人経営体数を用いた残存率についても検討する。</p>
-<p>説明変数には、C-1、C-4、生産対策交付金の実施ダミー、2010年のコンバイン・トラクター・田植機所有個人経営体割合を用いた。事業ダミーは実施地区と旧市区町村境界の位置関係をGISで照合して作成した。生産対策交付金は機械導入に関する事業のみを数えた。各機械の所有個人経営体割合は、センサスで非個人経営体の機械所有数が得られないため、「機械所有経営体数－非個人経営体数」を個人経営体数で除した代理変数を用いる。非個人経営体のすべてが当該機械を持つと仮定するため、推定される個人所有数は下限値となる。統制変数は2010年の個人経営体割合と津波被災圃場割合である。後者は2009年国土数値情報の土地利用メッシュから「田」と「その他の農用地」を抽出し、国土地理院の津波浸水範囲および2010年農業集落境界データに収録された旧市区町村境界と重ね合わせ、旧市区町村別の被災圃場面積を推計した<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a>。被災圃場が確認された地域のみを分析対象とした。</p>
-<p><a href="#tbl-descriptives-individual-2015-2010-ratio" class="quarto-xref">Table&nbsp;7</a> は分析に使用する変数の記述統計量である。</p>
+<p>説明変数には、C-1、C-4、生産対策交付金の実施ダミー、2010年のコンバイン・トラクター・田植機所有個人経営体割合を用いた。なお、この変数は震災後の機械利用可能性ではなく、被災前の個人経営体による経営資源の厚みを表す<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a>。事業ダミーは実施地区と旧市区町村境界の位置関係をGISで照合して作成した。生産対策交付金は機械導入に関する事業のみを数えた。各機械の所有個人経営体割合は、センサスで非個人経営体の機械所有数が得られないため、「機械所有経営体数－非個人経営体数」を個人経営体数で除した代理変数を用いる。非個人経営体のすべてが当該機械を持つと仮定するため、推定される個人所有数は下限値となる。統制変数は2010年の個人経営体割合と津波被災圃場割合である。後者は2009年国土数値情報の土地利用メッシュから「田」と「その他の農用地」を抽出し、国土地理院の津波浸水範囲および2010年農業集落境界データに収録された旧市区町村境界と重ね合わせ、旧市区町村別の被災圃場面積を推計した<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a>。被災圃場が確認された地域のみを分析対象とした。</p>
+<p><a href="#tbl-descriptives-individual-2015-2010-ratio" class="quarto-xref">Table&nbsp;6</a> は分析に使用する変数の記述統計量である。</p>
 <div id="tbl-descriptives-individual-2015-2010-ratio" class="cell quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-descriptives-individual-2015-2010-ratio-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;7: 記述統計量（個人経営体残存率（2015/2010））
+Table&nbsp;6: 記述統計量（個人経営体残存率（2015/2010））
 </figcaption>
 <div aria-describedby="tbl-descriptives-individual-2015-2010-ratio-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="cell-output cell-output-stdout">
@@ -354,7 +366,7 @@ Table&nbsp;7: 記述統計量（個人経営体残存率（2015/2010））
 <div id="tbl-descriptives-individual-2020-2010-ratio" class="cell quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-descriptives-individual-2020-2010-ratio-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;8: 記述統計量（個人経営体残存率（2020/2010））
+Table&nbsp;7: 記述統計量（個人経営体残存率（2020/2010））
 </figcaption>
 <div aria-describedby="tbl-descriptives-individual-2020-2010-ratio-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="cell-output cell-output-stdout">
@@ -369,7 +381,7 @@ Table&nbsp;8: 記述統計量（個人経営体残存率（2020/2010））
 <div id="tbl-descriptives-C1" class="cell quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-descriptives-C1-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;9: 記述統計量（C-1実施）
+Table&nbsp;8: 記述統計量（C-1実施）
 </figcaption>
 <div aria-describedby="tbl-descriptives-C1-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="cell-output cell-output-stdout">
@@ -384,7 +396,7 @@ Table&nbsp;9: 記述統計量（C-1実施）
 <div id="tbl-descriptives-C4" class="cell quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-descriptives-C4-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;10: 記述統計量（C-4実施）
+Table&nbsp;9: 記述統計量（C-4実施）
 </figcaption>
 <div aria-describedby="tbl-descriptives-C4-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="cell-output cell-output-stdout">
@@ -399,7 +411,7 @@ Table&nbsp;10: 記述統計量（C-4実施）
 <div id="tbl-descriptives-production-support" class="cell quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-descriptives-production-support-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;11: 記述統計量（生産対策交付金）
+Table&nbsp;10: 記述統計量（生産対策交付金）
 </figcaption>
 <div aria-describedby="tbl-descriptives-production-support-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="cell-output cell-output-stdout">
@@ -414,7 +426,7 @@ Table&nbsp;11: 記述統計量（生産対策交付金）
 <div id="tbl-descriptives-individual-combine-owner-share-min_2010" class="cell quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-descriptives-individual-combine-owner-share-min_2010-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;12: 記述統計量（コンバイン所有割合（2010））
+Table&nbsp;11: 記述統計量（コンバイン所有割合（2010））
 </figcaption>
 <div aria-describedby="tbl-descriptives-individual-combine-owner-share-min_2010-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="cell-output cell-output-stdout">
@@ -429,7 +441,7 @@ Table&nbsp;12: 記述統計量（コンバイン所有割合（2010））
 <div id="tbl-descriptives-individual-tractor-owner-share-min-2010" class="cell quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-descriptives-individual-tractor-owner-share-min-2010-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;13: 記述統計量（トラクター所有割合（2010））
+Table&nbsp;12: 記述統計量（トラクター所有割合（2010））
 </figcaption>
 <div aria-describedby="tbl-descriptives-individual-tractor-owner-share-min-2010-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="cell-output cell-output-stdout">
@@ -444,7 +456,7 @@ Table&nbsp;13: 記述統計量（トラクター所有割合（2010））
 <div id="tbl-descriptives-individual-rice-transplanter-owner-share-min-2010" class="cell quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-descriptives-individual-rice-transplanter-owner-share-min-2010-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;14: 記述統計量（田植機所有割合（2010））
+Table&nbsp;13: 記述統計量（田植機所有割合（2010））
 </figcaption>
 <div aria-describedby="tbl-descriptives-individual-rice-transplanter-owner-share-min-2010-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="cell-output cell-output-stdout">
@@ -459,7 +471,7 @@ Table&nbsp;14: 記述統計量（田植機所有割合（2010））
 <div id="tbl-descriptives-individual-share-2010" class="cell quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-descriptives-individual-share-2010-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;15: 記述統計量（個人経営体割合（2010））
+Table&nbsp;14: 記述統計量（個人経営体割合（2010））
 </figcaption>
 <div aria-describedby="tbl-descriptives-individual-share-2010-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="cell-output cell-output-stdout">
@@ -474,7 +486,7 @@ Table&nbsp;15: 記述統計量（個人経営体割合（2010））
 <div id="tbl-descriptives-tsunami-farmland-share-2010" class="cell quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-descriptives-tsunami-farmland-share-2010-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;16: 記述統計量（津波被災圃場割合）
+Table&nbsp;15: 記述統計量（津波被災圃場割合）
 </figcaption>
 <div aria-describedby="tbl-descriptives-tsunami-farmland-share-2010-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="cell-output cell-output-stdout">
@@ -490,12 +502,12 @@ Table&nbsp;16: 記述統計量（津波被災圃場割合）
 <section id="推定結果" class="level2" data-number="4.2">
 <h2 data-number="4.2" class="anchored" data-anchor-id="推定結果"><span class="header-section-number">4.2</span> 推定結果</h2>
 <p>復興事業の実施は被災程度と独立ではない。津波被災圃場割合を説明変数とするロジットモデルのオッズ比は、C-1が28.81、C-4が18.36、生産対策交付金が16.10で、いずれも1％水準で有意であった。事業間の相関係数はC-1とC-4が0.56、C-1と生産対策交付金が0.32、C-4と生産対策交付金が0.35である。そこでOLSでは3事業を同時に投入し、津波被災圃場割合を統制した。</p>
-<p><a href="#tbl-m1" class="quarto-xref">Table&nbsp;17</a> では、C-4実施、コンバイン所有割合、津波被災圃場割合が有意であった。他の条件を一定とすると、C-4実施地域は個人経営体残存率が15ポイント低い。コンバイン所有割合が10ポイント高い地域では残存率が5ポイント高く、津波被災圃場割合が10ポイント高い地域では3.4ポイント低い。なお、小規模地域では少数の個人経営体の増減によって残存率が大きく変動しやすく、不均一分散が生じている可能性がある。この点を考慮し、HC3ロバスト標準誤差によって検定した。その結果、津波被災圃場割合およびC-4実施の負の関連と、コンバイン所有割合の正の関連はいずれも5％水準で有意であり、通常の標準誤差を用いた場合と有意性の判定は変わらなかった。</p>
+<p><a href="#tbl-m1" class="quarto-xref">Table&nbsp;16</a> では、C-4実施、コンバイン所有割合、津波被災圃場割合が有意であった。他の条件を一定とすると、C-4実施地域は個人経営体残存率が15ポイント低い。コンバイン所有割合が10ポイント高い地域では残存率が5ポイント高く、津波被災圃場割合が10ポイント高い地域では3.4ポイント低い。なお、小規模地域では少数の個人経営体の増減によって残存率が大きく変動しやすく、不均一分散が生じている可能性がある。この点を考慮し、HC3ロバスト標準誤差によって検定した。その結果、津波被災圃場割合およびC-4実施の負の関連と、コンバイン所有割合の正の関連はいずれも5％水準で有意であり、通常の標準誤差を用いた場合と有意性の判定は変わらなかった。</p>
 <p>M2およびM3も、小規模地域の値が推定結果に及ぼす影響を確認するためのモデルである。M2では2010年の個人経営体数をウェイトとして、大規模地域を相対的に重視した推定を行った。M3では2010年の個人経営体数が第1四分位以下の地域を除外した。M4では、残存率の増減が比率尺度上で非対称となることを考慮し、目的変数を対数変換した。例えば、残存率が2倍になる変化と2分の1になる変化は、対数尺度上ではそれぞれ同じ大きさの正負の変化として表される。これらのモデルでも主要変数の係数の符号は維持され、津波被災圃場割合とコンバイン所有割合の関連は一貫して確認された。C-4の係数も一貫して負であったが、M2およびM3では有意水準が10％に低下した。</p>
 <div id="tbl-m1" class="cell quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-m1-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;17: 個人経営体残存率のOLS推定結果（基本モデル）
+Table&nbsp;16: 個人経営体残存率のOLS推定結果（基本モデル）
 </figcaption>
 <div aria-describedby="tbl-m1-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="cell-output cell-output-stdout">
@@ -594,7 +606,7 @@ Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 <div id="tbl-m2" class="cell quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-m2-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;18: ‘　2015年残存率モデルの頑健性確認(M2：2010年個人経営体数で重み付け。)’
+Table&nbsp;17: ‘　2015年残存率モデルの頑健性確認(M2：2010年個人経営体数で重み付け。)’
 </figcaption>
 <div aria-describedby="tbl-m2-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="cell-output cell-output-stdout">
@@ -666,7 +678,7 @@ individual_rice_transplanter_owner_share_min_2010
 <div id="tbl-m3" class="cell quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-m3-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;19: 2015年残存率モデルの頑健性確認(M3：2010年個人経営体数75以下を除外。)
+Table&nbsp;18: 2015年残存率モデルの頑健性確認(M3：2010年個人経営体数75以下を除外。)
 </figcaption>
 <div aria-describedby="tbl-m3-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="cell-output cell-output-stdout">
@@ -738,7 +750,7 @@ individual_rice_transplanter_owner_share_min_2010
 <div id="tbl-m4" class="cell quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-m4-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;20: 2015年残存率モデルの頑健性確認(M4：目的変数を対数変換)
+Table&nbsp;19: 2015年残存率モデルの頑健性確認(M4：目的変数を対数変換)
 </figcaption>
 <div aria-describedby="tbl-m4-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="cell-output cell-output-stdout">
@@ -806,11 +818,11 @@ individual_rice_transplanter_owner_share_min_2010
 </div>
 </figure>
 </div>
-<p><a href="#tbl-m5" class="quarto-xref">Table&nbsp;21</a> は、2010年から2020年の個人経営体残存率を用いた分析結果であり、M5は基本モデル、M6は個人経営体による重み付きモデル、M7は小規模地域除外モデル、M8は目的変数を対数変換したモデルである。津波被災圃場割合の負の関連は一貫して確認された( <a href="#tbl-m5" class="quarto-xref">Table&nbsp;21</a> )。C-4も多くのモデルで負の関連を示した。一方、機械所有割合については、コンバインの正の関連が複数のモデルで確認されたものの、サンプルの限定や重み付けによって有意となる機種が変化しており、機種別の結果は2015年モデルほど一貫していない。震災直後の経営資源は短期的な継続と結びつくが、10年間には追加投資、継承、再編等が介在するためと考えられる。</p>
+<p><a href="#tbl-m5" class="quarto-xref">Table&nbsp;20</a> は、2010年から2020年の個人経営体残存率を用いた分析結果であり、M5は基本モデル、M6は個人経営体による重み付きモデル、M7は小規模地域除外モデル、M8は目的変数を対数変換したモデルである。津波被災圃場割合の負の関連は一貫して確認された( <a href="#tbl-m5" class="quarto-xref">Table&nbsp;20</a> )。C-4も多くのモデルで負の関連を示した。一方、機械所有割合については、コンバインの正の関連が複数のモデルで確認されたものの、サンプルの限定や重み付けによって有意となる機種が変化しており、機種別の結果は2015年モデルほど一貫していない。したがって、長期については「機械保有一般が残存を促す」という仮説が一貫して支持されたとはいえない。震災直後の経営資源は短期的な継続と結びつくが、10年間には追加投資、継承、再編等が介在するためと考えられる。</p>
 <div id="tbl-m5" class="cell quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-m5-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;21: 目的変数を2020年残存率に変更した結果(M5：基本モデル)
+Table&nbsp;20: 目的変数を2020年残存率に変更した結果(M5：基本モデル)
 </figcaption>
 <div aria-describedby="tbl-m5-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="cell-output cell-output-stdout">
@@ -904,11 +916,11 @@ Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 </div>
 </figure>
 </div>
-<p>モデルの定義と有意水準は <a href="#tbl-m1" class="quarto-xref">Table&nbsp;17</a> と同じ。</p>
+<p>モデルの定義と有意水準は <a href="#tbl-m1" class="quarto-xref">Table&nbsp;16</a> と同じ。</p>
 <div id="tbl-m6" class="cell quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-m6-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;22: 目的変数を2020年残存率に変更した結果(M6：2010年個人経営体数で重み付け)
+Table&nbsp;21: 目的変数を2020年残存率に変更した結果(M6：2010年個人経営体数で重み付け)
 </figcaption>
 <div aria-describedby="tbl-m6-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="cell-output cell-output-stdout">
@@ -979,7 +991,7 @@ individual_rice_transplanter_owner_share_min_2010
 <div id="tbl-m7" class="cell quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-m7-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;23: 目的変数を2020年残存率に変更した結果(M7：2010年個人経営体数75以下を除外)
+Table&nbsp;22: 目的変数を2020年残存率に変更した結果(M7：2010年個人経営体数75以下を除外)
 </figcaption>
 <div aria-describedby="tbl-m7-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="cell-output cell-output-stdout">
@@ -1049,7 +1061,7 @@ individual_rice_transplanter_owner_share_min_2010
 <div id="tbl-m8" class="cell quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-m8-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;24: 目的変数を2020年残存率に変更した結果(M8：目的変数を対数変換)
+Table&nbsp;23: 目的変数を2020年残存率に変更した結果(M8：目的変数を対数変換)
 </figcaption>
 <div aria-describedby="tbl-m8-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="cell-output cell-output-stdout">
@@ -1120,40 +1132,69 @@ individual_rice_transplanter_owner_share_min_2010
 </section>
 <section id="考察" class="level1" data-number="5">
 <h1 data-number="5"><span class="header-section-number">5</span> 考察</h1>
-<p>第一に、S町では年齢と機械保有の組み合わせが個人営農意向を強く規定していた。若くても機械がなければ個人営農を選べず、機械があっても高齢であれば継続は難しい。両条件の結合は、単なる属性ではなく、復興後に個人営農を「選べる」実行可能性を表している。構成員間の実行可能性の差が、同じ生産組合の内部に個人志向と組織志向を生み、結果として複数の大規模経営体と組織経営体の並存へつながったと解釈できる。</p>
+<p>第一に、S町では年齢と機械保有の組み合わせが個人営農意向を強く規定していた。若くても機械がなければ個人営農を選択しにくく、機械があっても高齢であれば継続は難しい。両条件の結合は、単なる属性ではなく、復興後に個人営農を選択できるという、営農上の選択肢の幅を表している。こうした選択肢の幅の違いが、同じ生産組合の内部に個人志向と組織志向を生み、結果として複数の大規模個別経営と組織経営体の並存につながったと解釈できる。</p>
 <p>第二に、旧市区町村分析でも、震災前のコンバイン所有割合が2015年までの個人経営体数の残存と正に関連した。コンバインは3機種のうち所有割合が最も低く、平均31％であるため、個別経営が営農を再開・継続できる経営資源の厚みを識別した可能性がある。この結果は年齢との結合を直接検証したものではないが、S町で観察されたメカニズムと整合的である。</p>
-<p>第三に、C-4実施と個人経営体残存率の負の関連は、一部地域で機械・施設が組織経営体に集中的に配分され、個別経営の減少と組織化が同時に進んだ可能性を示す。しかし、事業は被災程度や地域の復興方針に応じて選択されており、実施ダミーは内生的である。津波被災圃場割合を統制しても、観察されない選択要因は残る。したがって、この係数をC-4の因果的な政策効果、まして個別経営を退出させた効果と解釈することはできない。ここで重要なのは、同じ支援でも既存資源や年齢構成により受け皿と反応が異なり、最終的な経営体構成も異なりうる点である。</p>
+<p>第三に、C-4実施と個人経営体残存率の負の関連は、一部地域で機械・施設が組織経営体に集中的に配分され、個別経営の減少と組織化が同時に進んだ可能性を示唆している。しかし、事業は被災程度や地域の復興方針に応じて選択されており、実施ダミーは内生的である。津波被災圃場割合を統制しても、観察されない選択要因は残る。したがって、この係数をC-4の因果的な政策効果、まして個別経営を退出させた効果と解釈することはできない。ここで重要なのは、同じ支援でも既存資源や年齢構成により受け皿と反応が異なり、最終的な経営体構成も異なりうる点である。</p>
 </section>
 <section id="結論" class="level1" data-number="6">
 <h1 data-number="6"><span class="header-section-number">6</span> 結論</h1>
 <p>津波被災後の地域農業構造は、被災や復興事業から直接かつ一様に生じるのではなく、異質な経営体の選択が累積して形成される。S町では、年齢的継続余力と主要機械の充足の組み合わせが個人営農意向の十分条件となり、宮城県の旧市区町村分析でも、震災前のコンバイン所有割合が短期的な個人経営体残存率と正に関連した。政策評価では平均的効果だけでなく、誰が支援を利用でき、個別継続と組織参加のどちらを選べたのか、その集積が地域の担い手構造をどう変えたのかを追跡する必要がある。</p>
 <p>本稿の分析には三つの限界がある。第一に、QCAは単一組織の12ケースを対象としており、未観察の条件や調査時点間の変化を十分に捉えていない。第二に、旧市区町村データは集計値であり、個々の経営体の年齢と機械保有の組み合わせや同一経営体の存続を確認できない。第三に、政策配置の内生性を解消していない。今後は農業集落単位のパネルデータと経営体個票を用い、被災前の条件、政策実施、経営体の移行、地域構造の変化を多層的に接続する必要がある。</p>
-</section>
-<section id="引用文献" class="level1" data-number="7">
-<h1 data-number="7"><span class="header-section-number">7</span> 引用文献</h1>
-<ul>
-<li><p>DeBoe, Gwendolen. Impacts of Agricultural Policies on Productivity and Sustainability Performance in Agriculture: A Literature Review. OECD Food, Agriculture and Fisheries Papers, 2020.</p></li>
-<li><p>Huber, Robert, Jesús Barreiro-Hurlé &amp; Robert Finger. Behavioural and social factors in farm-level agent-based models for European agricultural policy evaluations. European Review of Agricultural Economics, 2026.</p></li>
-<li><p>日田アトム, 澤内大輔, 近藤功庸, シモーネ・セヴェリー二 , 山本康貴「農業者戸別所得補償制度の導入が稲作生産性水準に及ぼした影響」, 『経済研究』, 75(1), 2024. pp1–27.</p></li>
-<li><p>岡山信夫「東日本大震災からの農業復興を支える制度─震災後７年の取組み─」, 『農林金融』, 71(3), 2018. pp34–50.</p></li>
-<li><p>小野智昭「東日本大震災津波被災地域における水田農業の復興と構造変化―2015年農林業センサスによる統計的分析―」, 『農林水産政策研究』, 30, 2019. pp23–59.</p></li>
-<li><p>Saint-Cyr, Legrand. Heterogeneous Farm‐size Dynamics and Impacts of Subsidies from Agricultural Policy: Evidence from France. Journal of Agricultural Economics, 73(3), 2022. pp.893–923.</p></li>
-<li><p>宮城県（2011）『みやぎの農業・農村復興計画』</p></li>
-<li><p>東北農政局（2021）『農業・農村の復興・再生に向けた取組と動き』</p></li>
-<li><p>伊藤房雄, と小賀坂行也. 2013年. 「宮城県における被災地の農業復旧の現状と復興に向けた課題」. 農村と都市をむすぶ 736: 5–12.</p></li>
-<li><p>渋谷往男. 2012年. 「東日本大震災被災農家の営農継続意向とその要因についての考察」. 農業経営研究.</p></li>
-<li><p>小野智昭, 吉田行郷, 石原清史, ほか. 2020年. 「東日本大震災津波被災地域における水田農業復興の現状―農業構造変化と組織経営体の諸特徴―」. 農林水産政策研究, 号 33 (12月): 31–62.</p></li>
-<li><p>幸田和也, 福与徳文, 重岡徹と八木洋憲. 2019年. 「津波被災地における急速な農地集積の進展と課題」. 農業経済研究 91 (2): 269–74.</p></li>
-<li><p>2011年 農林水産省大臣官房統計部農村振興局「津波により流失や冠水等の被害を受けた農地の推定面積」https://www.maff.go.jp/j/press/nousin/sekkei/pdf/110329-02.pdf</p></li>
-<li><p>栗原伸一, 霜浦森平と丸山敦史. 「農業センサス個票を用いた離農要因の地域別分析」. 農業情報研究 23, 号 2 (2014年): 72–81.</p></li>
-</ul>
+
 </section>
 
 
-<div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes"><h2 class="anchored quarto-appendix-heading">Footnotes</h2>
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list">
+<div id="ref-deboeImpactsAgriculturalPolicies2020" class="csl-entry" role="listitem">
+DeBoe, G.(2020) Impacts of agricultural policies on productivity and sustainability performance in agriculture: <span>A</span> literature review, <em>OECD Food, Agriculture and Fisheries Papers</em>.<div class="csl-block"><a href="https://doi.org/10.1787/6bc916e7-en">https://doi.org/10.1787/6bc916e7-en</a></div>
+</div>
+<div id="ref-huberBehaviouralSocialFactors2026a" class="csl-entry" role="listitem">
+Huber, R., J. Barreiro-Hurlé and R. Finger(2026) Behavioural and social factors in farm-level agent-based models for <span>European</span> agricultural policy evaluations, <em>European Review of Agricultural Economics</em> jbag006.<div class="csl-block"><a href="https://doi.org/10.1093/erae/jbag006">https://doi.org/10.1093/erae/jbag006</a></div>
+</div>
+<div id="ref-PDFHeterogeneousImpacts2026" class="csl-entry" role="listitem">
+Saint-Cyr, L. D. F., H. Storm, T. Heckelei and L. Piet(2019) Heterogeneous impacts of neighbouring farm size on the decision to exit: <span>Evidence</span> from <span>Brittany</span>, <em>European Review of Agricultural Economics</em> 46(2): 237–266.<div class="csl-block"><a href="https://doi.org/10.1093/erae/jby029">https://doi.org/10.1093/erae/jby029</a></div>
+</div>
+<div id="ref-patoritukuameroZhiDeBiJiaoFenXiQCARisatidezaintoShiJian" class="csl-entry" role="listitem">
+メロパトリック・A(2023) 『質的比較分析（<span>QCA</span>) : リサーチ・デザインと実践』千倉書房.
+</div>
+<div id="ref-zotero-item-7239" class="csl-entry" role="listitem">
+伊藤房雄・小賀坂行也(2013) 「宮城県における被災地の農業復旧の現状と復興に向けた課題」『農村と都市をむすぶ』 736：5–12.
+</div>
+<div id="ref-zotero-item-7397" class="csl-entry" role="listitem">
+宮城県(2011) 『みやぎの農業・農村復興計画』宮城県.
+</div>
+<div id="ref-XiaoYeDongRiBenDaZhenZaiJinBoBeiZaiDiYuniokeruShuiTianNongYenoFuXingtoGouZaoBianHua2015NianNongLinYesensasuniyoruTongJiDeFenXi2019" class="csl-entry" role="listitem">
+小野智昭(2019) 「東日本大震災津波被災地域における水田農業の復興と構造変化2015年農林業センサスによる統計的分析」『農林水産政策研究』 (30)：23–59.
+</div>
+<div id="ref-XiaoYeDongRiBenDaZhenZaiJinBoBeiZaiDiYuniokeruShuiTianNongYeFuXingnoXianZhuangNongYeGouZaoBianHuatoZuZhiJingYingTinoZhuTeZheng2020" class="csl-entry" role="listitem">
+小野智昭・吉田行郷・石原清史・平林光幸・福田竜一・畠幸司・吉井邦恒(2020) 「東日本大震災津波被災地域における水田農業復興の現状農業構造変化と組織経営体の諸特徴」『農林水産政策研究』 (33)：31–62.<div class="csl-block"><a href="https://doi.org/10.34444/00000127">https://doi.org/10.34444/00000127</a></div>
+</div>
+<div id="ref-DongRiBenDaZhenZaikaranoNongYeFuXingwoZhieruZhiDuZhenZaiHou7NiannoQuZumiNongLinJinRongKanXingWu" class="csl-entry" role="listitem">
+岡山信夫(2018) 「東日本大震災からの農業復興を支える制度-震災後７年の取組み-」『農林金融』 71(3)：34–50.
+</div>
+<div id="ref-XingTianJinBoBeiZaiDiniokeruJiSunaNongDiJiJinoJinZhantoKeTi2019" class="csl-entry" role="listitem">
+幸田和也・福与徳文・重岡徹・八木洋憲(2019) 「津波被災地における急速な農地集積の進展と課題」『農業経済研究』 91(2)：269–274.<div class="csl-block"><a href="https://doi.org/10.11472/nokei.91.269">https://doi.org/10.11472/nokei.91.269</a></div>
+</div>
+<div id="ref-RiTianNongYeZheHuBieSuoDeBuChangZhiDunoDaoRugaDaoZuoShengChanXingShuiZhunniJibositaYingXiang2024" class="csl-entry" role="listitem">
+日田アトム・澤内大輔・近藤功庸・シモーネ・セヴェリーニ・山本康貴(2024) 「農業者戸別所得補償制度の導入が稲作生産性水準に及ぼした影響」『経済研究』 75(1)：1–27.<div class="csl-block"><a href="https://doi.org/10.60328/keizaikenkyu.er.ar.032524">https://doi.org/10.60328/keizaikenkyu.er.ar.032524</a></div>
+</div>
+<div id="ref-zotero-item-7398" class="csl-entry" role="listitem">
+東北農政局(2021) 『農業・農村の復興・再生に向けた取組と動き』東北農政局.
+</div>
+<div id="ref-LiYuanNongYesensasuGePiaowoYongitaLiNongYaoYinnoDiYuBieFenXi2014" class="csl-entry" role="listitem">
+栗原伸一・霜浦森平・丸山敦史(2014) 「農業センサス個票を用いた離農要因の地域別分析」『農業情報研究』 23(2)：72–81.<div class="csl-block"><a href="https://doi.org/10.3173/air.23.72">https://doi.org/10.3173/air.23.72</a></div>
+</div>
+<div id="ref-DongRiBenDaZhenZaiBeiZaiNongJianoYingNongJiSokYiXiangtosonoYaoYinnituitenoKaoCha" class="csl-entry" role="listitem">
+渋谷往男(2012) 「東日本大震災被災農家の営農継続意向とその要因についての考察」『農業経営研究』 50(2)：66–71.
+</div>
+<div id="ref-zotero-item-7399" class="csl-entry" role="listitem">
+農林水産省大臣官房統計部農村振興局(2011) 『津波により流失や冠水等の被害を受けた農地の推定面積』農林水産省大臣官房統計部農村振興局.
+</div>
+</div></section><section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes"><h2 class="anchored quarto-appendix-heading">Footnotes</h2>
 
 <ol>
-<li id="fn1"><p>GISから算出した旧市区町村別の津波被災面積を現在の市町村単位に換算したところ、市町村別の津波被災面積の農林水産省公表値(農林水産省大臣官房統計部農村振興局2011)と高い相関を示した（r = 0.953）。さらに田に限定した被災面積では相関は r = 0.976 まで上昇した。したがって、本研究で作成したGISベースの津波被災指標は、地域間の被災程度の差を概ね適切に捉えていると判断した。<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn1"><p>2010年時点の機械所有状況は、津波被災後に実際に利用可能であった機械の状況とは異なる可能性があるが、本文で示すモデルでは津波被災圃場割合を統制しているため、地域間の被災程度の差は一定程度考慮されている。ただし、圃場の被災程度と機械の損失程度との関係は明らかではなく、この統制によって機械損失の影響まで十分に調整できているとは限らない。したがって、分析に用いる2010年の機械所有割合は、震災後に利用可能であった機械を直接示す変数ではなく、被災前に地域内の個人経営体が有していた経営資源の厚みを示す代理指標として位置づけるのが適切である。<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn2"><p>GISから算出した旧市区町村別の津波被災面積を現在の市町村単位に換算したところ、市町村別の津波被災面積の農林水産省公表値(<span class="citation" data-cites="zotero-item-7399">（<a href="#ref-zotero-item-7399" role="doc-biblioref">農林水産省大臣官房統計部農村振興局，2011</a>）</span>と高い相関を示した（r = 0.953）。さらに田に限定した被災面積では相関は r = 0.976 まで上昇した。したがって、本研究で作成したGISベースの津波被災指標は、地域間の被災程度の差を概ね適切に捉えていると判断した。<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 </ol>
 </section></div></main>
 <!-- /main column -->
