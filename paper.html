@@ -347,7 +347,7 @@ M1: mechcap2*agecap &lt;-&gt; indint
 <p>仮説：震災前に個人経営体による農業機械所有の厚い地域ほど、津波被災程度および復興事業の実施状況を統制しても、その後の個人経営体残存率が高い。</p>
 <p>目的変数は2015年の個人経営体数を2010年の個人経営体数で除した「個人経営体残存率」である。個人経営体数を直接目的変数とするとその地域の規模を強く反映した変数となり、分析の主旨とずれるため、残存率を目的変数とする。ただし同一経営体の存続を追跡した値ではないため、これはあくまで地域全体の個人経営体数の残存比である。なお、分析の後半では2015年ではなく2020年の個人経営体数を用いた残存率についても検討する。</p>
 <p>説明変数には、C-1、C-4、生産対策交付金の実施ダミー、2010年のコンバイン・トラクター・田植機所有個人経営体割合を用いた。なお、この変数は震災後の機械利用可能性ではなく、被災前の個人経営体による経営資源の厚みを表す<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a>。事業ダミーは実施地区と旧市区町村境界の位置関係をGISで照合して作成した。生産対策交付金は機械導入に関する事業のみを数えた。各機械の所有個人経営体割合は、センサスで非個人経営体の機械所有数が得られないため、「機械所有経営体数－非個人経営体数」を個人経営体数で除した代理変数を用いる。非個人経営体のすべてが当該機械を持つと仮定するため、推定される個人所有数は下限値となる。統制変数は2010年の個人経営体割合と津波被災圃場割合である。後者は2009年国土数値情報の土地利用メッシュから「田」と「その他の農用地」を抽出し、国土地理院の津波浸水範囲および2010年農業集落境界データに収録された旧市区町村境界と重ね合わせ、旧市区町村別の被災圃場面積を推計した<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a>。被災圃場が確認された地域のみを分析対象とした。</p>
-<p><a href="#tbl-descriptives-individual-2015-2010-ratio" class="quarto-xref">Table&nbsp;6</a> は分析に使用する変数の記述統計量である。</p>
+<p><a href="#tbl-descriptives-individual-2015-2010-ratio" class="quarto-xref">Table&nbsp;6</a> は分析に使用する変数の記述統計量である。生産対策交付金の実施地域割合が他事業より低いのは、S町のQCAで抽出された機械充足との対応を考慮し、農業機械の導入に関する事業のみを実施としてカウントしたためである。生産資材の調達等に関する事業は、本稿の分析上の関心と直接対応しないため対象に含めていない。</p>
 <div id="tbl-descriptives-individual-2015-2010-ratio" class="cell quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-descriptives-individual-2015-2010-ratio-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -501,15 +501,205 @@ Table&nbsp;15: 記述統計量（津波被災圃場割合）
 </section>
 <section id="推定結果" class="level2" data-number="4.2">
 <h2 data-number="4.2" class="anchored" data-anchor-id="推定結果"><span class="header-section-number">4.2</span> 推定結果</h2>
-<p>復興事業の実施は被災程度と独立ではない。津波被災圃場割合を説明変数とするロジットモデルのオッズ比は、C-1が28.81、C-4が18.36、生産対策交付金が16.10で、いずれも1％水準で有意であった。事業間の相関係数はC-1とC-4が0.56、C-1と生産対策交付金が0.32、C-4と生産対策交付金が0.35である。そこでOLSでは3事業を同時に投入し、津波被災圃場割合を統制した。</p>
-<p><a href="#tbl-m1" class="quarto-xref">Table&nbsp;16</a> では、C-4実施、コンバイン所有割合、津波被災圃場割合が有意であった。他の条件を一定とすると、C-4実施地域は個人経営体残存率が15ポイント低い。コンバイン所有割合が10ポイント高い地域では残存率が5ポイント高く、津波被災圃場割合が10ポイント高い地域では3.4ポイント低い。なお、小規模地域では少数の個人経営体の増減によって残存率が大きく変動しやすく、不均一分散が生じている可能性がある。この点を考慮し、HC3ロバスト標準誤差によって検定した。その結果、津波被災圃場割合およびC-4実施の負の関連と、コンバイン所有割合の正の関連はいずれも5％水準で有意であり、通常の標準誤差を用いた場合と有意性の判定は変わらなかった。</p>
-<p>M2およびM3も、小規模地域の値が推定結果に及ぼす影響を確認するためのモデルである。M2では2010年の個人経営体数をウェイトとして、大規模地域を相対的に重視した推定を行った。M3では2010年の個人経営体数が第1四分位以下の地域を除外した。M4では、残存率の増減が比率尺度上で非対称となることを考慮し、目的変数を対数変換した。例えば、残存率が2倍になる変化と2分の1になる変化は、対数尺度上ではそれぞれ同じ大きさの正負の変化として表される。これらのモデルでも主要変数の係数の符号は維持され、津波被災圃場割合とコンバイン所有割合の関連は一貫して確認された。C-4の係数も一貫して負であったが、M2およびM3では有意水準が10％に低下した。</p>
+<p>以下では先に示したモデルの妥当性をOLSにより検討する。なお、小規模地域では少数の個人経営体の増減によって残存率が大きく変動しやすく、不均一分散が生じている可能性がある。この点を考慮し、HC3ロバスト標準誤差によって検定した。また、復興事業の実施は被災程度と独立ではないと考えられるため、モデルの検討の前に傾向を確認しておく。津波被災圃場割合を説明変数としてロジスティック回帰分析を行うと、オッズ比は、C-1が28.81、C-4が18.36、生産対策交付金が16.10で、いずれも1％水準で有意であった。したがって、モデルに示したように、津波被災圃場割合での統制は必要である。事業間の相関係数はC-1とC-4が0.56、C-1と生産対策交付金が0.32、C-4と生産対策交付金が0.35である。極端に大きい値ではないため、OLSでは3事業を同時に投入する。</p>
+<p>M1は被災程度と地域の初期構造のみのモデルであり、津波被災圃場割合の係数は負で有意、個人経営体割合の係数は正で有意となっている（ <a href="#tbl-m1" class="quarto-xref">Table&nbsp;16</a> ）。M2はM1に復興事業関連の変数を加えたモデルで、C-4事業は負で有意、生産対策金は正で有意であるが10%水準有意にとどまる（ <a href="#tbl-m2" class="quarto-xref">Table&nbsp;17</a> ）。M3はM1に機械所有変数を加えたモデルで、コンバイン所有割合のみが有意であり、係数は正である（ <a href="#tbl-m3" class="quarto-xref">Table&nbsp;18</a> ）。最後にM4はM1に復興事業関連変数と機械所有変数を加えたモデルである（ <a href="#tbl-m4" class="quarto-xref">Table&nbsp;19</a> ）。個人経営体割合の有意が消えており、生産対策交付金が有意でなくなっている点を除けば、M1～M3と係数の符号および有意判定の傾向は変わらない。また、自由度修正済み決定係数は0.46で、M1～M4のなかでもっとも大きくなっている。本稿ではM4を最終モデルとみなす。</p>
 <div id="tbl-m1" class="cell quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-m1-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;16: 個人経営体残存率のOLS推定結果（基本モデル）
+Table&nbsp;16: 個人経営体残存率のOLS推定結果（個人経営体割合と被災程度のみモデル）
 </figcaption>
 <div aria-describedby="tbl-m1-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+lm(formula = individual_2015_2010_ratio ~ individual_share_2010 + 
+    tsunami_farmland_share_2010, data = machinery_change)
+
+Residuals:
+     Min       1Q   Median       3Q      Max 
+-0.39487 -0.12376  0.02124  0.11728  0.34218 
+
+Coefficients:
+                            Estimate Std. Error t value Pr(&gt;|t|)    
+(Intercept)                 -0.60255    0.66254  -0.909   0.3675    
+individual_share_2010        1.37242    0.67884   2.022   0.0486 *  
+tsunami_farmland_share_2010 -0.32492    0.07366  -4.411 5.47e-05 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Residual standard error: 0.1764 on 50 degrees of freedom
+  (4 observations deleted due to missingness)
+Multiple R-squared:  0.3018,    Adjusted R-squared:  0.2739 
+F-statistic: 10.81 on 2 and 50 DF,  p-value: 0.0001258</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>      individual_share_2010 tsunami_farmland_share_2010 
+                   1.016794                    1.016794 </code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 53</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+t test of coefficients:
+
+                             Estimate Std. Error t value  Pr(&gt;|t|)    
+(Intercept)                 -0.602552   1.110753 -0.5425    0.5899    
+individual_share_2010        1.372418   1.128097  1.2166    0.2295    
+tsunami_farmland_share_2010 -0.324921   0.057423 -5.6584 7.394e-07 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
+</div>
+</div>
+</figure>
+</div>
+<div id="tbl-m2" class="cell quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-m2-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;17: 個人経営体残存率のOLS推定結果（M1+復興事業）
+</figcaption>
+<div aria-describedby="tbl-m2-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+lm(formula = individual_2015_2010_ratio ~ individual_share_2010 + 
+    tsunami_farmland_share_2010 + c_one + c_four + production_support, 
+    data = machinery_change)
+
+Residuals:
+     Min       1Q   Median       3Q      Max 
+-0.31596 -0.09317 -0.00214  0.08621  0.42132 
+
+Coefficients:
+                            Estimate Std. Error t value Pr(&gt;|t|)    
+(Intercept)                 -0.22643    0.67598  -0.335 0.739137    
+individual_share_2010        0.99147    0.69161   1.434 0.158311    
+tsunami_farmland_share_2010 -0.32135    0.08925  -3.601 0.000762 ***
+c_one                        0.07369    0.06211   1.187 0.241385    
+c_four                      -0.14986    0.06293  -2.381 0.021354 *  
+production_support           0.09584    0.05666   1.691 0.097374 .  
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Residual standard error: 0.1679 on 47 degrees of freedom
+  (4 observations deleted due to missingness)
+Multiple R-squared:  0.4053,    Adjusted R-squared:  0.342 
+F-statistic: 6.406 on 5 and 47 DF,  p-value: 0.0001297</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>      individual_share_2010 tsunami_farmland_share_2010 
+                   1.164733                    1.647453 
+                      c_one                      c_four 
+                   1.796948                    1.860877 
+         production_support 
+                   1.272135 </code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 53</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+t test of coefficients:
+
+                             Estimate Std. Error t value  Pr(&gt;|t|)    
+(Intercept)                 -0.226435   0.435735 -0.5197 0.6057384    
+individual_share_2010        0.991474   0.458594  2.1620 0.0357429 *  
+tsunami_farmland_share_2010 -0.321348   0.082564 -3.8921 0.0003123 ***
+c_one                        0.073689   0.071115  1.0362 0.3054131    
+c_four                      -0.149858   0.072966 -2.0538 0.0455802 *  
+production_support           0.095837   0.053825  1.7805 0.0814552 .  
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
+</div>
+</div>
+</figure>
+</div>
+<div id="tbl-m3" class="cell quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-m3-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;18: 個人経営体残存率のOLS推定結果（M1+機械所有）
+</figcaption>
+<div aria-describedby="tbl-m3-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+lm(formula = individual_2015_2010_ratio ~ individual_share_2010 + 
+    tsunami_farmland_share_2010 + individual_combine_owner_share_min_2010 + 
+    individual_tractor_owner_share_min_2010 + individual_rice_transplanter_owner_share_min_2010, 
+    data = machinery_change)
+
+Residuals:
+     Min       1Q   Median       3Q      Max 
+-0.27815 -0.10958  0.00557  0.08668  0.39269 
+
+Coefficients:
+                                                  Estimate Std. Error t value
+(Intercept)                                       -0.97613    0.65955  -1.480
+individual_share_2010                              1.59197    0.68560   2.322
+tsunami_farmland_share_2010                       -0.41311    0.06963  -5.933
+individual_combine_owner_share_min_2010            0.58563    0.19816   2.955
+individual_tractor_owner_share_min_2010            0.34964    0.25980   1.346
+individual_rice_transplanter_owner_share_min_2010 -0.42652    0.21492  -1.985
+                                                  Pr(&gt;|t|)    
+(Intercept)                                        0.14555    
+individual_share_2010                              0.02461 *  
+tsunami_farmland_share_2010                        3.4e-07 ***
+individual_combine_owner_share_min_2010            0.00487 ** 
+individual_tractor_owner_share_min_2010            0.18481    
+individual_rice_transplanter_owner_share_min_2010  0.05305 .  
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Residual standard error: 0.1571 on 47 degrees of freedom
+  (4 observations deleted due to missingness)
+Multiple R-squared:  0.4795,    Adjusted R-squared:  0.4242 
+F-statistic:  8.66 on 5 and 47 DF,  p-value: 7.108e-06</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>                            individual_share_2010 
+                                         1.307831 
+                      tsunami_farmland_share_2010 
+                                         1.145747 
+          individual_combine_owner_share_min_2010 
+                                         2.079692 
+          individual_tractor_owner_share_min_2010 
+                                         2.039230 
+individual_rice_transplanter_owner_share_min_2010 
+                                         2.484199 </code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 53</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+t test of coefficients:
+
+                                                   Estimate Std. Error t value
+(Intercept)                                       -0.976127   0.499206 -1.9554
+individual_share_2010                              1.591970   0.492284  3.2338
+tsunami_farmland_share_2010                       -0.413112   0.062039 -6.6589
+individual_combine_owner_share_min_2010            0.585625   0.195609  2.9939
+individual_tractor_owner_share_min_2010            0.349643   0.366998  0.9527
+individual_rice_transplanter_owner_share_min_2010 -0.426521   0.314353 -1.3568
+                                                   Pr(&gt;|t|)    
+(Intercept)                                        0.056501 .  
+individual_share_2010                              0.002237 ** 
+tsunami_farmland_share_2010                       2.693e-08 ***
+individual_combine_owner_share_min_2010            0.004382 ** 
+individual_tractor_owner_share_min_2010            0.345611    
+individual_rice_transplanter_owner_share_min_2010  0.181319    
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
+</div>
+</div>
+</figure>
+</div>
+<div id="tbl-m4" class="cell quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-m4-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;19: 個人経営体残存率のOLS推定結果（基本モデル）
+</figcaption>
+<div aria-describedby="tbl-m4-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="cell-output cell-output-stdout">
 <pre><code>
 Call:
@@ -603,12 +793,14 @@ Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 </figure>
 </div>
 <p>N=53、自由度修正済R²=0.46、F(8,44)=6.51（p&lt;0.001）。VIFはすべて3未満。　* p&lt;0.05、** p&lt;0.01、*** p&lt;0.001。</p>
-<div id="tbl-m2" class="cell quarto-float quarto-figure quarto-figure-center anchored">
+<p>続いて、最終モデルのM4の頑健性を確認する。M5およびM6も、小規模地域の値が推定結果に及ぼす影響を確認するためのモデルである（ <a href="#tbl-m5" class="quarto-xref">Table&nbsp;20</a> <a href="#tbl-m6" class="quarto-xref">Table&nbsp;21</a> ）。M5では2010年の個人経営体数をウェイトとして、大規模地域を相対的に重視した推定を行った。M6では2010年の個人経営体数が第1四分位以下の地域を除外した。M7では、残存率の増減が比率尺度上で非対称となることを考慮し、目的変数を対数変換した（ <a href="#tbl-m7" class="quarto-xref">Table&nbsp;22</a> ）。例えば、残存率が2倍になる変化と2分の1になる変化は、対数尺度上ではそれぞれ同じ大きさの正負の変化として表される。</p>
+<p>これらのモデルでも主要変数の係数の符号は維持されているが、C-4についてはM7以外では有意判定が消えており、頑健な関連とはいえなかった。コンバイン所有割合の係数はすべてのモデルで正であった。M4およびM7では5％水準で有意であり、M5およびM6でも10％水準では有意であったことから、正の関連は分析条件を変更しても概ね維持された。津波被災圃場割合は一貫して有意であり頑健な結果であった。</p>
+<div id="tbl-m5" class="cell quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
-<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-m2-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;17: ‘　2015年残存率モデルの頑健性確認(M2：2010年個人経営体数で重み付け。)’
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-m5-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;20: ‘　2015年残存率モデルの頑健性確認(M5：2010年個人経営体数で重み付け。)’
 </figcaption>
-<div aria-describedby="tbl-m2-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div aria-describedby="tbl-m5-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="cell-output cell-output-stdout">
 <pre><code>
 Call:
@@ -672,15 +864,42 @@ individual_rice_transplanter_owner_share_min_2010
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 53</code></pre>
 </div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+t test of coefficients:
+
+                                                   Estimate Std. Error t value
+(Intercept)                                       -0.070105   1.265972 -0.0554
+individual_share_2010                              0.888787   1.362205  0.6525
+tsunami_farmland_share_2010                       -0.425463   0.137863 -3.0861
+c_one                                              0.048139   0.069341  0.6942
+c_four                                            -0.097908   0.099693 -0.9821
+production_support                                -0.038456   0.072421 -0.5310
+individual_combine_owner_share_min_2010            0.575691   0.326343  1.7641
+individual_tractor_owner_share_min_2010            0.358359   0.263405  1.3605
+individual_rice_transplanter_owner_share_min_2010 -0.685327   0.407517 -1.6817
+                                                  Pr(&gt;|t|)   
+(Intercept)                                       0.956089   
+individual_share_2010                             0.517498   
+tsunami_farmland_share_2010                       0.003502 **
+c_one                                             0.491188   
+c_four                                            0.331426   
+production_support                                0.598088   
+individual_combine_owner_share_min_2010           0.084663 . 
+individual_tractor_owner_share_min_2010           0.180605   
+individual_rice_transplanter_owner_share_min_2010 0.099710 . 
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
+</div>
 </div>
 </figure>
 </div>
-<div id="tbl-m3" class="cell quarto-float quarto-figure quarto-figure-center anchored">
+<div id="tbl-m6" class="cell quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
-<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-m3-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;18: 2015年残存率モデルの頑健性確認(M3：2010年個人経営体数75以下を除外。)
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-m6-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;21: 2015年残存率モデルの頑健性確認(M6：2010年個人経営体数75以下を除外。)
 </figcaption>
-<div aria-describedby="tbl-m3-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div aria-describedby="tbl-m6-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="cell-output cell-output-stdout">
 <pre><code>
 Call:
@@ -743,16 +962,43 @@ individual_rice_transplanter_owner_share_min_2010
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 43</code></pre>
 </div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+t test of coefficients:
+
+                                                    Estimate Std. Error t value
+(Intercept)                                        0.2914913  1.5623450  0.1866
+individual_share_2010                              0.4344507  1.7140361  0.2535
+tsunami_farmland_share_2010                       -0.3764510  0.1422478 -2.6464
+c_one                                              0.0397770  0.0773932  0.5140
+c_four                                            -0.1189111  0.0836032 -1.4223
+production_support                                 0.0052054  0.0557429  0.0934
+individual_combine_owner_share_min_2010            0.5954952  0.3104700  1.9180
+individual_tractor_owner_share_min_2010            0.3236099  0.3834725  0.8439
+individual_rice_transplanter_owner_share_min_2010 -0.5762294  0.4388476 -1.3131
+                                                  Pr(&gt;|t|)  
+(Intercept)                                        0.85310  
+individual_share_2010                              0.80143  
+tsunami_farmland_share_2010                        0.01223 *
+c_one                                              0.61060  
+c_four                                             0.16404  
+production_support                                 0.92615  
+individual_combine_owner_share_min_2010            0.06354 .
+individual_tractor_owner_share_min_2010            0.40463  
+individual_rice_transplanter_owner_share_min_2010  0.19796  
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
+</div>
 </div>
 </figure>
 </div>
 <p>　</p>
-<div id="tbl-m4" class="cell quarto-float quarto-figure quarto-figure-center anchored">
+<div id="tbl-m7" class="cell quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
-<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-m4-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;19: 2015年残存率モデルの頑健性確認(M4：目的変数を対数変換)
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-m7-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;22: 2015年残存率モデルの頑健性確認(M7：目的変数を対数変換)
 </figcaption>
-<div aria-describedby="tbl-m4-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div aria-describedby="tbl-m7-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="cell-output cell-output-stdout">
 <pre><code>
 Call:
@@ -815,16 +1061,43 @@ individual_rice_transplanter_owner_share_min_2010
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 53</code></pre>
 </div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+t test of coefficients:
+
+                                                   Estimate Std. Error t value
+(Intercept)                                       -1.862525   1.258918 -1.4795
+individual_share_2010                              1.236001   1.289696  0.9584
+tsunami_farmland_share_2010                       -0.648005   0.167498 -3.8687
+c_one                                              0.138327   0.150830  0.9171
+c_four                                            -0.324691   0.155045 -2.0942
+production_support                                 0.071859   0.100867  0.7124
+individual_combine_owner_share_min_2010            1.107683   0.419891  2.6380
+individual_tractor_owner_share_min_2010            0.491951   0.653213  0.7531
+individual_rice_transplanter_owner_share_min_2010 -0.528033   0.621400 -0.8497
+                                                   Pr(&gt;|t|)    
+(Intercept)                                       0.1461408    
+individual_share_2010                             0.3431148    
+tsunami_farmland_share_2010                       0.0003578 ***
+c_one                                             0.3640864    
+c_four                                            0.0420379 *  
+production_support                                0.4799702    
+individual_combine_owner_share_min_2010           0.0114851 *  
+individual_tractor_owner_share_min_2010           0.4553857    
+individual_rice_transplanter_owner_share_min_2010 0.4000658    
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
+</div>
 </div>
 </figure>
 </div>
-<p><a href="#tbl-m5" class="quarto-xref">Table&nbsp;20</a> は、2010年から2020年の個人経営体残存率を用いた分析結果であり、M5は基本モデル、M6は個人経営体による重み付きモデル、M7は小規模地域除外モデル、M8は目的変数を対数変換したモデルである。津波被災圃場割合の負の関連は一貫して確認された( <a href="#tbl-m5" class="quarto-xref">Table&nbsp;20</a> )。C-4も多くのモデルで負の関連を示した。一方、機械所有割合については、コンバインの正の関連が複数のモデルで確認されたものの、サンプルの限定や重み付けによって有意となる機種が変化しており、機種別の結果は2015年モデルほど一貫していない。したがって、長期については「機械保有一般が残存を促す」という仮説が一貫して支持されたとはいえない。震災直後の経営資源は短期的な継続と結びつくが、10年間には追加投資、継承、再編等が介在するためと考えられる。</p>
-<div id="tbl-m5" class="cell quarto-float quarto-figure quarto-figure-center anchored">
+<p><a href="#tbl-m8" class="quarto-xref">Table&nbsp;23</a> は、2010年から2020年の個人経営体残存率を用いた分析結果である。津波被災圃場割合の負の関連は一貫して確認された。しかしC-4の有意は消え、コンバイン所有割合は有意であるものの10%水準にとどまる。震災からの経過期間が長期となると、追加投資、継承、再編等が介在して個人経営継続の要因が複雑化するためであると思われる。</p>
+<div id="tbl-m8" class="cell quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
-<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-m5-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;20: 目的変数を2020年残存率に変更した結果(M5：基本モデル)
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-m8-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;23: 目的変数を2020年残存率に変更した結果(M8：基本モデル)
 </figcaption>
-<div aria-describedby="tbl-m5-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div aria-describedby="tbl-m8-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="cell-output cell-output-stdout">
 <pre><code>
 Call:
@@ -917,224 +1190,13 @@ Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 </figure>
 </div>
 <p>モデルの定義と有意水準は <a href="#tbl-m1" class="quarto-xref">Table&nbsp;16</a> と同じ。</p>
-<div id="tbl-m6" class="cell quarto-float quarto-figure quarto-figure-center anchored">
-<figure class="quarto-float quarto-float-tbl figure">
-<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-m6-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;21: 目的変数を2020年残存率に変更した結果(M6：2010年個人経営体数で重み付け)
-</figcaption>
-<div aria-describedby="tbl-m6-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<div class="cell-output cell-output-stdout">
-<pre><code>
-Call:
-lm(formula = individual_2020_2010_ratio ~ individual_share_2010 + 
-    tsunami_farmland_share_2010 + c_one + c_four + production_support + 
-    individual_combine_owner_share_min_2010 + individual_tractor_owner_share_min_2010 + 
-    individual_rice_transplanter_owner_share_min_2010, data = machinery_change, 
-    weights = individual_entities_2010)
-
-Weighted Residuals:
-    Min      1Q  Median      3Q     Max 
--2.8288 -1.0958 -0.4346  0.6201  4.7770 
-
-Coefficients:
-                                                  Estimate Std. Error t value
-(Intercept)                                        0.21747    1.13816   0.191
-individual_share_2010                              0.06916    1.17784   0.059
-tsunami_farmland_share_2010                       -0.30995    0.07364  -4.209
-c_one                                              0.01193    0.04287   0.278
-c_four                                            -0.08645    0.04551  -1.900
-production_support                                -0.01630    0.03957  -0.412
-individual_combine_owner_share_min_2010            0.36484    0.16725   2.181
-individual_tractor_owner_share_min_2010            0.65076    0.25577   2.544
-individual_rice_transplanter_owner_share_min_2010 -0.47583    0.23115  -2.058
-                                                  Pr(&gt;|t|)    
-(Intercept)                                       0.849275    
-individual_share_2010                             0.953422    
-tsunami_farmland_share_2010                       0.000112 ***
-c_one                                             0.781967    
-c_four                                            0.063482 .  
-production_support                                0.682135    
-individual_combine_owner_share_min_2010           0.034081 *  
-individual_tractor_owner_share_min_2010           0.014221 *  
-individual_rice_transplanter_owner_share_min_2010 0.044994 *  
----
-Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-
-Residual standard error: 1.596 on 48 degrees of freedom
-Multiple R-squared:  0.5711,    Adjusted R-squared:  0.4996 
-F-statistic: 7.988 on 8 and 48 DF,  p-value: 8.979e-07</code></pre>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code>                            individual_share_2010 
-                                         1.167208 
-                      tsunami_farmland_share_2010 
-                                         2.239687 
-                                            c_one 
-                                         1.665463 
-                                           c_four 
-                                         2.126237 
-                               production_support 
-                                         1.596544 
-          individual_combine_owner_share_min_2010 
-                                         2.244032 
-          individual_tractor_owner_share_min_2010 
-                                         1.866832 
-individual_rice_transplanter_owner_share_min_2010 
-                                         2.066069 </code></pre>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code>[1] 57</code></pre>
-</div>
-</div>
-</figure>
-</div>
-<div id="tbl-m7" class="cell quarto-float quarto-figure quarto-figure-center anchored">
-<figure class="quarto-float quarto-float-tbl figure">
-<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-m7-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;22: 目的変数を2020年残存率に変更した結果(M7：2010年個人経営体数75以下を除外)
-</figcaption>
-<div aria-describedby="tbl-m7-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<div class="cell-output cell-output-stdout">
-<pre><code>
-Call:
-lm(formula = individual_2020_2010_ratio ~ individual_share_2010 + 
-    tsunami_farmland_share_2010 + c_one + c_four + production_support + 
-    individual_combine_owner_share_min_2010 + individual_tractor_owner_share_min_2010 + 
-    individual_rice_transplanter_owner_share_min_2010, data = machinery_change_75)
-
-Residuals:
-      Min        1Q    Median        3Q       Max 
--0.242002 -0.059144 -0.008657  0.047623  0.266204 
-
-Coefficients:
-                                                   Estimate Std. Error t value
-(Intercept)                                        0.947595   1.358242   0.698
-individual_share_2010                             -0.948756   1.411355  -0.672
-tsunami_farmland_share_2010                       -0.230161   0.086431  -2.663
-c_one                                              0.008862   0.048077   0.184
-c_four                                            -0.126655   0.052907  -2.394
-production_support                                 0.013722   0.048711   0.282
-individual_combine_owner_share_min_2010            0.239228   0.201944   1.185
-individual_tractor_owner_share_min_2010            0.867273   0.317556   2.731
-individual_rice_transplanter_owner_share_min_2010 -0.306384   0.269063  -1.139
-                                                  Pr(&gt;|t|)   
-(Intercept)                                        0.49000   
-individual_share_2010                              0.50585   
-tsunami_farmland_share_2010                        0.01163 * 
-c_one                                              0.85482   
-c_four                                             0.02216 * 
-production_support                                 0.77983   
-individual_combine_owner_share_min_2010            0.24415   
-individual_tractor_owner_share_min_2010            0.00982 **
-individual_rice_transplanter_owner_share_min_2010  0.26256   
----
-Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-
-Residual standard error: 0.1208 on 35 degrees of freedom
-Multiple R-squared:    0.6, Adjusted R-squared:  0.5086 
-F-statistic: 6.562 on 8 and 35 DF,  p-value: 3.229e-05</code></pre>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code>                            individual_share_2010 
-                                         1.320473 
-                      tsunami_farmland_share_2010 
-                                         2.235396 
-                                            c_one 
-                                         1.613824 
-                                           c_four 
-                                         2.072187 
-                               production_support 
-                                         1.656684 
-          individual_combine_owner_share_min_2010 
-                                         2.252886 
-          individual_tractor_owner_share_min_2010 
-                                         2.070330 
-individual_rice_transplanter_owner_share_min_2010 
-                                         2.584521 </code></pre>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code>[1] 44</code></pre>
-</div>
-</div>
-</figure>
-</div>
-<div id="tbl-m8" class="cell quarto-float quarto-figure quarto-figure-center anchored">
-<figure class="quarto-float quarto-float-tbl figure">
-<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-m8-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;23: 目的変数を2020年残存率に変更した結果(M8：目的変数を対数変換)
-</figcaption>
-<div aria-describedby="tbl-m8-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<div class="cell-output cell-output-stdout">
-<pre><code>
-Call:
-lm(formula = log_individual_2020_2010_ratio ~ individual_share_2010 + 
-    tsunami_farmland_share_2010 + c_one + c_four + production_support + 
-    individual_combine_owner_share_min_2010 + individual_tractor_owner_share_min_2010 + 
-    individual_rice_transplanter_owner_share_min_2010, data = machinery_change2)
-
-Residuals:
-     Min       1Q   Median       3Q      Max 
--1.95070 -0.20075  0.07537  0.22742  0.84037 
-
-Coefficients:
-                                                  Estimate Std. Error t value
-(Intercept)                                       -1.52497    2.29065  -0.666
-individual_share_2010                              1.38435    2.41235   0.574
-tsunami_farmland_share_2010                       -0.96889    0.29050  -3.335
-c_one                                             -0.09504    0.19987  -0.475
-c_four                                            -0.22240    0.20513  -1.084
-production_support                                 0.26508    0.20672   1.282
-individual_combine_owner_share_min_2010            2.40690    0.74194   3.244
-individual_tractor_owner_share_min_2010           -0.85926    0.68040  -1.263
-individual_rice_transplanter_owner_share_min_2010 -0.76649    0.61395  -1.248
-                                                  Pr(&gt;|t|)   
-(Intercept)                                        0.50883   
-individual_share_2010                              0.56880   
-tsunami_farmland_share_2010                        0.00167 **
-c_one                                              0.63664   
-c_four                                             0.28380   
-production_support                                 0.20602   
-individual_combine_owner_share_min_2010            0.00217 **
-individual_tractor_owner_share_min_2010            0.21286   
-individual_rice_transplanter_owner_share_min_2010  0.21804   
----
-Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-
-Residual standard error: 0.572 on 47 degrees of freedom
-Multiple R-squared:  0.4188,    Adjusted R-squared:  0.3199 
-F-statistic: 4.233 on 8 and 47 DF,  p-value: 0.0006983</code></pre>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code>                            individual_share_2010 
-                                         1.315349 
-                      tsunami_farmland_share_2010 
-                                         1.580878 
-                                            c_one 
-                                         1.689832 
-                                           c_four 
-                                         1.791343 
-                               production_support 
-                                         1.492784 
-          individual_combine_owner_share_min_2010 
-                                         2.437307 
-          individual_tractor_owner_share_min_2010 
-                                         1.861681 
-individual_rice_transplanter_owner_share_min_2010 
-                                         1.761138 </code></pre>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code>[1] 56</code></pre>
-</div>
-</div>
-</figure>
-</div>
 </section>
 </section>
 <section id="考察" class="level1" data-number="5">
 <h1 data-number="5"><span class="header-section-number">5</span> 考察</h1>
 <p>第一に、S町では年齢と機械保有の組み合わせが個人営農意向を強く規定していた。若くても機械がなければ個人営農を選択しにくく、機械があっても高齢であれば継続は難しい。両条件の結合は、単なる属性ではなく、復興後に個人営農を選択できるという、営農上の選択肢の幅を表している。こうした選択肢の幅の違いが、同じ生産組合の内部に個人志向と組織志向を生み、結果として複数の大規模個別経営と組織経営体の並存につながったと解釈できる。</p>
 <p>第二に、旧市区町村分析でも、震災前のコンバイン所有割合が2015年までの個人経営体数の残存と正に関連した。コンバインは3機種のうち所有割合が最も低く、平均31％であるため、個別経営が営農を再開・継続できる経営資源の厚みを識別した可能性がある。この結果は年齢との結合を直接検証したものではないが、S町で観察されたメカニズムと整合的である。</p>
-<p>第三に、C-4実施と個人経営体残存率の負の関連は、一部地域で機械・施設が組織経営体に集中的に配分され、個別経営の減少と組織化が同時に進んだ可能性を示唆している。しかし、事業は被災程度や地域の復興方針に応じて選択されており、実施ダミーは内生的である。津波被災圃場割合を統制しても、観察されない選択要因は残る。したがって、この係数をC-4の因果的な政策効果、まして個別経営を退出させた効果と解釈することはできない。ここで重要なのは、同じ支援でも既存資源や年齢構成により受け皿と反応が異なり、最終的な経営体構成も異なりうる点である。</p>
+<p>第三に、復興事業関連変数については、C-4実施に関して一部のモデルで有意判定がみられたものの、頑健な結果が得られなかった。ただし、政策配置には内生性があり、実施ダミーのみでは事業の政策効果を識別できないため、この結果からC-4事業の効果がなかったと結論づけることもできない。</p>
 </section>
 <section id="結論" class="level1" data-number="6">
 <h1 data-number="6"><span class="header-section-number">6</span> 結論</h1>
