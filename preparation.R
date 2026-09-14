@@ -4,6 +4,7 @@ library(readxl) # Excelデータを読み込む
 library(car) # VIFを求めるのに使う
 library(sandwich) # ロバスト標準誤差で必要
 library(lmtest) # ロバスト標準誤差で必要
+library(scales) # 図表作成に使う
 
 # インポート----
 
