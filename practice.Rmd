@@ -13,8 +13,27 @@ library(tidyverse)
 ```
 
 ```{r}
-gis_paddy_by_city
+# (i) 
+# 説明変数 \(x_i\) について、区間 \([0,10]\) の一様分布から500個の観測値をランダムに生成しなさい。
 
+x <- runif(500, min = 0, max = 10)
+
+# 標本平均
+mean(x)
+
+# 標本標準偏差
+sd(x)
+
+# (ii)
+# 次に、誤差項 \(u_i\) を
+# $$ u_i \sim N(0,36) $$
+# から500個ランダムに生成しなさい。
+
+```
+
+
+```{r}
+df3 <- df2 |> filter(census_year == "2020" & individual_entities == 0) 
 
 ```
 
