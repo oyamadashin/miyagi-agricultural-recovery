@@ -224,7 +224,12 @@ df2 |>
   theme_minimal() +
   theme(
     axis.title = element_text(size = 18),
-    axis.text = element_text(size = 16)
+    axis.text = element_text(size = 16),
+    panel.grid.major = element_line(
+      colour = "gray75",
+      linewidth = 0.5
+    ),
+    panel.grid.minor = element_blank()
   ) +
   annotate(
     "text",
@@ -293,9 +298,19 @@ QCAは集合論に基づき、帰結に結びつく条件の組み合わせを�
 df_qca <- read_csv("02_processed_data/shichigahama_qca.csv")
 
 
+
 df_qca <- df_qca |> select(c(-no, -name, -largescale))
-df_qca_farmer <- data.frame(farmer = 1:(df_qca |> nrow()))
-df_qca <- bind_cols(df_qca_farmer, df_qca)
+df_qca <- df_qca |>
+  arrange(
+    desc(indint),
+    is.na(successor),
+    desc(successor),
+    desc(mechcap),
+    desc(agecap)
+  ) |>
+  mutate(
+    farmer = row_number() # 論文に載せるケース番号はこっち
+  )
 df_qca
 ```
 
@@ -329,7 +344,7 @@ tt <- truthTable(
   complete = TRUE
 )
 
-tt
+tt # 欠損を控除しているので、casesの番号とケース番号は一致しない
 ```
 
 注：―は該当ケースがないため整合度を算出できないことを示す。
