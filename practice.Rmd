@@ -45,6 +45,9 @@ data.frame(df3$tsunami_paddy_ha, df3$tunami_farmland_total_by_kcity)
 ```
 
 
+
+
+
 ```{r}
 library(readxl)
 
