@@ -45,6 +45,30 @@ data.frame(df3$tsunami_paddy_ha, df3$tunami_farmland_total_by_kcity)
 ```
 
 
+```{r}
+cor(machinery_change$individual_share_2015 - machinery_change$individual_share_2010,
+    machinery_change$tsunami_farmland_share_2010,
+    use = "complete.obs")
+
+df99 <- data.frame(
+  change_individual_share = machinery_change$individual_share_2015 - machinery_change$individual_share_2010,
+    tsunami_farmland_share = machinery_change$tsunami_farmland_share_2010
+)
+
+df99 |> 
+  ggplot(aes(y = change_individual_share, x = tsunami_farmland_share)) +
+  geom_point()
+
+machinery_change |>
+  summarise(
+    cor_ind_total = cor(
+      individual_entities_2015 / individual_entities_2010,
+      farm_entities_total_2015 / farm_entities_total_2010,
+      use = "complete.obs"
+    )
+  )
+
+```
 
 
 

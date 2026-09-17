@@ -1230,3 +1230,235 @@ coeftest(
 津波被災後の地域農業構造は、被災や復興事業から直接かつ一様に生じるのではなく、異質な経営体の選択が累積して形成される。S町では、年齢的継続余力と主要機械の充足の組み合わせが個人営農意向の十分条件となり、宮城県の旧市区町村分析でも、震災前のコンバイン所有割合が短期的な個人経営体残存率と正に関連した。政策評価では平均的効果だけでなく、誰が支援を利用でき、個別継続と組織参加のどちらを選べたのか、その集積が地域の担い手構造をどう変えたのかを追跡する必要がある。
 
 本稿の分析には三つの限界がある。第一に、QCAは単一組織の12ケースを対象としており、未観察の条件や調査時点間の変化を十分に捉えていない。第二に、旧市区町村データは集計値であり、個々の経営体の年齢と機械保有の組み合わせや同一経営体の存続を確認できない。第三に、政策配置の内生性を解消していない。今後は農業集落単位のパネルデータと経営体個票を用い、被災前の条件、政策実施、経営体の移行、地域構造の変化を多層的に接続する必要がある。
+
+# その他の分析
+
+個人経営体割合はどの地域もほとんど1に近い。したがって、以下の点が問題になってくる。
+
+- 個人経営体割合を説明変数に入れる意味はあまりない。
+
+- 目的変数の解釈も変わってくる。個人経営体残存率は、個人も組織も含めた総経営体残存率とほとんど同じ変数になってくる。
+
+そこで以下では、これまでのモデルに次の変更を加える
+
+- 個人経営体割合を説明変数から外す
+
+- 個人経営体残存率を総経営体残存率に変える
+
+→　結果として、自由度修正済み決定係数は全体として0.4 ～0.8程度小さくなる（やや大きくなるものもあるが、逆にM6のように大幅に小さくなるものもある）。また、個人経営体割合を説明変数から外すと、決定係数が微増することもある。したがって、個人経営体残存率と総経営体残存率は同一の変数とはいえず、また、個人経営体残存率の方が個別経営の維持に関わる地域差をより明瞭に捉える指標だといえる。なお、津波被災農地割合の負の関係とコンバイン所有割合の正の関係は頑健性確認を含め概ね維持された。C-4は曖昧な傾向。
+
+```{r m1_total}
+#| label: tbl-m1_total
+#| tbl-cap: "経営体残存率のOLS推定結果（被災程度のみモデル）"
+
+m1_total <- lm(
+  farm_entities_total_2015 / farm_entities_total_2010 ~
+    tsunami_farmland_share_2010,
+  data = machinery_change
+)
+
+m1_total |> summary()
+vif(m1_total)
+nobs(m1_total)
+
+coeftest(
+  m1_total,
+  vcov. = vcovHC(m1_total, type = "HC3")
+)
+```
+```{r m2_total}
+#| label: tbl-m2_total
+#| tbl-cap: "経営体残存率のOLS推定結果（M1+復興事業）"
+
+m2_total <- lm(
+  farm_entities_total_2015 / farm_entities_total_2010 ~
+    tsunami_farmland_share_2010 +
+    c_one +
+    c_four +
+    production_support,
+  data = machinery_change
+)
+
+m2_total |> summary()
+vif(m2_total)
+nobs(m2_total)
+
+coeftest(
+  m2_total,
+  vcov. = vcovHC(m2_total, type = "HC3")
+)
+```
+
+```{r m3_total}
+#| label: tbl-m3_total
+#| tbl-cap: "経営体残存率のOLS推定結果（M1+機械所有）"
+
+m3_total <- lm(
+  farm_entities_total_2015 / farm_entities_total_2010 ~
+    tsunami_farmland_share_2010 +
+    individual_combine_owner_share_min_2010 +
+    individual_tractor_owner_share_min_2010 +
+    individual_rice_transplanter_owner_share_min_2010,
+  data = machinery_change
+)
+
+m3_total |> summary()
+vif(m3_total)
+nobs(m3_total)
+
+coeftest(
+  m3_total,
+  vcov. = vcovHC(m3_total, type = "HC3")
+)
+```
+
+
+```{r m4_total}
+#| label: tbl-m4_total
+#| tbl-cap: "経営体残存率のOLS推定結果（基本モデル）"
+
+m4_total <- lm(
+  farm_entities_total_2015 / farm_entities_total_2010 ~
+    tsunami_farmland_share_2010 +
+    c_one +
+    c_four +
+    production_support +
+    individual_combine_owner_share_min_2010 +
+    individual_tractor_owner_share_min_2010 +
+    individual_rice_transplanter_owner_share_min_2010 ,
+  data = machinery_change
+)
+
+m4_total |> summary()
+vif(m4_total)
+nobs(m4_total)
+
+coeftest(
+  m4_total,
+  vcov. = vcovHC(m4, type = "HC3")
+)
+```
+
+
+```{r m5_total}
+#| label: tbl-m5
+#| tbl-cap: "　2015年残存率モデルの頑健性確認(M5_total：2010年経営体数で重み付け。)"
+
+m5_total <- lm(
+  farm_entities_total_2015 / farm_entities_total_2010 ~
+    tsunami_farmland_share_2010 +
+    c_one +
+    c_four +
+    production_support +
+    individual_combine_owner_share_min_2010 +
+    individual_tractor_owner_share_min_2010 +
+    individual_rice_transplanter_owner_share_min_2010,
+  data = machinery_change,
+  weights = farm_entities_total_2010
+)
+
+m5_total |> summary()
+vif(m5_total)
+nobs(m5_total)
+
+coeftest(
+  m5_total,
+  vcov. = vcovHC(m5_total, type = "HC3")
+)
+```
+
+
+
+```{r m6_total}
+#| label: tbl-m6_total
+#| tbl-cap: "2015年残存率モデルの頑健性確認(M6_total：2010年経営体数77以下を除外。)"
+
+summary(machinery_change$farm_entities_total_2010)
+
+quantile(
+  machinery_change$farm_entities_total_2010,
+  probs = c(0, .1, .25, .5, .75, .9, 1),
+  na.rm = TRUE)
+
+# 経営体数78人未満のケース除外(だいたい下位25％のケースを除外)
+machinery_change_78 <- machinery_change |>
+  filter(farm_entities_total_2010 >= 78)
+
+m6_total <- lm(
+  farm_entities_total_2015 / farm_entities_total_2010 ~
+    tsunami_farmland_share_2010 +
+    c_one + c_four + production_support +
+    individual_combine_owner_share_min_2010 +
+    individual_tractor_owner_share_min_2010 +
+    individual_rice_transplanter_owner_share_min_2010,
+  data = machinery_change_78
+)
+
+m6_total |> summary()
+vif(m6_total)
+nobs(m6_total)
+
+coeftest(
+  m6_total,
+  vcov. = vcovHC(m6_total, type = "HC3")
+)
+```
+
+
+```{r m7_total}
+#| label: tbl-m7_total
+#| tbl-cap: "2015年残存率モデルの頑健性確認(M7_total：目的変数を対数変換)"
+
+machinery_change <- machinery_change |>
+  mutate(
+    log_entities_2015_2010_ratio =
+      log(farm_entities_total_2015 / farm_entities_total_2010)
+  )
+
+m7_total <- lm(
+  log_entities_2015_2010_ratio ~
+    tsunami_farmland_share_2010 +
+    c_one + c_four + production_support +
+    individual_combine_owner_share_min_2010 +
+    individual_tractor_owner_share_min_2010 +
+    individual_rice_transplanter_owner_share_min_2010,
+  data = machinery_change
+)
+
+m7_total |> summary()
+vif(m7_total)
+nobs(m7_total)
+
+coeftest(
+  m7_total,
+  vcov. = vcovHC(m7_total, type = "HC3")
+)
+```
+
+
+```{r m8_total}
+#| label: tbl-m8_total
+#| tbl-cap: "目的変数を2020年残存率に変更した結果(M8_total：基本モデル)"
+
+m8_total<- lm(
+  farm_entities_total_2020 / farm_entities_total_2010 ~
+    
+    tsunami_farmland_share_2010 +
+    c_one +
+    c_four +
+    production_support +
+    individual_combine_owner_share_min_2010 +
+    individual_tractor_owner_share_min_2010 +
+    individual_rice_transplanter_owner_share_min_2010,
+  data = machinery_change
+)
+
+m8_total |> summary()
+vif(m8_total)
+nobs(m8_total)
+
+coeftest(
+  m8_total,
+  vcov. = vcovHC(m8_total, type = "HC3")
+)
+```
