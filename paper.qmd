@@ -1000,13 +1000,12 @@ M1は被災程度と地域の初期構造のみのモデルであり、津波被
 
 m1 <- lm(
   individual_2015_2010_ratio ~
-    individual_share_2010 +
     tsunami_farmland_share_2010,
   data = machinery_change
 )
 
 m1 |> summary()
-vif(m1)
+
 nobs(m1)
 
 coeftest(
@@ -1021,7 +1020,6 @@ coeftest(
 
 m2 <- lm(
   individual_2015_2010_ratio ~
-    individual_share_2010 +
     tsunami_farmland_share_2010 +
     c_one +
     c_four +
@@ -1045,7 +1043,6 @@ coeftest(
 
 m3 <- lm(
   individual_2015_2010_ratio ~
-    individual_share_2010 +
     tsunami_farmland_share_2010 +
     individual_combine_owner_share_min_2010 +
     individual_tractor_owner_share_min_2010 +
@@ -1069,7 +1066,6 @@ coeftest(
 
 m4 <- lm(
   individual_2015_2010_ratio ~
-    individual_share_2010 +
     tsunami_farmland_share_2010 +
     c_one +
     c_four +
@@ -1102,7 +1098,6 @@ N=53、自由度修正済R²=0.46、F(8,44)=6.51（p\<0.001）。VIFはすべて
 
 m5 <- lm(
   individual_2015_2010_ratio ~
-    individual_share_2010 +
     tsunami_farmland_share_2010 +
     c_one +
     c_four +
@@ -1128,13 +1123,19 @@ coeftest(
 #| label: tbl-m6
 #| tbl-cap: "2015年残存率モデルの頑健性確認(M6：2010年個人経営体数75以下を除外。)"
 
-# 個人経営体数75人未満のケース除外(だいたい下位25％のケースを除外)
+quantile(
+  machinery_change$individual_entities_2010,
+  probs = c(0, .1, .25, .5, .75, .9, 1),
+  na.rm = TRUE)
+
+# 経営体数75以下のケース除外(だいたい下位25％のケースを除外)
 machinery_change_75 <- machinery_change |>
   filter(individual_entities_2010 >= 75)
 
+
+
 m6 <- lm(
   individual_2015_2010_ratio ~
-    individual_share_2010 +
     tsunami_farmland_share_2010 +
     c_one + c_four + production_support +
     individual_combine_owner_share_min_2010 +
@@ -1167,7 +1168,6 @@ machinery_change <- machinery_change |>
 
 m7 <- lm(
   log_individual_2015_2010_ratio ~
-    individual_share_2010 +
     tsunami_farmland_share_2010 +
     c_one + c_four + production_support +
     individual_combine_owner_share_min_2010 +
@@ -1194,7 +1194,6 @@ coeftest(
 
 m8<- lm(
   individual_2020_2010_ratio ~
-    individual_share_2010 +
     tsunami_farmland_share_2010 +
     c_one +
     c_four +
@@ -1258,7 +1257,6 @@ m1_total <- lm(
 )
 
 m1_total |> summary()
-vif(m1_total)
 nobs(m1_total)
 
 coeftest(
@@ -1342,7 +1340,7 @@ coeftest(
 
 ```{r m5_total}
 #| label: tbl-m5
-#| tbl-cap: "　2015年残存率モデルの頑健性確認(M5_total：2010年経営体数で重み付け。)"
+#| tbl-cap: "　2015年残存率モデルの頑健性確認(M5_total：2010年個人経営体数で重み付け。)"
 
 m5_total <- lm(
   farm_entities_total_2015 / farm_entities_total_2010 ~
@@ -1354,7 +1352,7 @@ m5_total <- lm(
     individual_tractor_owner_share_min_2010 +
     individual_rice_transplanter_owner_share_min_2010,
   data = machinery_change,
-  weights = farm_entities_total_2010
+  weights = individual_entities_2010
 )
 
 m5_total |> summary()
@@ -1371,18 +1369,18 @@ coeftest(
 
 ```{r m6_total}
 #| label: tbl-m6_total
-#| tbl-cap: "2015年残存率モデルの頑健性確認(M6_total：2010年経営体数77以下を除外。)"
+#| tbl-cap: "2015年残存率モデルの頑健性確認(M6_total：2010年個人経営体数75以下を除外。)"
 
-summary(machinery_change$farm_entities_total_2010)
+summary(machinery_change$individual_entities_2010)
 
 quantile(
-  machinery_change$farm_entities_total_2010,
+  machinery_change$individual_entities_2010,
   probs = c(0, .1, .25, .5, .75, .9, 1),
   na.rm = TRUE)
 
-# 経営体数78人未満のケース除外(だいたい下位25％のケースを除外)
-machinery_change_78 <- machinery_change |>
-  filter(farm_entities_total_2010 >= 78)
+# 経営体数75人以下のケース除外(だいたい下位25％のケースを除外)
+machinery_change_75 <- machinery_change |>
+  filter(individual_entities_2010 >= 76)
 
 m6_total <- lm(
   farm_entities_total_2015 / farm_entities_total_2010 ~
@@ -1391,7 +1389,7 @@ m6_total <- lm(
     individual_combine_owner_share_min_2010 +
     individual_tractor_owner_share_min_2010 +
     individual_rice_transplanter_owner_share_min_2010,
-  data = machinery_change_78
+  data = machinery_change_75
 )
 
 m6_total |> summary()
